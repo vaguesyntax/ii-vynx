@@ -19,97 +19,17 @@ OverlayBackground {
     property var parsedCopylistLines: []
     property bool isClickthrough: false
     property real maxCopyButtonSize: 20
-    property int currentTabIndex: Persistent.states.overlay.notes.tabIndex
-    property bool tabEditModeEnabled: false
 
     Component.onCompleted: {
         noteFile.reload();
         updateCopyListEntries();
     }
 
-    property var tabsData: ({
-        tabs: root.defaultTabs
-    })
-
-    property list<var> defaultTabs: [
-        { title: "Tab 1", icon: "article", content: "" },
-        { title: "Tab 2", icon: "article", content: "" },
-        { title: "Tab 3", icon: "article", content: "" }
-    ]
-
-    property var tabOptions: root.tabsData.tabs.map((tab, index) => ({
-        displayName: tab.title,
-        icon: tab.icon,
-        value: index
-    }))
-
-    function saveToFile() {
+    function saveContent() {
         if (!textInput)
             return;
-        
-        if (currentTabIndex >= 0 && currentTabIndex < tabsData.tabs.length) {
-            tabsData.tabs[currentTabIndex].content = root.content;
-        }
-        
-        const jsonString = JSON.stringify(tabsData, null, 2);
-        noteFile.setText(jsonString);
+        noteFile.setText(root.content);
     }
-
-    function loadTabContent(tabIndex) {
-        if (tabIndex >= 0 && tabIndex < tabsData.tabs.length) {
-            root.content = tabsData.tabs[tabIndex].content || "";
-            updateCopyListEntries();
-        }
-    }
-
-    function changeCurrentTab(index) {
-        Persistent.states.overlay.notes.tabIndex = index;
-    }
-
-    function addNewTab() {
-        const newTabIndex = root.tabsData.tabs.length;
-        const newTab = {
-            title: "Tab " + (newTabIndex + 1),
-            icon: "article",
-            content: ""
-        };
-        
-        let newTabs = root.tabsData.tabs.slice();
-        newTabs.push(newTab);
-        
-        root.tabsData = {
-            tabs: newTabs
-        };
-        
-        saveToFile();
-        
-        root.changeCurrentTab(newTabIndex);
-        Qt.callLater(() => {
-            loadTabContent(newTabIndex);
-            focusAtEnd();
-        });
-    }
-
-    function deleteCurrentTab() {
-        if (root.tabsData.tabs.length <= 1) { // not deleting the last tab
-            return;
-        }
-        
-        let newTabs = root.tabsData.tabs.slice();
-        newTabs.splice(currentTabIndex, 1);
-        
-        root.tabsData = {
-            tabs: newTabs
-        };
-        
-        saveToFile();
-        const newIndex = Math.min(currentTabIndex, newTabs.length - 1);
-        root.changeCurrentTab(newIndex);
-        Qt.callLater(() => {
-            loadTabContent(newIndex);
-        });
-    }
-
 
     function focusAtEnd() {
         if (!textInput)
@@ -221,118 +141,36 @@ OverlayBackground {
 
     ColumnLayout {
         id: contentItem
-        property int margin: Config.options.overlay.notes.showTabs ? 26 : 14
-        anchors {
-            fill: parent
-            leftMargin: margin
-            rightMargin: margin
-            topMargin: margin 
-        }
-        spacing: 14
-
-        Loader {
-            Layout.fillWidth: true
-            active: Config.options.overlay.notes.showTabs
-            sourceComponent: RowLayout {
-                Layout.fillWidth: true
-
-                ConfigSelectionArray {
-                    currentValue: root.currentTabIndex
-                    Layout.fillWidth: true
-                    
-                    onSelected: newValue => {
-                        if (root.tabEditModeEnabled) return;
-
-                        saveToFile();
-                        root.content = "";
-                        root.changeCurrentTab(newValue);
-
-                        Qt.callLater(() => loadTabContent(newValue));
-                    }
-
-                    options: root.tabOptions
-                }
-
-                ConfigSelectionArray {
-                    currentValue: root.tabEditModeEnabled ? 0 : -1
-                    Layout.fillWidth: false
-                    options: [
-                        {
-                            displayName: "",
-                            icon: "edit",
-                            value: 0,
-                            releaseAction: (() => root.tabEditModeEnabled = !root.tabEditModeEnabled)
-                        },
-                        {
-                            displayName: "",
-                            icon: "add",
-                            value: 1,
-                            releaseAction: (() => root.addNewTab())
-                        }
-                    ]
-                }
-            }
-        }
-        
-        Loader {
-            Layout.fillWidth: true
-            active: Config.options.overlay.notes.showTabs
-            sourceComponent: RowLayout {
-                Layout.fillWidth: true
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                Loader {
-                    active: root.tabEditModeEnabled || (item && item.height > 0)
-                    sourceComponent: TitleEditComp {
-                        Layout.fillWidth: false
-                    }
-                    onLoaded: item.height = 50
-                }
-            }
-        }
-        
-        Keys.onPressed: event => {
-            if (event.key === Qt.Key_Delete && event.modifiers & Qt.ShiftModifier) {
-                root.deleteCurrentTab();
-            }
-        }
+        anchors.fill: parent
+        spacing: -16
 
         ScrollView {
             id: editorScrollView
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.topMargin: -12
             clip: true
             ScrollBar.vertical.policy: ScrollBar.AsNeeded
             onWidthChanged: root.scheduleCopylistUpdate(true)
 
-            
-
             StyledTextArea { // This has to be a direct child of ScrollView for proper scrolling
                 id: textInput
-                anchors.fill: parent
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                }
                 wrapMode: TextEdit.Wrap
-                implicitWidth: parent.implicitWidth - padding * 2 - 6
                 placeholderText: Translation.tr("Write something here...\nUse '-' to create copyable bullet points, like this:\n\nSheep fricker\n- 4x Slab\n- 1x Boat\n- 4x Redstone Dust\n- 1x Sticky Piston\n- 1x End Rod\n- 4x Redstone Repeater\n- 1x Redstone Torch\n- 1x Sheep")
                 selectByMouse: true
                 persistentSelection: true
                 textFormat: TextEdit.PlainText
                 background: null
-                padding: 12
+                padding: 24
 
                 onTextChanged: {
                     if (textInput.activeFocus) {
                         saveDebounce.restart();
                     }
                     root.scheduleCopylistUpdate(true);
-                }
-
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Delete && event.modifiers & Qt.ShiftModifier) {
-                        root.deleteCurrentTab();
-                    }
                 }
                 
                 onHeightChanged: root.scheduleCopylistUpdate(true)
@@ -356,7 +194,7 @@ OverlayBackground {
                         required property var modelData
                         readonly property real lineHeight: Math.min(Math.max(modelData.height, Appearance.font.pixelSize.normal + 6), root.maxCopyButtonSize)
                         readonly property real iconSizeLocal: Appearance.font.pixelSize.normal
-                        readonly property real hitPadding: 4
+                        readonly property real hitPadding: 6
                         property bool justCopied: false
 
                         implicitHeight: lineHeight
@@ -364,7 +202,7 @@ OverlayBackground {
                         buttonRadius: height / 2
                         y: modelData.y
                         anchors.right: parent.right
-                        anchors.rightMargin: -hitPadding
+                        anchors.rightMargin: 10
                         z: 5
 
                         Timer {
@@ -410,7 +248,7 @@ OverlayBackground {
         id: saveDebounce
         interval: 500
         repeat: false
-        onTriggered: saveToFile()
+        onTriggered: saveContent()
     }
 
     Timer {
@@ -424,26 +262,13 @@ OverlayBackground {
         id: noteFile
         path: Qt.resolvedUrl(Directories.notesPath)
         onLoaded: {
-            try {
-                const jsonText = noteFile.text();
-                const parsed = JSON.parse(jsonText);
-                
-                if (parsed && parsed.tabs && Array.isArray(parsed.tabs)) {
-                    root.tabsData = parsed;
-                } else {
-                    root.tabsData = {
-                        tabs: root.defaultTabs
-                    };
-                }
-            } catch (e) {
-                console.log("[Overlay Notes] JSON parse error: " + e);
-                root.tabsData = {
-                    tabs: root.defaultTabs
-                };
+            root.content = noteFile.text();
+            if (root.content !== root.content) {
+                const previousCursor = textInput.cursorPosition;
+                const previousAnchor = textInput.selectionStart;
+                root.content = root.content;
+                applySelection(previousCursor, previousAnchor);
             }
-            
-            loadTabContent(root.currentTabIndex);
-            
             if (pendingReload) {
                 pendingReload = false;
                 Qt.callLater(root.focusAtEnd);
@@ -452,12 +277,8 @@ OverlayBackground {
         }
         onLoadFailed: error => {
             if (error === FileViewError.FileNotFound) {
-                root.tabsData = {
-                    tabs: root.defaultTabs
-                };
                 root.content = "";
-                saveToFile();
-                
+                noteFile.setText(root.content);
                 if (pendingReload) {
                     pendingReload = false;
                     Qt.callLater(root.focusAtEnd);
@@ -467,68 +288,5 @@ OverlayBackground {
                 console.log("[Overlay Notes] Error loading file: " + error);
             }
         }
-    }
-
-    component TitleEditComp: Row {
-        id: row
-        spacing: 4
-        height: 0
-
-        property bool editMode: root.tabEditModeEnabled
-        onEditModeChanged: {
-            if (!editMode) height = 0
-        }
-
-        function updateTitle(disableEditMode = false) {
-            let newTabs = root.tabsData.tabs.slice();
-            newTabs[currentTabIndex] = {
-                title: titleInput.text.split("\n")[0],  // only getting the first line
-                icon: iconInput.text.split("\n")[0],
-                content: newTabs[currentTabIndex].content
-            };
-            
-            if (disableEditMode) root.tabEditModeEnabled = false;
-
-            root.tabsData = { tabs: newTabs };
-            
-            saveToFile();
-        }
-
-        Behavior on height {
-            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-        }
-
-        EditInput {
-            id: iconInput
-            visible: Config.options.overlay.notes.allowEditingIcon
-            placeholderText: Translation.tr("Icon")
-            text: root.tabsData.tabs[currentTabIndex].icon
-        }
-
-        EditInput {
-            id: titleInput
-            placeholderText: Translation.tr("Title")
-            text: root.tabsData.tabs[currentTabIndex].title
-        }        
-
-    }
-
-
-    component EditInput: MaterialTextArea {
-        property int textAreaPadding: 6
-
-        implicitWidth: 150
-        implicitHeight: parent.height
-        placeholderTextColor: height >= 40 ? Appearance.m3colors.m3outline : "transparent"  
-
-        Keys.onPressed: event => {
-            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                row.updateTitle(true);
-            }
-        }
-
-        anchors.top: parent.top
-        anchors.topMargin: -textAreaPadding
-        topInset: textAreaPadding
     }
 }

@@ -368,36 +368,6 @@ ContentPage {
     }
 
     ContentSection {
-        icon: "sticky_note_2"
-        title: Translation.tr("Overlay: Notes")
-
-        ConfigRow {
-            uniform: true
-            ConfigSwitch {
-                buttonIcon: "tab"
-                text: Translation.tr("Show tabs")
-                checked: Config.options.overlay.notes.showTabs
-                onCheckedChanged: {
-                    Config.options.overlay.notes.showTabs = checked;
-                }
-            }
-
-            ConfigSwitch {
-                enabled: Config.options.overlay.notes.showTabs
-                buttonIcon: "edit_note"
-                text: Translation.tr("Allow editing the icon")
-                checked: Config.options.overlay.notes.allowEditingIcon
-                onCheckedChanged: {
-                    Config.options.overlay.notes.allowEditingIcon = checked;
-                }
-            }
-            
-        }
-        
-
-    }
-
-    ContentSection {
         icon: "screenshot_frame_2"
         title: Translation.tr("Region selector (screen snipping/Google Lens)")
 
@@ -524,6 +494,71 @@ ContentPage {
                 Config.options.sidebar.translator.enable = checked;
             }
         }
+
+        ConfigRow {
+
+            ContentSubsection {
+                title: Translation.tr("Boorus")
+                Layout.fillWidth: true
+                
+                ConfigSelectionArray {
+                    currentValue: Config.options.policies.weeb
+                    onSelected: newValue => {
+                        Config.options.policies.weeb = newValue;
+                    }
+                    options: [
+                        {
+                            displayName: "",
+                            icon: "hide_source",
+                            value: 0
+                        },
+                        {
+                            displayName: Translation.tr("Enabled"),
+                            icon: "check",
+                            value: 1
+                        },
+                        {
+                            displayName: Translation.tr("Closet"),
+                            icon: "left_panel_close",
+                            value: 2
+                        }
+                    ]
+                }
+            }
+
+            ContentSubsection {
+                title: Translation.tr("AI")
+                Layout.fillWidth: false
+                
+                ConfigSelectionArray {
+                    currentValue: Config.options.policies.ai
+                    onSelected: newValue => {
+                        Config.options.policies.ai = newValue;
+                    }
+                    options: [
+                        {
+                            displayName: "",
+                            icon: "hide_source",
+                            value: 0
+                        },
+                        {
+                            displayName: Translation.tr("Enabled"),
+                            icon: "check",
+                            value: 1
+                        },
+                        {
+                            displayName: Translation.tr("Local"),
+                            icon: "computer",
+                            value: 2
+                        }
+                    ]
+                }
+            }
+
+        }
+        
+
+        
 
         ContentSubsection {
             title: Translation.tr("Quick toggles")

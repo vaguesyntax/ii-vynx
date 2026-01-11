@@ -49,7 +49,6 @@ Flow {
             buttonShape: modelData.shape || ""
             buttonText: modelData.displayName
             toggled: root.currentValue == modelData.value
-            releaseAction: modelData.releaseAction || ""
             onClicked: {
                 root.selected(modelData.value);
             }

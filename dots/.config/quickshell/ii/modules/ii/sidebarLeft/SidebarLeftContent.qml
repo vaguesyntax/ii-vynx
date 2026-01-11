@@ -16,6 +16,7 @@ Item {
     property bool translatorEnabled: Config.options.sidebar.translator.enable
     property bool animeEnabled: Config.options.policies.weeb !== 0
     property bool animeCloset: Config.options.policies.weeb === 2
+    property bool wallpaperBrowserEnabled: Config.options.policies.wallpaperBrowser !== 0
     property var tabButtonList: [
         ...(root.aiChatEnabled ? [{"icon": "neurology", "name": Translation.tr("Intelligence")}] : []),
         ...(root.translatorEnabled ? [{"icon": "translate", "name": Translation.tr("Translator")}] : []),
@@ -88,6 +89,7 @@ Item {
                     ...(root.translatorEnabled ? [translator.createObject()] : []),
                     ...((root.tabButtonList.length === 0 || (!root.aiChatEnabled && !root.translatorEnabled && root.animeCloset)) ? [placeholder.createObject()] : []),
                     ...(root.animeEnabled ? [anime.createObject()] : []),
+                    ...(root.wallpaperBrowserEnabled ? [wallpaperBrowser.createObject()] : [])  // Add this  
                 ]
             }
         }
@@ -99,6 +101,10 @@ Item {
         Component {
             id: translator
             Translator {}
+        }
+        Component {
+            id: wallpaperBrowser
+            WallpaperBrowser {}
         }
         Component {
             id: anime

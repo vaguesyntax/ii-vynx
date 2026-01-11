@@ -84,6 +84,7 @@ Singleton {
             property JsonObject policies: JsonObject {
                 property int ai: 1 // 0: No | 1: Yes | 2: Local
                 property int weeb: 1 // 0: No | 1: Open | 2: Closet
+                property int wallpaperBrowser: 1 // 0: No | 1: Yes  
             }
 
             property JsonObject ai: JsonObject {
@@ -488,10 +489,6 @@ Singleton {
                     property string imageSource: "https://media.tenor.com/H5U5bJzj3oAAAAAi/kukuru.gif"
                     property real scale: 0.5
                 }
-                property JsonObject notes: JsonObject {
-                    property bool showTabs: true
-                    property bool allowEditingIcon: true
-                }
             }
 
             property JsonObject overview: JsonObject {
@@ -605,6 +602,11 @@ Singleton {
                         property string username: "[unset]"
                     }
                 }
+            
+                property JsonObject unsplash: JsonObject {  
+                    property int limit: 20  
+                }
+
                 property JsonObject cornerOpen: JsonObject {
                     property bool enable: false
                     property bool bottom: false
@@ -723,6 +725,11 @@ Singleton {
                     property bool force2CharDayOfWeek: true
                 }
             }
+
+            property JsonObject unsplash: JsonObject {  
+                property string apiKey: ""  
+            }    
+
         }
     }
 }
