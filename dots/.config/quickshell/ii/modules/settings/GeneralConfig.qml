@@ -384,10 +384,10 @@ ContentPage {
         }  
     }  
 
-ContentSection {
+    ContentSection {
         icon: "calendar_month"
         title: Translation.tr("Date")
-        
+
         ContentSubsection {
             title: Translation.tr("Format")
             tooltip: ""
@@ -395,24 +395,17 @@ ContentSection {
             ConfigSelectionArray {
                 currentValue: Config.options.time.dateFormat
                 onSelected: newValue => {
-                    if (newValue === "hh:mm") {
-                        Quickshell.execDetached(["bash", "-c", `sed -i 's/\\TIME12\\b/TIME/' '${FileUtils.trimFileProtocol(Directories.config)}/hypr/hyprlock.conf'`]);
-                    } else {
-                        Quickshell.execDetached(["bash", "-c", `sed -i 's/\\TIME\\b/TIME12/' '${FileUtils.trimFileProtocol(Directories.config)}/hypr/hyprlock.conf'`]);
-                    }
-
-                    Config.options.time.dateFormat = newValue;
-                    
+                    Config.options.time.dateFormat = newValue;  
                 }
                 options: [
                     {
-                        displayName: Translation.tr("Day First dd/MM"),
+                        displayName: Translation.tr("Date First dd/MM"),
                         value: "ddd dd/MM"
                     },
                     {
                         displayName: Translation.tr("Month First MM/dd"),
                         value: "ddd MM/dd"
-                    },
+                    }
                 ]
             }
         }
