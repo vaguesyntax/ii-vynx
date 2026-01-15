@@ -393,7 +393,7 @@ ContentSection {
             tooltip: ""
 
             ConfigSelectionArray {
-                currentValue: Config.options.time.format
+                currentValue: Config.options.date.format
                 onSelected: newValue => {
                     if (newValue === "hh:mm") {
                         Quickshell.execDetached(["bash", "-c", `sed -i 's/\\TIME12\\b/TIME/' '${FileUtils.trimFileProtocol(Directories.config)}/hypr/hyprlock.conf'`]);
