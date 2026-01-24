@@ -6,8 +6,8 @@ import Quickshell.Io
 import Quickshell.Services.Mpris
 import qs
 import qs.services
-
 import qs.modules.common
+import qs.modules.common.utils
 import qs.modules.common.widgets
 
 import qs.modules.ii.mediaControls
@@ -17,9 +17,8 @@ import Qt5Compat.GraphicalEffects
 
 StyledOverlayWidget {
     id: root
-    minimumWidth: 400
-    minimumHeight: 400
-
+    minimumWidth: 300
+    minimumHeight: 250
     
     readonly property MprisPlayer currentPlayer: MprisController.activePlayer
     
@@ -30,7 +29,6 @@ StyledOverlayWidget {
     property string artDownloadLocation: Directories.coverArt
     property string artFileName: Qt.md5(artUrl)
     property string artFilePath: `${artDownloadLocation}/${artFileName}`
-
 
     onArtFilePathChanged: updateArt()
 
@@ -51,6 +49,16 @@ StyledOverlayWidget {
         }
     }
 
+    LrclibLyrics {
+        id: lrclibLyrics
+        enabled: true //(root.currentPlayer?.trackTitle?.length > 0) && (root.currentPlayer?.trackArtist?.length > 0)
+        title: root.currentPlayer?.trackTitle ?? ""
+        artist: root.currentPlayer?.trackArtist ?? ""
+        duration: root.currentPlayer?.length ?? 0
+        position: root.currentPlayer?.position ?? 0
+        selectedId: 0 //? I have no idea what this does, but it works so whatever
+    }
+
     contentItem: OverlayBackground {
         id: contentItem
         radius: root.contentRadius
@@ -63,18 +71,17 @@ StyledOverlayWidget {
             // Top region for lyricss
             Item {
                 Layout.fillWidth: true
-                Layout.preferredHeight: parent.height * 0.88
+                Layout.preferredHeight: parent.height - mediaControlsRow.height - contentItem.padding * 2 - 20
 
-                Rectangle {
-                    anchors.fill: parent
-                    color: "red"
-                    opacity: 0.1
+                LyricScroller {
+                    id: lyricScroller
                 }
             }
 
             RowLayout {
+                id: mediaControlsRow
                 Layout.fillWidth: true
-                Layout.preferredHeight: parent.height * 0.12
+                Layout.preferredHeight: 30
                 spacing: 10
 
                 Rectangle { // Art background
@@ -119,7 +126,7 @@ StyledOverlayWidget {
                         Layout.fillWidth: true
                         text: root.currentPlayer?.trackArtist || Translation.tr("Unknown Artist")
                         color: Appearance.colors.colSubtext
-                        font.pixelSize: Appearance.font.pixelSize.medium
+                        font.pixelSize: Appearance.font.pixelSize.smaller
                         elide: Text.ElideRight
                     }
 
@@ -200,12 +207,170 @@ StyledOverlayWidget {
 
                     }
                 }
+            }   
+        }
+    }
+
+    /*
+     * TODO list in case I forget:
+     * - Make gradient masking actually work
+     * - Fix the problem with caching (on oncompleted of fetching or smthing)
+     * - Fix the resolution of the texts (use pixelSize instead of scale ig?)
+     * - Make the background transparent, or add dim option and level config
+     * - Lyrics desync 
+     * - Fix the visuals (it looks bad af rn)
+    */
+
+    component LyricScroller: Item {
+        id: lyricScroller
+        anchors.fill: parent
+        clip: true
+
+        readonly property bool hasSyncedLines: visible ? lrclibLyrics.lines.length > 0 : false
+        readonly property int rowHeight: Math.max(10, Math.min(Math.floor(height / 3), Appearance.font.pixelSize.large))
+        readonly property real baseY: Math.max(0, Math.round((height - rowHeight * 3) / 2))
+        readonly property real downScale: Appearance.font.pixelSize.large / Appearance.font.pixelSize.larger
+        
+        readonly property int targetCurrentIndex: hasSyncedLines ? lrclibLyrics.currentIndex : -1
+
+        readonly property string targetPrev: hasSyncedLines ? lrclibLyrics.prevLineText : ""
+        readonly property string targetCurrent: hasSyncedLines ? (lrclibLyrics.currentLineText || "♪") : lrclibLyrics.displayText
+        readonly property string targetNext: hasSyncedLines ? lrclibLyrics.nextLineText : ""
+
+        property int lastIndex: -1
+        property bool isMovingForward: true
+
+        readonly property real animProgress: Math.abs(scrollOffset) / rowHeight
+        readonly property real dimOpacity: 0.6
+        readonly property real activeOpacity: 1.0
+
+        property real scrollOffset: 0
+
+        property int staticLineAnimDuration: 100 // a config option maybe? but it may be an overkill
+        
+        onTargetCurrentIndexChanged: {
+            if (targetCurrentIndex !== lastIndex) {
+                isMovingForward = targetCurrentIndex > lastIndex;
+                lastIndex = targetCurrentIndex;
+                scrollAnimation.restart();
+            }
+        }
+        
+        SequentialAnimation {
+            id: scrollAnimation
+            PropertyAction { // instant
+                target: lyricScroller
+                property: "scrollOffset"
+                value: lyricScroller.isMovingForward ? -lyricScroller.rowHeight : lyricScroller.rowHeight 
+            }
+            NumberAnimation { // smooth
+                target: lyricScroller
+                property: "scrollOffset"
+                to: 0
+                duration: 300
+                easing.type: Easing.OutCubic
+            }
+        }
+        
+        Column {
+            width: parent.width
+            spacing: 0
+            y: lyricScroller.baseY - lyricScroller.scrollOffset
+
+            LyricLine {
+                text: lyricScroller.targetPrev
+                highlight: false
+                useGradient: true
+                gradientDirection: "top"
+                
+                opacity: (lyricScroller.isMovingForward) 
+                    ? lyricScroller.dimOpacity + (lyricScroller.activeOpacity - lyricScroller.dimOpacity) * lyricScroller.animProgress
+                    : lyricScroller.dimOpacity
+                    
+                scale: (lyricScroller.isMovingForward)
+                    ? lyricScroller.downScale + (1.0 - lyricScroller.downScale) * lyricScroller.animProgress
+                    : lyricScroller.downScale
             }
 
-            
+            LyricLine {
+                text: lyricScroller.targetCurrent
+                highlight: true
+                useGradient: false
+                
+                opacity: lyricScroller.activeOpacity - (lyricScroller.activeOpacity - lyricScroller.dimOpacity) * lyricScroller.animProgress
+                scale: 1.0 - (1.0 - lyricScroller.downScale) * lyricScroller.animProgress
+            }
+
+            LyricLine {
+                text: lyricScroller.targetNext
+                highlight: false
+                useGradient: true
+                gradientDirection: "bottom"
+                
+                opacity: (!lyricScroller.isMovingForward)
+                    ? lyricScroller.dimOpacity + (lyricScroller.activeOpacity - lyricScroller.dimOpacity) * lyricScroller.animProgress
+                    : lyricScroller.dimOpacity
+
+                scale: (!lyricScroller.isMovingForward)
+                    ? lyricScroller.downScale + (1.0 - lyricScroller.downScale) * lyricScroller.animProgress
+                    : lyricScroller.downScale
+            }
+        }
+    }
+
+    component LyricLine: Item {
+        id: lyricLineItem
+        required property string text
+        property bool highlight: false
+        property bool useGradient: false
+        property string gradientDirection: "top" // "top" or "bottom"
+        property bool reallyUseGradient: false //FIXME
+
+        width: parent.width
+        height: lyricScroller.rowHeight
+
+        StyledText { // text for middle line
+            id: lyricText
+            anchors.fill: parent
+            text: lyricLineItem.text
+            color: lyricLineItem.highlight ? Appearance.colors.colOnLayer1 : Appearance.colors.colSubtext
+            font.pixelSize: Appearance.font.pixelSize.huge
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+            visible: !lyricLineItem.reallyUseGradient
         }
 
-        
-        
+        Item {
+            anchors.fill: parent
+            visible: lyricLineItem.reallyUseGradient
+            layer.enabled: visible
+            layer.effect: OpacityMask {
+                maskSource: Rectangle {
+                    width: lyricLineItem.width
+                    height: lyricLineItem.height
+                    gradient: Gradient {
+                        GradientStop { 
+                            position: 0.0
+                            color: lyricLineItem.gradientDirection === "top" ? "transparent" : "black" // colShadow makes it look bad
+                        }
+                        GradientStop { 
+                            position: 1.0
+                            color: lyricLineItem.gradientDirection === "top" ?  "black" : "transparent"
+                        }
+                    }
+                }
+            }
+
+            StyledText { // text with gradient mask
+                anchors.fill: parent
+                text: lyricLineItem.text
+                color: Appearance.colors.colSubtext
+                font.pixelSize: Appearance.font.pixelSize.huge
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+            }
+        }
     }
 }
