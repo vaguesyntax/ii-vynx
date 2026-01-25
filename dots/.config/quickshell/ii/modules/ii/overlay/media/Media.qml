@@ -17,8 +17,8 @@ import Qt5Compat.GraphicalEffects
 
 StyledOverlayWidget {
     id: root
-    minimumWidth: 300
-    minimumHeight: 250
+    minimumWidth: 350
+    minimumHeight: 150
     
     readonly property MprisPlayer currentPlayer: MprisController.activePlayer
     
@@ -51,12 +51,19 @@ StyledOverlayWidget {
 
     LrclibLyrics {
         id: lrclibLyrics
-        enabled: true //(root.currentPlayer?.trackTitle?.length > 0) && (root.currentPlayer?.trackArtist?.length > 0)
+        enabled: (root.currentPlayer?.trackTitle?.length > 0) && (root.currentPlayer?.trackArtist?.length > 0)
         title: root.currentPlayer?.trackTitle ?? ""
         artist: root.currentPlayer?.trackArtist ?? ""
         duration: root.currentPlayer?.length ?? 0
         position: root.currentPlayer?.position ?? 0
         selectedId: 0 //? I have no idea what this does, but it works so whatever
+    }
+
+    Timer {
+        running: root.currentPlayer?.playbackState == MprisPlaybackState.Playing
+        interval: lyricScroller.hasSyncedLines ? 250 : Config.options.resources.updateInterval
+        repeat: true
+        onTriggered: root.currentPlayer.positionChanged()
     }
 
     contentItem: OverlayBackground {

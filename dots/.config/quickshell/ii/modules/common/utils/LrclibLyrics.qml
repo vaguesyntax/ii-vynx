@@ -375,20 +375,24 @@ Item {
 
     onFetchKeyChanged: {
         root.resetState();
+
+        if (lyricFileView.isInitialLoad) {
+            fetchDebounce.restart();
+            return;
+        }
         
         const cached = getCached(root.queryTitle, root.queryArtist, root.queryDuration);
         if (cached) {
-            // console.log("[Cache] Save found:", root.queryTitle);
             root.instrumental = cached.instrumental || false;
             root.lines = cached.lines || [];
             root.loading = false;
             root.error = "";
             root.loadedKey = root.fetchKey;
         } else if (root.enabled) {
-            // console.log("[Cache] Save NOT found:", root.queryTitle);
             fetchDebounce.restart();
         }
     }
+
 
     function getCached(track, artist, duration) {
         const key = `${track}||${artist}||${duration}`;
@@ -421,9 +425,22 @@ Item {
                     root._cache = {};
                 }
                 isInitialLoad = false;
+                
+                // Cache yüklendikten sonra tekrar kontrol et
+                if (root.fetchKey) {
+                    const cached = getCached(root.queryTitle, root.queryArtist, root.queryDuration);
+                    if (cached) {
+                        root.instrumental = cached.instrumental || false;
+                        root.lines = cached.lines || [];
+                        root.loading = false;
+                        root.error = "";
+                        root.loadedKey = root.fetchKey;
+                    }
+                }
             }
         }
     }
+
 
     onSelectedIdChanged: {
         root.resetState();
