@@ -46,12 +46,38 @@ MouseArea {
             trayItemMenuHandle: root.item.menu
             anchor {
                 window: root.QsWindow.window
-                rect.x: root.x + (Config.options.bar.vertical ? 0 : QsWindow.window?.width)
-                rect.y: root.y + (Config.options.bar.vertical ? QsWindow.window?.height : 0)
+                rect.x: {
+                    var globalPos = root.mapToGlobal(0, 0);
+                    return globalPos.x + (Config.options.bar.vertical ? 0 : root.width / 2);
+                }
+                rect.y: {
+                    var globalPos = root.mapToGlobal(0, 0);
+                    return globalPos.y + (Config.options.bar.vertical ? root.height / 2 : 0);
+                }
                 rect.height: root.height
                 rect.width: root.width
-                edges: Config.options.bar.bottom ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
-                gravity: Config.options.bar.bottom ? (Edges.Top | Edges.Left) : (Edges.Bottom | Edges.Right)
+                edges: {
+                    if (Config.options.bar.vertical) {
+                        return Config.options.bar.bottom ? 
+                            (Edges.Middle | Edges.Right) :  // right bar - vertical center
+                            (Edges.Middle | Edges.Left);    // left bar - vertical center
+                    } else {
+                        return Config.options.bar.bottom ? 
+                            (Edges.Top | Edges.Center) :    // bottom bar - horizontal center
+                            (Edges.Bottom | Edges.Center);  // top bar - horizontal center
+                    }
+                }
+                gravity: {
+                    if (Config.options.bar.vertical) {
+                        return Config.options.bar.bottom ? 
+                            (Edges.Middle | Edges.Right) : 
+                            (Edges.Middle | Edges.Left);
+                    } else {
+                        return Config.options.bar.bottom ? 
+                            (Edges.Top | Edges.Center) : 
+                            (Edges.Bottom | Edges.Center);
+                    }
+                }
             }
             onMenuOpened: (window) => root.menuOpened(window);
             onMenuClosed: {
@@ -60,6 +86,7 @@ MouseArea {
             }
         }
     }
+
 
     IconImage {
         id: trayIcon
