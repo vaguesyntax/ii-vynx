@@ -421,6 +421,18 @@ ContentPage {
             }
         }
 
+        ConfigSpinBox {
+            icon: "format_size"
+            text: Translation.tr("Lyrics font size (px)")
+            value: Config.options.overlay.media.lyricSize
+            from: 10
+            to: 30
+            stepSize: 1
+            onValueChanged: {
+                Config.options.overlay.media.lyricSize = value;
+            }
+        }
+
     }
 
     ContentSection {

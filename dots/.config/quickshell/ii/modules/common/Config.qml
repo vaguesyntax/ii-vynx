@@ -510,6 +510,7 @@ Singleton {
                 property JsonObject media: JsonObject {
                     property int backgroundOpacityPercentage: 100
                     property bool useGradientMask: true
+                    property int lyricSize: Appearance.font.pixelSize.larger
                 }
             }
 

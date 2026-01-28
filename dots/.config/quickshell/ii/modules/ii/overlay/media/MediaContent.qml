@@ -233,7 +233,7 @@ StyledOverlayWidget {
         readonly property int rowHeight: Math.max(10, Math.min(Math.floor(height / 3), Appearance.font.pixelSize.large))
         readonly property real baseY: Math.max(0, Math.round((height - rowHeight * 3) / 2))
         readonly property real downScale: Appearance.font.pixelSize.large / Appearance.font.pixelSize.larger
-        
+
         readonly property int targetCurrentIndex: hasSyncedLines ? lrclibLyrics.currentIndex : -1
 
         readonly property string targetPrev: hasSyncedLines ? lrclibLyrics.prevLineText : ""
@@ -329,6 +329,8 @@ StyledOverlayWidget {
         property string gradientDirection: "top" // "top" or "bottom"
         property bool reallyUseGradient: Config.options.overlay.media.useGradientMask && useGradient
 
+        property real defaultLyricsSize: Config.options.overlay.media.lyricSize
+
         width: parent.width
         height: lyricScroller.rowHeight
 
@@ -337,7 +339,7 @@ StyledOverlayWidget {
             anchors.fill: parent
             text: lyricLineItem.text
             color: lyricLineItem.highlight ? Appearance.colors.colOnLayer1 : Appearance.colors.colSubtext
-            font.pixelSize: Appearance.font.pixelSize.huge
+            font.pixelSize: defaultLyricsSize
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
@@ -369,7 +371,7 @@ StyledOverlayWidget {
                 anchors.fill: parent
                 text: lyricLineItem.text
                 color: Appearance.colors.colSubtext
-                font.pixelSize: Appearance.font.pixelSize.huge
+                font.pixelSize: defaultLyricsSize
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 elide: Text.ElideRight
