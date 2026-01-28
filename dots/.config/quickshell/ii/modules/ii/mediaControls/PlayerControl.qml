@@ -45,7 +45,7 @@ Item { // Player instance
             iconSize: buttonSize
             fill: button.fill ? 1 : 0
             horizontalAlignment: Text.AlignHCenter
-            color: blendedColors.colOnSecondaryContainer
+            color: blendedColors.colSecondary
             text: iconName
 
             Behavior on color {
