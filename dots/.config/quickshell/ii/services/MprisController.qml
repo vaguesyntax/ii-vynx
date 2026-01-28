@@ -16,18 +16,26 @@ import qs.modules.common
  */
 Singleton {
 	id: root;
+	property list<MprisPlayer> allPlayers: Mpris.players.values;
 	property list<MprisPlayer> players: Mpris.players.values.filter(player => isRealPlayer(player));
 	property MprisPlayer trackedPlayer: null;
 	property MprisPlayer activePlayer: trackedPlayer ?? Mpris.players.values[0] ?? null;
 	signal trackChanged(reverse: bool);
 
+	property string primaryPlayer: Config.options.media.primaryPlayer;
+
 	property bool __reverse: false;
 
 	property var activeTrack;
 
-	onPlayersChanged: {
-		if (players.length !== 1) return;
-		activePlayer = players[0];
+	onAllPlayersChanged: {
+		const nextPlayer = allPlayers.find(player => player.desktopEntry === root.primaryPlayer);
+		if (nextPlayer) {
+			activePlayer = nextPlayer;
+			return;
+		} else {
+			activePlayer = players[0];
+		}
 	}
 
 	property bool hasPlasmaIntegration: false
@@ -108,7 +116,13 @@ Singleton {
 		}
 	}
 
-	onActivePlayerChanged: this.updateTrack();
+	Component.onCompleted: {
+		console.log("ACTİVE PLAYER DBUS NAME: ", root.activePlayer.desktopEntry)
+	}
+
+	onActivePlayerChanged: {
+		this.updateTrack();
+	}
 
 	function updateTrack() {
 		//console.log(`update: ${this.activePlayer?.trackTitle ?? ""} : ${this.activePlayer?.trackArtists}`)
