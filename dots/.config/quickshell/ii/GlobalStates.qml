@@ -30,6 +30,8 @@ Singleton {
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
 
+    property rect mediaWidgetRect: Qt.rect(0, 0, 0, 0)
+
     onSidebarRightOpenChanged: {
         if (GlobalStates.sidebarRightOpen) {
             Notifications.timeoutAll();

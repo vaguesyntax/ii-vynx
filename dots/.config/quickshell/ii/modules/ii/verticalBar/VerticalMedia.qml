@@ -37,7 +37,9 @@ MouseArea {
         } else if (event.button === Qt.ForwardButton || event.button === Qt.RightButton) {
             activePlayer.next();
         } else if (event.button === Qt.LeftButton) {
-            GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen
+        var globalPos = root.mapToItem(null, 0, 0);
+        GlobalStates.mediaWidgetRect = Qt.rect(globalPos.x, globalPos.y, root.width, root.height);
+        GlobalStates.mediaControlsOpen = !GlobalStates.mediaControlsOpen;
         }
     }
 
