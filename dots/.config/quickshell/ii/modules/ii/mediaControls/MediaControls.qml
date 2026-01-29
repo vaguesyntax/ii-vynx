@@ -83,25 +83,59 @@ Scope {
         sourceComponent: PanelWindow {
             id: panelWindow
             visible: true
-
             exclusionMode: ExclusionMode.Ignore
             exclusiveZone: 0
             implicitWidth: root.widgetWidth
             implicitHeight: playerColumnLayout.implicitHeight
             color: "transparent"
             WlrLayershell.namespace: "quickshell:mediaControls"
-
+            
+            readonly property var rect: Persistent.states.media.popupRect
+            readonly property real barThickness: {
+                if (Config.options.bar.vertical) {
+                    return Config.options.bar.sizes.width || 40;
+                } else {
+                    return Config.options.bar.sizes.height || 40;
+                }
+            }
             anchors {
-                top: !Config.options.bar.bottom || Config.options.bar.vertical
-                bottom: Config.options.bar.bottom && !Config.options.bar.vertical
-                left: !(Config.options.bar.vertical && Config.options.bar.bottom)
+                top: true
+                left: !Config.options.bar.vertical || !Config.options.bar.bottom
                 right: Config.options.bar.vertical && Config.options.bar.bottom
             }
             margins {
-                top: Config.options.bar.vertical ? ((panelWindow.screen.height / 2) - widgetHeight * 1.5) : Appearance.sizes.barHeight
-                bottom: Appearance.sizes.barHeight
-                left: Config.options.bar.vertical ? Appearance.sizes.barHeight : ((panelWindow.screen.width / 2) - (osdWidth / 2) - widgetWidth)
-                right: Appearance.sizes.barHeight
+                top: {
+                    if (rect.width === 0) return 0;
+                    if (Config.options.bar.vertical) {
+                        let targetY = rect.y + (rect.height / 2) - (panelWindow.implicitHeight / 2);
+                        return Math.max(0, Math.min(targetY, screen.height - panelWindow.implicitHeight));
+                    } else {
+                        if (!Config.options.bar.bottom) {
+                            return barThickness;
+                        } else {
+                            return screen.height - barThickness - panelWindow.implicitHeight;
+                        }
+                    }
+                }
+                left: {
+                    if (rect.width === 0) return 0;
+                    if (Config.options.bar.vertical) {
+                        if (!Config.options.bar.bottom) {
+                            return barThickness;
+                        }
+                        return 0;
+                    } else {
+                        let targetX = rect.x + (rect.width / 2) - (panelWindow.implicitWidth / 2);
+                        return Math.max(0, Math.min(targetX, screen.width - panelWindow.implicitWidth));
+                    }
+                }
+                right: {
+                    if (rect.width === 0) return 0;
+                    if (Config.options.bar.vertical && Config.options.bar.bottom) {
+                        return barThickness;
+                    }
+                    return 0;
+                }
             }
 
             mask: Region {

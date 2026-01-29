@@ -172,6 +172,9 @@ Singleton {
                     property list<var> laps: []
                 }
             }
+            property JsonObject media: JsonObject {
+                property rect popupRect: Qt.rect(0, 0, 0, 0)
+            }
         }
     }
 }
