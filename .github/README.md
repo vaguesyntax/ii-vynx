@@ -29,42 +29,28 @@ Before saying “these dots are bloated,” keep in mind that there’s a toggle
     <h2>• installation •</h2>
 </div>
 
-1. **Install the [original dots](https://github.com/end-4/dots-hyprland)**
 
-2. Clone this repository like this:
+1. Clone this repository like this:
 
 ```
 git clone https://github.com/vaguesyntax/ii-vynx.git --recurse-submodules
 ```
 
-3. Backup your existing configuration files (recommended):
+2. Run the installation script and follow the instructions:
 
 ```
-mv ~/.config/quickshell/ii ~/.config/quickshell/ii.backup
-```
-
-4. Copy the `ii` folder config from repo into your Quickshell config directory:
-```
-cp -r ii-vynx/dots/.config/quickshell/ii ~/.config/quickshell/
-```
-5. Restart the shell with `SUPER+CTRL+R`, done!
-
-If something breaks, you can always restore your backup (original dots):
-
-```
-cp -r ~/.config/quickshell/ii.backup ~/.config/quickshell/ii
+./install-ii-vynx.sh
 ```
 
 <div align="center">
     <h2>• updating •</h2>
 </div>
 
-1. Run `git pull` in the directory you have cloned the repository. Or clone the repo again.
-2. Copy the `ii` folder config from repo into your Quickshell config directory:
+Run the installation script:
+
 ```
-cp -r ii-vynx/dots/.config/quickshell/ii ~/.config/quickshell/
+./install-ii-vynx.sh
 ```
-3. Restart the shell with `SUPER+CTRL+R`.
 
 <div align="center">
     <h2>• wiki •</h2>
