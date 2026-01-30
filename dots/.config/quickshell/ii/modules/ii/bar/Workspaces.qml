@@ -174,12 +174,14 @@ Item {
         property bool isEmptyWorkspace: windowCount === 0
         property bool isOneWindow: windowCount === 1
 
-        // insets to create perfect round circles
+        // insets to create perfect round circles // note: these are pain in the ass
         property real indicatorInsetEmpty: root.iconBoxWrapperSize * 0.07
         property real indicatorInsetOneWindow: root.iconBoxWrapperSize * 0.14
         property real indicatorInset: root.iconBoxWrapperSize * 0.1
 
         property real visualInset: {
+            if (!root.showIcons)
+                return indicatorInsetEmpty
             if (isEmptyWorkspace)
                 return indicatorInsetEmpty
             if (isOneWindow)
