@@ -36,7 +36,7 @@ Before saying “these dots are bloated,” keep in mind that there’s a toggle
 git clone https://github.com/vaguesyntax/ii-vynx.git --recurse-submodules
 ```
 
-2. Run the installation script and follow the instructions:
+2. Run the setup script and follow the instructions:
 
 ```
 ./setup-ii-vynx.sh
@@ -46,7 +46,7 @@ git clone https://github.com/vaguesyntax/ii-vynx.git --recurse-submodules
     <h2>• updating •</h2>
 </div>
 
-Run the installation script:
+Run the setup script:
 
 ```
 ./setup-ii-vynx.sh
