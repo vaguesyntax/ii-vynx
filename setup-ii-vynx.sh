@@ -248,7 +248,7 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Quickshell started${NC}"
     echo ""
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${GREEN}     Installation completed!    ${NC}"
+    echo -e "${GREEN}         Setup completed!    ${NC}"
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     log_verbose "Script completed successfully"
