@@ -53,25 +53,23 @@ echo -e "${CYAN}          ii-vynx setup     ${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
+echo -e "${NC}Welcome to the ii-vynx setup script!${NC}"
+echo -e "${NC}This script will install ii-vynx on your system.${NC}"
+echo ""
+
 log_verbose "Verbose mode enabled"
 log_verbose "DO_PULL=$DO_PULL"
 log_verbose "FORCE_INSTALL=$FORCE_INSTALL"
 log_verbose "BACKUP=$FORCE_INSTALL"
 
-echo -e "${YELLOW}Tip: You can use this script to both install and update your dots!${NC}"
-echo ""
-
-if [ "$DO_PULL" = true ]; then
-    echo -e "${YELLOW}This operation will pull the latest changes from the repository,${NC}"
-    echo -e "${YELLOW}You can run this script with --no-pull flag to skip this step.${NC}"
-else 
+if [ "$DO_PULL" = false ]; then
     echo -e "${YELLOW}--no-pull flag used, skipping git pull.${NC}"
 fi
 
-echo ""
 echo -e "${BLUE}Your current Quickshell configuration will be backed up and overwritten.${NC}"
 if [ "$BACKUP" = false ]; then
-    echo -e "${RED}You've used --no-backup flag, skipping the backup process.${NC}"
+    echo ""
+    echo -e "${RED}WARNING: You've used --no-backup flag, skipping the backup process.${NC}"
 fi
 echo -e "${RED}Do you want to continue? (y/n): ${NC}"
 read -r response
@@ -125,12 +123,57 @@ if [ "$FORCE_INSTALL" = false ]; then
         echo -e "${RED}  ERROR: Couldn't find illogical-impulse!${NC}"
         echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
         echo ""
-        echo -e "${YELLOW}$CHECK_DIR directory not found.${NC}"
-        echo -e "${YELLOW}You probably didn't install the original dots.${NC}"
-        echo -e "${YELLOW}Please run ./setup.sh first to install the original dots.${NC}"
-        echo -e "${BLUE}Use --force-install flag to skip this check.${NC}"
-        echo ""
-        exit 1
+
+        if [ -f "$SCRIPT_DIR/setup" ]; then
+            echo -e "${NC}You may want to install the original dots seperately before installing ii-vynx.${NC}"
+            echo -e "${RED}[EXPERIMENTAL] Original dots are not installed! Do you want to install them? (y/n): ${NC}"
+            read -r setup_response
+            
+            if [[ "$setup_response" =~ ^[Yy]$ ]]; then
+                printf "${GREEN}
+Subcommands:
+    install        (Re)Install/Update illogical-impulse.
+                    Note: To update to the latest, manually run \"git stash && git pull\" first.
+    install-deps   Run the install step \"1. Install dependencies\"
+    install-setups Run the install step \"2. Setup for permissions/services etc\"
+    install-files  Run the install step \"3. Copying config files\"
+    resetfirstrun  Reset firstrun state.
+    uninstall      Uninstall illogical-impulse.
+
+    exp-update     (Experimental) Update illogical-impulse without fully reinstall.
+    exp-merge      (Experimental) Merge upstream changes with local configs using git rebase.
+
+    virtmon        (For dev only) Create virtual monitors for testing multi-monitors.
+    checkdeps      (For dev only) Check whether pkgs exist in AUR or repos of Arch.
+
+    help           Show this help message.
+${NC}"
+                echo ""
+                echo -e "${RED}Enter the subcommand: ${NC}"
+                read -r setup_subcommand
+                bash "$SCRIPT_DIR/setup" "$setup_subcommand"
+                
+                if [ $? -eq 0 ]; then
+                    echo ""
+                    echo -e "${GREEN}✓ Setup completed successfully!${NC}"
+                    echo -e "${BLUE}Continuing with ii-vynx installation...${NC}"
+                    echo ""
+                else
+                    echo -e "${RED}✗ Setup failed! Try installing the dots manually.${NC}"
+                    exit 1
+                fi
+            else
+                echo -e "${RED}✗ Setup cancelled. Try installing the dots manually.${NC}"
+                exit 1
+            fi
+        else
+            echo -e "${YELLOW}Please run ./setup.sh first to install the original dots.${NC}"
+            echo -e "${BLUE}Use --force-install flag to skip this check.${NC}"
+            echo ""
+            exit 1
+        fi
+
+
     fi
     log_verbose "illogical-impulse directory found"
 else
@@ -164,7 +207,7 @@ if [ "$BACKUP" = true ]; then
     fi
 else 
     echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${RED}     ⚠ --no-backup flag used${NC}"
+    echo -e "${RED}      ⚠ No backup flag used${NC}"
     echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${RED}Skipping the backup process...${NC}"
 fi
