@@ -122,10 +122,11 @@ log_verbose "FULL_INSTALL=$FULL_INSTALL"
 log_verbose "NO_CONFIRM=$NO_CONFIRM"
 
 if [ "$NO_CONFIRM" = true ]; then
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}  ⚠ No-confirm mode enabled${NC}"
-    echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    echo -e "${YELLOW}Skipping all confirmations...${NC}"
+    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${RED}    ⚠ No-confirm mode enabled${NC}"
+    echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${RED}Skipping all confirmations...${NC}"
+    echo -e "${RED}WARNING: This may cause issues!${NC}"
     echo ""
 fi
 
