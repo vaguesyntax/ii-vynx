@@ -65,19 +65,12 @@ Item {
             applyStyle(14, "full", "classic", "classic", "classic", "rect")
         }
     }
-
-    Connections {
-        target: Config
-        function onReadyChanged() {
-            categoryFileView.path = Directories.generatedWallpaperCategoryPath
-        }
-    }
-
+    
     FileView {
         id: categoryFileView
-        path: ""
+        path: Directories.generatedWallpaperCategoryPath
         watchChanges: true
-        onFileChanged: reload()
+        onFileChanged: this.reload()
         onLoaded: {
             root.setClockPreset(categoryFileView.text().trim())
         }

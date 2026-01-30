@@ -163,7 +163,7 @@ switch() {
     color="$5"
 
     # Start Gemini auto-categorization if enabled
-    aiStylingEnabled=$(jq -r '.background.clock.cookie.aiStyling' "$SHELL_CONFIG_FILE")
+    aiStylingEnabled=$(jq -r '.background.widgets.clock.cookie.aiStyling' "$SHELL_CONFIG_FILE")
     if [[ "$aiStylingEnabled" == "true" ]]; then
         "$SCRIPT_DIR/../ai/gemini-categorize-wallpaper.sh" "$imgpath" > "$STATE_DIR/user/generated/wallpaper/category.txt" &
     fi
