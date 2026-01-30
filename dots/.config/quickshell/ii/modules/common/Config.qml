@@ -318,6 +318,7 @@ Singleton {
                     property list<var> workspaceMap: [0, 10] 
                     property int maxWindowCount: 5 // Maximum windows to show in one workspace
                     property bool useNerdFont: false
+                    property int activeIndicatorOpacity: 100 // 0-100
                 }
                 property JsonObject weather: JsonObject {
                     property bool enable: false

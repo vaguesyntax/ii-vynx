@@ -146,6 +146,7 @@ Item {
         anchors.horizontalCenter: root.vertical ? parent.horizontalCenter : undefined
         anchors.verticalCenter: root.vertical ? undefined : parent.verticalCenter
         color: Appearance.colors.colPrimary
+        opacity: Config.options.bar.workspaces.activeIndicatorOpacity / 100
         radius: Appearance.rounding.full
         
         AnimatedTabIndexPair {
