@@ -37,6 +37,31 @@ Item {
     property real iconRatio: 0.8
     property bool showIcons: Config.options.bar.workspaces.showAppIcons
 
+    property bool showNumbersByMs: false
+    Timer {
+        id: showNumbersTimer
+        interval: (Config.options.bar.workspaces.showNumberDelay ?? 100)
+        repeat: false
+        onTriggered: {
+            root.showNumbersByMs = true
+        }
+    }
+    Connections {
+        target: GlobalStates
+        function onSuperDownChanged() {
+            if (!Config?.options.bar.autoHide.showWhenPressingSuper.enable) return;
+            if (GlobalStates.superDown) showNumbersTimer.restart();
+            else {
+                showNumbersTimer.stop();
+                root.showNumbersByMs = false;
+            }
+        }
+        function onSuperReleaseMightTriggerChanged() { 
+            showNumbersTimer.stop()
+        }
+    }
+
+
     // Function to update workspaceOccupied
     function updateWorkspaceOccupied() {
         workspaceOccupied = Array.from({ length: root.workspacesShown }, (_, i) => {
@@ -277,9 +302,24 @@ Item {
                             IconImage {
                                 id: mainAppIcon
                                 Layout.alignment: Qt.AlignHCenter
+                                anchors {
+                                    left: parent.left
+                                    top: parent.top
+                                    leftMargin: root.showNumbersByMs ? 15 : 2
+                                    topMargin: root.showNumbersByMs ? 15 : 2
+                                }
                                 source: modelData.icon
-                                anchors.centerIn: parent
-                                implicitSize: root.individualIconBoxHeight * root.iconRatio
+                                implicitSize: (root.individualIconBoxHeight * root.iconRatio) * (root.showNumbersByMs ? 1 / 1.5 : 1)
+
+                                Behavior on anchors.leftMargin {
+                                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                                }
+                                Behavior on anchors.topMargin {
+                                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                                }
+                                Behavior on implicitSize {
+                                    animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
+                                }
                             }
                             Loader {
                                 active: Config.options.bar.workspaces.monochromeIcons
@@ -307,8 +347,8 @@ Item {
         }
     }
 
-    component WorkspaceBackgroundIndicator: Rectangle {
-        property bool showNumbers: Config.options.bar.workspaces.alwaysShowNumbers
+    component WorkspaceBackgroundIndicator: Rectangle { // dot or number
+        property bool showNumbers: Config.options.bar.workspaces.alwaysShowNumbers || root.showNumbersByMs
         property int workspaceValue
         property bool activeWorkspace
         property color indColor: (activeWorkspace) ? Appearance.m3colors.m3onPrimary : (root.workspaceOccupied[index] ? Appearance.m3colors.m3onSecondaryContainer : Appearance.colors.colOnLayer1Inactive)
@@ -317,9 +357,8 @@ Item {
         width: root.workspaceDotSize
         height: width
         radius: width / 2
-        visible: layout.implicitHeight + 8 < root.iconBoxWrapperSize
+        visible: layout.implicitHeight + 8 < root.iconBoxWrapperSize || root.showNumbersByMs
         color: !showNumbers ?  indColor : "transparent"
-
 
         Behavior on color {
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
