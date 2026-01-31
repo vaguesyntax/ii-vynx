@@ -618,6 +618,7 @@ Singleton {
             }
 
             property JsonObject sidebar: JsonObject {
+                property string position: "default"
                 property bool keepRightSidebarLoaded: true
                 property JsonObject translator: JsonObject {
                     property bool enable: false

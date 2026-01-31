@@ -85,6 +85,22 @@ Variants {
         Behavior on scaleAnimated {
             animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
+        // Sidebars positions
+        readonly property bool effectiveLeftSidebarOpen: {
+            const pos = Config.options.sidebar.position;
+            if (pos === 0) return GlobalStates.sidebarLeftOpen;        // Default
+            if (pos === 1) return GlobalStates.sidebarRightOpen;       // Inverted
+            if (pos === 2) return GlobalStates.sidebarLeftOpen || GlobalStates.sidebarRightOpen; // Both Left
+            return false; // Both Right
+        }
+
+        readonly property bool effectiveRightSidebarOpen: {
+            const pos = Config.options.sidebar.position;
+            if (pos === 0) return GlobalStates.sidebarRightOpen;       // Default
+            if (pos === 1) return GlobalStates.sidebarLeftOpen;        // Inverted
+            if (pos === 2) return false; // Both Left
+            return GlobalStates.sidebarLeftOpen || GlobalStates.sidebarRightOpen; // Both Right
+        }
 
         // Layer props
         screen: modelData
@@ -169,7 +185,7 @@ Variants {
                         result = ((bgRoot.monitor.activeWorkspace?.id - lower) / range);
                     }
                     if (Config.options.background.parallax.enableSidebar) {
-                        result += (0.15 * GlobalStates.sidebarRightOpen - 0.15 * GlobalStates.sidebarLeftOpen);
+                        result += (0.15 * bgRoot.effectiveRightSidebarOpen - 0.15 * bgRoot.effectiveLeftSidebarOpen);
                     }
                     return result;
                 }
