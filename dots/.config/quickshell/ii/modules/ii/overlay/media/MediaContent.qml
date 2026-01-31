@@ -22,7 +22,6 @@ StyledOverlayWidget {
     minimumHeight: 150
     
     readonly property MprisPlayer currentPlayer: MprisController.activePlayer
-    fancyBorders: false
     
     property bool downloaded: false
     property string displayedArtFilePath: root.downloaded ? Qt.resolvedUrl(artFilePath) : ""
