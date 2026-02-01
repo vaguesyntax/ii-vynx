@@ -348,7 +348,7 @@ Singleton {
                         { id: "utility_buttons", icon: "build", title: "Utility buttons" }
                     ]
                     property list<var> left: [
-                        { id: "left_sidebar_button", icon: "star", title: "Left sidebar button" },
+                        { id: "policies_panel_button", icon: "star", title: "Policies panel button" },
                         { id: "active_window", icon: "label", title: "Active window" }
                     ]
                     property list<var> center: [
@@ -359,7 +359,7 @@ Singleton {
                     property list<var> right: [
                         { id: "clock", icon: "nest_clock_farsight_analog", title: "Clock" }, 
                         { id: "system_tray", icon: "system_update_alt", title: "System tray" },
-                        { id: "right_sidebar_button", icon: "notifications", title: "Right sidebar button" }
+                        { id: "dashboard_panel_button", icon: "notifications", title: "Dashboard panel button" }
                     ]
 
                 }
@@ -618,6 +618,7 @@ Singleton {
             }
 
             property JsonObject sidebar: JsonObject {
+                property string position: "default"
                 property bool keepRightSidebarLoaded: true
                 property JsonObject translator: JsonObject {
                     property bool enable: false

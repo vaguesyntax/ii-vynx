@@ -11,6 +11,11 @@ Scope {
     id: root
     property int sidebarWidth: Appearance.sizes.sidebarWidth
 
+    readonly property bool isOnRight: {
+        const pos = Config.options.sidebar.position;
+        return pos === "default" || pos === "right"; 
+    }
+
     PanelWindow {
         id: panelWindow
         visible: GlobalStates.sidebarRightOpen
@@ -20,15 +25,15 @@ Scope {
         }
 
         exclusiveZone: 0
-        implicitWidth: sidebarWidth
-        WlrLayershell.namespace: "quickshell:sidebarRight"
-        // Hyprland 0.49: Focus is always exclusive and setting this breaks mouse focus grab
+        implicitWidth: root.sidebarWidth + Appearance.sizes.elevationMargin
+        WlrLayershell.namespace: root.isOnRight ? "quickshell:sidebarRight" : "quickshell:sidebarLeft"        // Hyprland 0.49: Focus is always exclusive and setting this breaks mouse focus grab
         // WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
         color: "transparent"
 
         anchors {
             top: true
-            right: true
+            left: !root.isOnRight
+            right: root.isOnRight
             bottom: true
         }
 
@@ -39,6 +44,7 @@ Scope {
                 GlobalFocusGrab.removeDismissable(panelWindow);
             }
         }
+
         Connections {
             target: GlobalFocusGrab
             function onDismissed() {
@@ -48,23 +54,51 @@ Scope {
 
         Loader {
             id: sidebarContentLoader
+
             active: GlobalStates.sidebarRightOpen || Config?.options.sidebar.keepRightSidebarLoaded
-            anchors {
-                fill: parent
-                margins: Appearance.sizes.hyprlandGapsOut
-                leftMargin: Appearance.sizes.elevationMargin
-            }
-            width: sidebarWidth - Appearance.sizes.hyprlandGapsOut - Appearance.sizes.elevationMargin
-            height: parent.height - Appearance.sizes.hyprlandGapsOut * 2
+            sourceComponent: SidebarDashboardContent {}
+            
+            width: root.sidebarWidth - Appearance.sizes.hyprlandGapsOut - Appearance.sizes.elevationMargin
+            height: parent.height - (Appearance.sizes.hyprlandGapsOut * 2)
+            y: Appearance.sizes.hyprlandGapsOut
 
             focus: GlobalStates.sidebarRightOpen
+            
+            state: root.isOnRight ? "right" : "left"
+            states: [
+                State {
+                    name: "right"
+                    AnchorChanges {
+                        target: sidebarContentLoader
+                        anchors.right: parent.right
+                        anchors.left: undefined
+                    }
+                    PropertyChanges {
+                        target: sidebarContentLoader
+                        anchors.rightMargin: Appearance.sizes.hyprlandGapsOut
+                        anchors.leftMargin: 0
+                    }
+                },
+                State {
+                    name: "left"
+                    AnchorChanges {
+                        target: sidebarContentLoader
+                        anchors.left: parent.left
+                        anchors.right: undefined
+                    }
+                    PropertyChanges {
+                        target: sidebarContentLoader
+                        anchors.leftMargin: Appearance.sizes.hyprlandGapsOut
+                        anchors.rightMargin: 0
+                    }
+                }
+            ]
+
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Escape) {
                     panelWindow.hide();
                 }
             }
-
-            sourceComponent: SidebarRightContent {}
         }
     }
 
@@ -87,23 +121,22 @@ Scope {
     GlobalShortcut {
         name: "sidebarRightToggle"
         description: "Toggles right sidebar on press"
-
         onPressed: {
             GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
         }
     }
+
     GlobalShortcut {
         name: "sidebarRightOpen"
         description: "Opens right sidebar on press"
-
         onPressed: {
             GlobalStates.sidebarRightOpen = true;
         }
     }
+
     GlobalShortcut {
         name: "sidebarRightClose"
         description: "Closes right sidebar on press"
-
         onPressed: {
             GlobalStates.sidebarRightOpen = false;
         }

@@ -2,7 +2,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
-import qs.modules.ii.sidebarLeft.translator
+import qs.modules.ii.sidebarPolicies.translator
 import QtQuick
 import QtQuick.Layouts
 import Quickshell

@@ -16,8 +16,8 @@ import qs.modules.ii.polkit
 import qs.modules.ii.regionSelector
 import qs.modules.ii.screenCorners
 import qs.modules.ii.sessionScreen
-import qs.modules.ii.sidebarLeft
-import qs.modules.ii.sidebarRight
+import qs.modules.ii.sidebarPolicies
+import qs.modules.ii.sidebarDashboard
 import qs.modules.ii.overlay
 import qs.modules.ii.verticalBar
 import qs.modules.ii.wallpaperSelector
@@ -56,8 +56,8 @@ Scope {
     PanelLoader { component: RegionSelector {} }
     PanelLoader { component: ScreenCorners {} }
     PanelLoader { component: SessionScreen {} }
-    PanelLoader { component: SidebarLeft {} }
-    PanelLoader { component: SidebarRight {} }
+    PanelLoader { component: SidebarPolicies {} }
+    PanelLoader { component: SidebarDashboard {} }
     PanelLoader { extraCondition: Config.options.bar.vertical && barExtraCondition; component: VerticalBar {} }
     PanelLoader { component: WallpaperSelector {} }
     PanelLoader { component: WrappedFrame {} }

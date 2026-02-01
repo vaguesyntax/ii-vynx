@@ -12,8 +12,13 @@ Scope { // Scope
     id: root
     property bool detach: false
     property bool pin: false
-    property Component contentComponent: SidebarLeftContent {}
+    property Component contentComponent: SidebarPoliciesContent {}
     property Item sidebarContent
+
+    readonly property bool isOnLeft: {
+        const pos = Config.options.sidebar.position;
+        return pos === "default" || pos === "left"; 
+    }
 
     function toggleDetach() {
         root.detach = !root.detach;
@@ -83,25 +88,19 @@ Scope { // Scope
         id: sidebarLoader
         active: true
         
-        sourceComponent: PanelWindow { // Window
+        sourceComponent: PanelWindow {
             id: panelWindow
             visible: GlobalStates.sidebarLeftOpen
             
             property bool extend: false
-            property real sidebarWidth: {
-                const aiEnabled = Config.options.policies.ai !== 0
-                const weebEnabled = Config.options.policies.weeb == 1
-                const wallpapersEnabled = Config.options.policies.wallpapers !== 0
-                const translatorEnabled = Config.options.policies.translator !== 0
+            readonly property real sidebarWidth: {
+                const p = Config.options.policies;
+                const allFeatures = p.ai !== 0 && p.weeb == 1 && p.wallpapers !== 0 && p.translator !== 0;
 
-
-                if (aiEnabled && weebEnabled && wallpapersEnabled && translatorEnabled) {
-                    return panelWindow.extend ? Appearance.sizes.sidebarWidthExtended : Appearance.sizes.sidebarWidthExpanded
-                } else {
-                    return panelWindow.extend ? Appearance.sizes.sidebarWidthExtended : Appearance.sizes.sidebarWidth
-                }
-
+                if (panelWindow.extend) return Appearance.sizes.sidebarWidthExtended;
+                return allFeatures ? Appearance.sizes.sidebarWidthExpanded : Appearance.sizes.sidebarWidth;
             }
+            
             property var contentParent: sidebarLeftBackground
 
             function hide() {
@@ -111,14 +110,15 @@ Scope { // Scope
             exclusionMode: ExclusionMode.Normal
             exclusiveZone: root.pin ? sidebarWidth : 0
             implicitWidth: Appearance.sizes.sidebarWidthExtended + Appearance.sizes.elevationMargin
-            WlrLayershell.namespace: "quickshell:sidebarLeft"
+            WlrLayershell.namespace: root.isOnLeft ? "quickshell:sidebarLeft" : "quickshell:sidebarRight"
             // Hyprland 0.49: OnDemand is Exclusive, Exclusive just breaks click-outside-to-close
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
             color: "transparent"
 
             anchors {
                 top: true
-                left: true
+                left: root.isOnLeft
+                right: !root.isOnLeft
                 bottom: true
             }
 
@@ -133,6 +133,7 @@ Scope { // Scope
                     GlobalFocusGrab.removeDismissable(panelWindow);
                 }
             }
+            
             Connections {
                 target: GlobalFocusGrab
                 function onDismissed() {
@@ -140,27 +141,55 @@ Scope { // Scope
                 }
             }
 
-            // Content
             StyledRectangularShadow {
                 target: sidebarLeftBackground
                 radius: sidebarLeftBackground.radius
             }
+
             Rectangle {
                 id: sidebarLeftBackground
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.topMargin: Appearance.sizes.hyprlandGapsOut
-                anchors.leftMargin: Appearance.sizes.hyprlandGapsOut
-                width: panelWindow.sidebarWidth - Appearance.sizes.hyprlandGapsOut - Appearance.sizes.elevationMargin
-                height: parent.height - Appearance.sizes.hyprlandGapsOut * 2
                 color: Appearance.colors.colLayer0
                 border.width: 1
                 border.color: Appearance.colors.colLayer0Border
                 radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
+                
+                height: parent.height - (Appearance.sizes.hyprlandGapsOut * 2)
+                y: Appearance.sizes.hyprlandGapsOut
+                width: panelWindow.sidebarWidth - Appearance.sizes.hyprlandGapsOut - Appearance.sizes.elevationMargin
 
                 Behavior on width {
                     animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                 }
+
+                state: root.isOnLeft ? "left" : "right"
+                states: [
+                    State {
+                        name: "left"
+                        AnchorChanges { 
+                            target: sidebarLeftBackground
+                            anchors.left: parent.left
+                            anchors.right: undefined 
+                        }
+                        PropertyChanges {
+                            target: sidebarLeftBackground
+                            anchors.leftMargin: Appearance.sizes.hyprlandGapsOut
+                            anchors.rightMargin: 0
+                        }
+                    },
+                    State {
+                        name: "right"
+                        AnchorChanges { 
+                            target: sidebarLeftBackground
+                            anchors.left: undefined
+                            anchors.right: parent.right 
+                        }
+                        PropertyChanges {
+                            target: sidebarLeftBackground
+                            anchors.rightMargin: Appearance.sizes.hyprlandGapsOut
+                            anchors.leftMargin: 0
+                        }
+                    }
+                ]
 
                 Keys.onPressed: (event) => {
                     if (event.key === Qt.Key_Escape) {
@@ -180,7 +209,7 @@ Scope { // Scope
             }
         }
     }
-
+    
     Loader {
         id: detachedSidebarLoader
         active: false

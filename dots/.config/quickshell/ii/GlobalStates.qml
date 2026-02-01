@@ -9,10 +9,12 @@ pragma ComponentBehavior: Bound
 
 Singleton {
     id: root
+
+    property alias sidebarLeftOpen: root.policiesPanelOpen // Until all sidebars naming is fixed
+    property alias sidebarRightOpen: root.dashboardPanelOpen // Until all sidebars naming is fixed
+
     property bool barOpen: true
     property bool crosshairOpen: false
-    property bool sidebarLeftOpen: false
-    property bool sidebarRightOpen: false
     property bool mediaControlsOpen: false
     property bool osdBrightnessOpen: false
     property bool osdVolumeOpen: false
@@ -30,8 +32,30 @@ Singleton {
     property bool wallpaperSelectorOpen: false
     property bool workspaceShowNumbers: false
 
-    onSidebarRightOpenChanged: {
-        if (GlobalStates.sidebarRightOpen) {
+    property bool dashboardPanelOpen: false // formerly sidebarRightOpen
+    property bool policiesPanelOpen: false  // formerly sidebarLeftOpen
+
+    readonly property bool effectiveLeftOpen: {
+        switch (Config.options.sidebar.position) {
+            case "default": return dashboardPanelOpen;
+            case "inverted": return policiesPanelOpen;
+            case "left": return dashboardPanelOpen || policiesPanelOpen;
+            case "right": return false;
+            default: return dashboardPanelOpen;
+        }
+    }
+    readonly property bool effectiveRightOpen: {
+        switch (Config.options.sidebar.position) {
+            case "default": return policiesPanelOpen;
+            case "inverted": return dashboardPanelOpen;
+            case "left": return false;
+            case "right": return dashboardPanelOpen || policiesPanelOpen;
+            default: return policiesPanelOpen;
+        }
+    }
+
+    onPoliciesPanelOpenChanged: {
+        if (policiesPanelOpen) {
             Notifications.timeoutAll();
             Notifications.markAllRead();
         }
@@ -40,7 +64,6 @@ Singleton {
     GlobalShortcut {
         name: "workspaceNumber"
         description: "Hold to show workspace numbers, release to show icons"
-
         onPressed: {
             root.superDown = true
         }
