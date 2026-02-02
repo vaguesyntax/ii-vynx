@@ -117,6 +117,7 @@ RowLayout {
         text: "image_search"
         StyledToolTip {
             text: Translation.tr("Google Lens")
+            y: !Config?.options.bar.top ? parent.height + 5 : undefined
         }
     }
 
@@ -139,6 +140,7 @@ RowLayout {
 
         StyledToolTip {
             text: Translation.tr("Recognize music")
+            y: !Config?.options.bar.top ? parent.height + 5 : undefined
         }
 
         colText: toggled ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSurfaceVariant
