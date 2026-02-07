@@ -20,6 +20,9 @@ Item {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(root.QsWindow.window?.screen)
     readonly property Toplevel activeWindow: ToplevelManager.activeToplevel
 
+    // NOTE,TODO: Workspace ID handling is simplified with this commit: https://github.com/end-4/dots-hyprland/commit/68f0355940f374ec4dcc168be3f0e123e7635bfb
+    // I have to somehow merge the new system and our system (workspace map)
+    // This is the new way of handling active workspace id: readonly property int effectiveActiveWorkspaceId: monitor?.activeWorkspace?.id ?? 1
     readonly property bool useWorkspaceMap: Config.options.bar.workspaces.useWorkspaceMap
     readonly property list<int> workspaceMap: Config.options.bar.workspaces.workspaceMap 
     readonly property int monitorIndex: barLoader.monitorIndex
@@ -242,7 +245,7 @@ Item {
                 implicitHeight: root.vertical ? contentLayout.children[index]?.height ?? 0 : root.iconBoxWrapperSize
 
                 color: ColorUtils.transparentize(Appearance.m3colors.m3secondaryContainer, 0.4)
-                opacity: (workspaceOccupied[index] && !(!activeWindow?.activated && monitor?.activeWorkspace?.id === index+1)) ? 1 : 0
+                opacity: (workspaceOccupied[index] && !(!activeWindow?.activated && root.effectiveActiveWorkspaceId === index+1)) ? 1 : 0
 
                 Behavior on opacity {
                     animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
