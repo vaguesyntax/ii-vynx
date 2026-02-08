@@ -264,7 +264,7 @@ Singleton {
                 .arg("Google"),
             homepage: `https://openrouter.ai/google/${currentModel}`, 
             endpoint: "https://openrouter.ai/api/v1/chat/completions",
-            model: `google/${currentModel}`,
+            model: `${getModelProvider(Persistent.states.ai.provider,currentModel)}/${currentModel}`,
             requires_key: true,
             key_id: "openrouter",
             key_get_link: "https://openrouter.ai/settings/keys",
@@ -304,9 +304,9 @@ Singleton {
     property var modelList: Object.keys(root.models)
     property var currentModelId: Persistent.states?.ai?.provider || modelList[0]
 
-    property var modelsOfProviders: {
+    property var baseModels: {
         "openrouter": [
-            {title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite"},
+            {title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite", modelProvider: "google"},
         ],
         "google": [
             { title: "Gemini 3 Flash", value: "gemini-3-flash" },
@@ -318,6 +318,47 @@ Singleton {
         ],
     }
 
+    property var modelsOfProviders: baseModels
+
+    function mergeModelsFromList(base, extraList) {
+
+        var result = {}
+        for (var provider in base) {
+            result[provider] = base[provider].slice()
+        }
+        
+        if (extraList) {
+            for (var i = 0; i < extraList.length; i++) {
+                var item = extraList[i]
+                for (var provider in item) {
+                    if (result[provider]) {
+                        result[provider] = result[provider].concat(item[provider])
+                    } else {
+                        result[provider] = item[provider].slice()
+                    }
+                }
+            }
+        }
+        
+        return result
+    }
+
+    function getModelProvider(providerKey, modelValue) {
+        if (!modelsOfProviders[providerKey]) {
+            return null
+        }
+        
+        var models = modelsOfProviders[providerKey]
+        for (var i = 0; i < models.length; i++) {
+            if (models[i].value === modelValue) {
+                return models[i].modelProvider || null
+            }
+        }
+        
+        return null
+    }
+
+
     property var apiStrategies: {
         "openai": openaiApiStrategy.createObject(this),
         "gemini": geminiApiStrategy.createObject(this),
@@ -325,22 +366,14 @@ Singleton {
     }
     property ApiStrategy currentApiStrategy: apiStrategies[models[currentModelId]?.api_format || "openai"]
 
-    Connections {
-        target: Config
-        function onReadyChanged() {
-            if (!Config.ready) return;
-            (Config?.options.ai?.extraModels ?? []).forEach(model => {
-                const safeModelName = root.safeModelName(model["model"]);
-                root.addModel(safeModelName, model)
-            });
-        }
-    }
-
     property string requestScriptFilePath: "/tmp/quickshell/ai/request.sh"
     property string pendingFilePath: ""
 
     Component.onCompleted: {
         setModel(currentModelId, false, false); // Do necessary setup for model
+        if (Config.options.ai.extraModels.length > 0) {
+            modelsOfProviders = mergeModelsFromList(baseModels, Config.options.ai.extraModels)
+        }
     }
 
     function guessModelLogo(model) {
