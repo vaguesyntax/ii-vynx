@@ -79,9 +79,17 @@ Item {
                         color: Appearance.colors.colOnLayer0
                         font.pixelSize: Appearance.font.pixelSize.small
                         Layout.fillWidth: false
+                        Layout.preferredWidth: volumeTextMetrics.advanceWidth
+                        horizontalAlignment: Text.AlignRight
                         text: Math.round(root.value * 100)
                         animateChange: true
                         animationDistanceY: 2 // for faster animation than default
+                        
+                        TextMetrics {
+                            id: volumeTextMetrics
+                            font: parent.font
+                            text: "100" // Reserve space for 3 digits (maximum volume)
+                        }
                     }
                 }
                 
