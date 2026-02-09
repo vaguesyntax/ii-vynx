@@ -90,9 +90,6 @@ Item {
                     tagInputField: root.inputField  
                     downloadPath: root.downloadPath  
                     nsfwPath: root.nsfwPath  
-                    Component.onCompleted: {
-                        console.log(JSON.stringify(modelData))
-                    }
                 } 
 
                 onDragEnded: {  // pulling to go to next page
