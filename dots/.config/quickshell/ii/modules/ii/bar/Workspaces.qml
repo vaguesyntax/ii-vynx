@@ -255,39 +255,32 @@ Item {
                 implicitHeight: root.vertical ? itemSize : root.iconBoxWrapperSize
 
                 Pill {
+                    property real stretchAmount: 12 // not using multiplier because it mulitplies multi-windowed workspaces A LOT
+                    
                     property real undirectionalWidth: root.iconBoxWrapperSize * wsBg.currentOccupied
+                    
                     property real undirectionalLength: {
                         if (!wsBg.currentOccupied) return 0
                         
-                        // Base length: current workspace item size
                         let baseLength = wsBg.itemSize
                         
-                        // Add half of previous workspace size if it's occupied
-                        if (wsBg.previousOccupied) {
-                            const prevItem = contentLayout.children[index - 1]
-                            const prevSize = root.vertical ? (prevItem?.height ?? root.iconBoxWrapperSize) : (prevItem?.width ?? root.iconBoxWrapperSize)
-                            baseLength += (prevSize - root.iconBoxWrapperSize) * 1 // not deleted bc we can change this 1 later
+                        if (wsBg.previousOccupied && index > 0) {
+                            baseLength += stretchAmount
                         }
-                        
-                        // Add half of next workspace size if it's occupied
-                        if (wsBg.nextOccupied) {
-                            const nextItem = contentLayout.children[index + 1]
-                            const nextSize = root.vertical ? (nextItem?.height ?? root.iconBoxWrapperSize) : (nextItem?.width ?? root.iconBoxWrapperSize)
-                            baseLength += (nextSize - root.iconBoxWrapperSize) * 1
+                    
+                        if (wsBg.nextOccupied && index < workspacesShown - 1) {
+                            baseLength += stretchAmount
                         }
                         
                         return baseLength
                     }
                     
                     property real undirectionalOffset: {
-                        if (!wsBg.currentOccupied) return 1 * root.iconBoxWrapperSize
+                        if (!wsBg.currentOccupied) return 0.5 * root.iconBoxWrapperSize
                         
-                        // Offset based on previous workspace
-                        if (!wsBg.previousOccupied) return 0
+                        if (!wsBg.previousOccupied || index === 0) return 0
                         
-                        const prevItem = contentLayout.children[index - 1]
-                        const prevSize = root.vertical ? (prevItem?.height ?? root.iconBoxWrapperSize) : (prevItem?.width ?? root.iconBoxWrapperSize)
-                        return -(prevSize - root.iconBoxWrapperSize) * 1
+                        return -stretchAmount
                     }
 
                     anchors.verticalCenter: root.vertical ? undefined : parent.verticalCenter
