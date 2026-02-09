@@ -15,6 +15,7 @@ GroupButton {
     bounce: false
     property string buttonIcon
     property string buttonShape
+    property string buttonSymbol
     property bool leftmost: false
     property bool rightmost: false
     leftRadius: (toggled || leftmost) ? (height / 2) : Appearance.rounding.unsharpenmore
@@ -51,6 +52,20 @@ GroupButton {
                 implicitWidth: Appearance.font.pixelSize.larger
                 implicitHeight: Appearance.font.pixelSize.larger
                 shapeString: root.buttonShape
+                color: root.toggled ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSecondaryContainer
+            }
+        }
+
+        Loader {
+            Layout.alignment: Qt.AlignVCenter
+            active: root.buttonSymbol && root.buttonSymbol.length > 0
+            visible: active
+            sourceComponent: CustomIcon {
+                id: materialSymbol
+                width: Appearance.font.pixelSize.larger
+                height: Appearance.font.pixelSize.larger
+                source: root.buttonSymbol
+                colorize: true
                 color: root.toggled ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSecondaryContainer
             }
         }

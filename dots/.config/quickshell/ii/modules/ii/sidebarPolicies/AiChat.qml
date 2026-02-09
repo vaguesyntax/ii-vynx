@@ -441,17 +441,17 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                         options: [
                             {
                                 displayName: "Google",
-                                icon: "android",
+                                symbol: "spark-symbolic",
                                 value: "google"
                             },
                             {
                                 displayName: "OpenRouter",
-                                icon: "alt_route",
+                                symbol: "openrouter-symbolic",
                                 value: "openrouter"
                             },
                             {
                                 displayName: "Mistral",
-                                icon: "metro",
+                                symbol: "mistral-symbolic",
                                 value: "mistral"
                             }
                         ]
