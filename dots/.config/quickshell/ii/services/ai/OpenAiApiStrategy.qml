@@ -23,6 +23,7 @@ ApiStrategy {
             "stream": true,
             "tools": tools,
             "temperature": temperature,
+            "max_tokens": 1024, // TODO, we should add an option for it and an indicator to token popup 
         };
         return model.extraParams ? Object.assign({}, baseData, model.extraParams) : baseData;
     }
