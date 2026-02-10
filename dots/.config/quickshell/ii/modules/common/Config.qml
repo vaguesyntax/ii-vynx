@@ -629,6 +629,7 @@ Singleton {
                 property JsonObject ai: JsonObject {
                     property bool textFadeIn: false
                     property bool showProviderAndModelButtons: true
+                    property list<string> showProviders: ["google", "openrouter", "mistral"]
                 }
                 property JsonObject booru: JsonObject {
                     property bool allowNsfw: false
