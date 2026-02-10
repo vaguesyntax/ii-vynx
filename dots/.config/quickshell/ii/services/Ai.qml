@@ -321,7 +321,7 @@ Singleton {
         "google": [
             { title: "Gemini 2.5 Flash-Lite", value: "gemini-2.5-flash-lite" },
             { title: "Gemini 2.5 Flash", value: "gemini-2.5-flash" },
-            { title: "Gemini 3 Flash", value: "gemini-3-flash" }
+            { title: "Gemini 3 Flash Preview", value: "gemini-3-flash-preview" }
         ],
         "mistral": [
             { title: "Mistral Medium 3", value: "mistral-medium-3" }
