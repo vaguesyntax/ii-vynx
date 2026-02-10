@@ -94,7 +94,7 @@ Singleton {
                 },
                 {
                     "name": "set_shell_config",
-                    "description": "Modify a specific field in the desktop shell config. CRITICAL: You MUST call get_shell_config first to see available keys - never guess key names. Use dot notation for nested keys (e.g., 'bar.borderless'). Provide the exact value as a string.",
+                    "description": "Modify a specific field in the desktop shell config. You can call this function multiple times in sequence to change multiple values. CRITICAL: You MUST call get_shell_config first to see available keys - never guess key names.",
                     "parameters": {
                         "type": "object",
                         "properties": {
@@ -108,6 +108,34 @@ Singleton {
                             }
                         },
                         "required": ["key", "value"]
+                    }
+                },
+                {
+                    "name": "set_shell_config_batch",
+                    "description": "Modify multiple fields in the desktop shell config at once. CRITICAL: You MUST call get_shell_config first to see available keys - never guess key names. Use this when the user wants to change multiple settings together.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "changes": {
+                                "type": "array",
+                                "description": "Array of config changes to apply",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "key": {
+                                            "type": "string",
+                                            "description": "The key to set (e.g., 'bar.borderless')"
+                                        },
+                                        "value": {
+                                            "type": "string",
+                                            "description": "The value to set"
+                                        }
+                                    },
+                                    "required": ["key", "value"]
+                                }
+                            }
+                        },
+                        "required": ["changes"]
                     }
                 },
                 {
@@ -865,6 +893,26 @@ Singleton {
             const key = args.key;
             const value = args.value;
             Config.setNestedValue(key, value);
+        } else if (name === "set_shell_config_batch") {
+            if (!args.changes || !Array.isArray(args.changes)) {
+                addFunctionOutputMessage(name, Translation.tr("Invalid arguments. Must provide `changes` array."));
+                return;
+            }
+            let results = [];
+            for (const change of args.changes) {
+                if (!change.key || !change.value) {
+                    results.push(`❌ Skipped invalid change: ${JSON.stringify(change)}`);
+                    continue;
+                }
+                try {
+                    Config.setNestedValue(change.key, change.value);
+                    results.push(`✓ ${change.key} = ${change.value}`);
+                } catch (e) {
+                    results.push(`❌ Failed to set ${change.key}: ${e}`);
+                }
+            }
+            addFunctionOutputMessage(name, results.join("\n"));
+            requester.makeRequest();
         } else if (name === "run_shell_command") {
             if (!args.command || args.command.length === 0) {
                 addFunctionOutputMessage(name, Translation.tr("Invalid arguments. Must provide `command`."));
