@@ -325,6 +325,14 @@ ContentPage {
                 }  
             }  
             ConfigSwitch {  
+                buttonIcon: "mic"  
+                text: Translation.tr("Microphone")  
+                checked: Config.options.sounds.micMute  
+                onCheckedChanged: {  
+                    Config.options.sounds.micMute = checked;  
+                }  
+            }  
+            ConfigSwitch {  
                 buttonIcon: "av_timer"  
                 text: Translation.tr("Pomodoro")  
                 checked: Config.options.sounds.pomodoro  

@@ -57,6 +57,11 @@ Singleton {
         Audio.source.audio.muted = !Audio.source.audio.muted
     }
 
+    function playMicMuteSound(muted) {
+        if (!Config.options.sounds.micMute) return;
+        Audio.playSystemSound(muted ? "device-removed" : "device-added")
+    }
+
     function incrementVolume() {
         const currentVolume = Audio.value;
         const step = currentVolume < 0.1 ? 0.01 : 0.02 || 0.2;
@@ -80,6 +85,13 @@ Singleton {
     // Internals
     PwObjectTracker {
         objects: [sink, source]
+    }
+
+    Connections {
+        target: source?.audio ?? null
+        function onMutedChanged() {
+            root.playMicMuteSound(source.audio.muted)
+        }
     }
 
     Connections { // Protection against sudden volume changes
