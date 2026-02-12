@@ -200,6 +200,7 @@ ContentPage {
 
             ContentSubsection {
                 title: Translation.tr("Group style")
+                tooltip: Translation.tr("Island style makes the group background opaque when bar is transparent")
                 Layout.fillWidth: false
 
                 ConfigSelectionArray {
