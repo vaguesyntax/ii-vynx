@@ -207,7 +207,8 @@ ApplicationWindow {
                     placeholderText: Config.options.settings.enableSearchFunctionality ? Translation.tr("Search all settings..") : Translation.tr("Searching is disabled")
                     implicitWidth: Appearance.sizes.searchWidth
 
-                    onAccepted: {
+                    // We may use this in the future, this only searches the best result
+                    /* onAccepted: {
                         if (!searchInput.text || searchInput.text.trim() === "") return
                         
                         let normalizedText = searchInput.text.toLowerCase()
@@ -221,9 +222,9 @@ ApplicationWindow {
                         root.currentPage = bestResult.pageIndex
                         root.scrollPos = bestResult.yPos
                         SearchRegistry.currentSearch = bestResult.matchedString
-                    }
+                    } */
 
-                    /* onAccepted: {
+                    onAccepted: {
                         const result = SearchRegistry.getResultsRanked(searchInput.text)
 
                         if (result == null) {
@@ -254,7 +255,7 @@ ApplicationWindow {
                             root.scrollPos = result.yPos
                             SearchRegistry.currentSearch = result.matchedString
                         }
-                    } */
+                    }
                 }
             }
             
