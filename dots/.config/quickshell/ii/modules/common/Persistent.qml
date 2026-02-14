@@ -100,7 +100,7 @@ Singleton {
                     property real x: 827
                     property real y: 441
                     property real width: 250
-                    property real height: 150
+                    property real height: 100
                 }
                 property JsonObject floatingImage: JsonObject {
                     property bool pinned: false
