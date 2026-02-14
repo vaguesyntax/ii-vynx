@@ -235,6 +235,7 @@ ApplicationWindow {
                     onTextChanged: {
                         if (text === "") {
                             root.lastSearchIndex = -1
+                            root.resultsCount = 0
                         }
                     }
 
