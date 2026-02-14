@@ -26,7 +26,8 @@ ApplicationWindow {
     property int currentPage: 0
     property real scrollPos: 0
     property string lastSearch: ""
-    property int lastSearchIndex: 0
+    property int lastSearchIndex: -1
+    property int resultsCount: 0
 
     property var pages: [
         {
@@ -195,8 +196,28 @@ ApplicationWindow {
 
                 MaterialShapeWrappedMaterialSymbol {
                     iconSize: Appearance.font.pixelSize.huge
-                    shape: MaterialShape.Shape.Cookie7Sided
-                    text: Config.options.settings.enableSearchFunctionality ? "search" : "search_off"
+                    shape: MaterialShape.Shape.Ghostish
+                    text: lastSearchIndex !== -1 ? "" : Config.options.settings.enableSearchFunctionality ? "search" : "search_off"
+
+                    StyledText {
+                        id: resultText
+
+                        readonly property bool show: root.lastSearchIndex !== -1
+
+                        visible: false
+                        animateChange: true
+                        anchors.centerIn: parent
+                        text: (root.lastSearchIndex % root.resultsCount + 1) + "/" + root.resultsCount
+
+                        onShowChanged: if (!show) resultText.visible = false
+                        Timer {
+                            id: showTimer
+                            interval: 100
+                            running: resultText.show
+                            repeat: false
+                            onTriggered: resultText.visible = true
+                        }
+                    }
                 }
                 ToolbarTextField { // Search box
                     id: searchInput
@@ -206,6 +227,12 @@ ApplicationWindow {
                     enabled: Config.options.settings.enableSearchFunctionality
                     placeholderText: Config.options.settings.enableSearchFunctionality ? Translation.tr("Search all settings..") : Translation.tr("Searching is disabled")
                     implicitWidth: Appearance.sizes.searchWidth
+
+                    onTextChanged: {
+                        if (text === "") {
+                            root.lastSearchIndex = -1
+                        }
+                    }
 
                     // We may use this in the future, this only searches the best result
                     /* onAccepted: {
@@ -251,6 +278,7 @@ ApplicationWindow {
                             let index = root.lastSearchIndex % results.length
                             let result = results[index]
                             
+                            root.resultsCount = results.length
                             root.currentPage = result.pageIndex
                             root.scrollPos = result.yPos
                             SearchRegistry.currentSearch = result.matchedString
