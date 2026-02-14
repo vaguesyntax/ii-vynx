@@ -312,6 +312,7 @@ MouseArea {
 
                     Toolbar {
                         id: extraOptions
+                        colBackground: Appearance.m3colors.m3surfaceContainerLow
                         anchors {
                             bottom: parent.bottom
                             horizontalCenter: parent.horizontalCenter
