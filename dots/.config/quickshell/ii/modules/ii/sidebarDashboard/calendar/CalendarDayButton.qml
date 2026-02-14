@@ -43,10 +43,10 @@ RippleButton {
         property real itemOpacity: button.showPopup ? 1 : 0
         
         Behavior on itemScale {
-            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
         Behavior on itemOpacity {
-            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+            animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
         }
 
         component: CalendarPopup {
