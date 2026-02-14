@@ -52,6 +52,9 @@ Scope {
             target: GlobalStates
             function onScreenLockedChanged() {
                 if (GlobalStates.screenLocked) {
+                    if (GlobalStates.overlayOpen) {
+                        GlobalStates.overlayOpen = false;
+                    }
                     lockContext.reset();
                     lockContext.tryFingerUnlock();
                 }
