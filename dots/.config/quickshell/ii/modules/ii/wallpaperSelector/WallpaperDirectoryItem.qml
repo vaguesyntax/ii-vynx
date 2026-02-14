@@ -1,3 +1,4 @@
+import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -34,6 +35,14 @@ MouseArea {
     hoverEnabled: true
     onClicked: root.activated()
 
+    function getWallhavenId(url) {
+        const urlStr = url.toString()
+        const fileName = urlStr.split('/').pop() 
+        const fileNameWithoutExt = fileName.split('.')[0] 
+        const match = fileNameWithoutExt.match(/^wallhaven-([a-zA-Z0-9]{6})$/i)
+        return match ? match[1] : null
+    }
+    
     Rectangle {
         id: background
         anchors.fill: parent
@@ -116,6 +125,60 @@ MouseArea {
                         color: Appearance.colors.colPrimary
                         font.pixelSize: Appearance.font.pixelSize.large
                         fill: 1
+                    }
+                }
+
+                Loader {
+                    id: similarImageButtonLoader
+                    active: root.getWallhavenId(fileModelData.fileName) && root.useThumbnail
+                    
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    anchors.margins: 8
+
+                    asynchronous: true
+                    sourceComponent: RippleButton {
+                        id: button
+                        anchors.centerIn: parent
+
+                        implicitWidth: 30
+                        implicitHeight: 30
+
+                        colBackground: "transparent"
+                        colBackgroundHover: Appearance.colors.colSecondaryContainerHover
+                        colRipple: Appearance.colors.colSecondaryContainerActive
+
+                        property int wallpaperTabIndex: {
+                            let index = 0;
+                            if (Config.options.policies.ai !== 0) index++;
+                            if (Config.options.policies.translator !== 0) index++;
+                            return Config.options.policies.wallpapers !== 0 ? index : -1;
+                        }
+
+                        onClicked: {
+                            WallpaperBrowser.moreLikeThisPicture(root.getWallhavenId(fileModelData.fileName), 1);
+                            Persistent.states.sidebar.policies.tab = button.wallpaperTabIndex;
+                            
+                            GlobalStates.policiesPanelOpen = true;
+                            GlobalStates.wallpaperSelectorOpen = false;
+                        }
+
+                        MaterialSymbol {
+                            text: "image_search"
+
+                            // anchors.centerIn doesnot work, WHYYYY :((
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.bottom: parent.bottom
+                            anchors.bottomMargin: 6
+
+                            color: Appearance.colors.colPrimary
+                            font.pixelSize: Appearance.font.pixelSize.large
+                            fill: 1
+                        }
+
+                        StyledToolTip {
+                            text: Translation.tr("Search for more images like this in the 'Wallpapers' tab")
+                        }
                     }
                 }
 

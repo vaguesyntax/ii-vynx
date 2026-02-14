@@ -69,6 +69,9 @@ Singleton {
             }
 
             property JsonObject sidebar: JsonObject {
+                property JsonObject policies: JsonObject {
+                    property int tab: 0
+                }
                 property JsonObject bottomGroup: JsonObject {
                     property bool collapsed: false
                     property int tab: 0

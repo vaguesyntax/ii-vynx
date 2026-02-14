@@ -57,7 +57,8 @@ Item {
                 id: tabBar
                 Layout.alignment: Qt.AlignHCenter
                 tabButtonList: root.tabButtonList
-                currentIndex: swipeView.currentIndex
+                currentIndex: Persistent.states.sidebar.policies.tab
+                onCurrentIndexChanged: Persistent.states.sidebar.policies.tab = currentIndex
             }
         }
 
@@ -73,7 +74,8 @@ Item {
                 id: swipeView
                 anchors.fill: parent
                 spacing: 10
-                currentIndex: tabBar.currentIndex
+                currentIndex: Persistent.states.sidebar.policies.tab
+                onCurrentIndexChanged: Persistent.states.sidebar.policies.tab = currentIndex
 
                 clip: true
                 layer.enabled: true
