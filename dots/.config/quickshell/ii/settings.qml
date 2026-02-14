@@ -228,6 +228,10 @@ ApplicationWindow {
                     placeholderText: Config.options.settings.enableSearchFunctionality ? Translation.tr("Search all settings..") : Translation.tr("Searching is disabled")
                     implicitWidth: Appearance.sizes.searchWidth
 
+                    Component.onCompleted: {
+                        searchInput.forceActiveFocus()
+                    }
+
                     onTextChanged: {
                         if (text === "") {
                             root.lastSearchIndex = -1
