@@ -5,7 +5,6 @@ import QtQuick.Layouts
 
 MouseArea {
     id: root
-    property bool alwaysShowAllResources: true //! FIXME: remove the alwaysShow properties, useless now
     implicitWidth: rowLayout.implicitWidth + rowLayout.anchors.leftMargin + rowLayout.anchors.rightMargin
     implicitHeight: Appearance.sizes.barHeight
     hoverEnabled: !Config.options.bar.tooltips.clickToShow
@@ -21,15 +20,14 @@ MouseArea {
         Resource {
             iconName: "memory"
             percentage: ResourceUsage.memoryUsedPercentage
+            shown: true
             warningThreshold: Config.options.bar.resources.memoryWarningThreshold
         }
 
         Resource {
             iconName: "swap_horiz"
             percentage: ResourceUsage.swapUsedPercentage
-            shown: (Config.options.bar.resources.alwaysShowSwap && percentage > 0) || 
-                (MprisController.activePlayer?.trackTitle == null) ||
-                root.alwaysShowAllResources
+            shown: true
             Layout.leftMargin: shown ? 6 : 0
             warningThreshold: Config.options.bar.resources.swapWarningThreshold
         }
@@ -37,9 +35,7 @@ MouseArea {
         Resource {
             iconName: "planner_review"
             percentage: ResourceUsage.cpuUsage
-            shown: Config.options.bar.resources.alwaysShowCpu || 
-                !(MprisController.activePlayer?.trackTitle?.length > 0) ||
-                root.alwaysShowAllResources
+            shown: true
             Layout.leftMargin: shown ? 6 : 0
             warningThreshold: Config.options.bar.resources.cpuWarningThreshold
         }
