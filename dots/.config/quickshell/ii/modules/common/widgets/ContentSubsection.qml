@@ -18,11 +18,18 @@ ColumnLayout {
         if (page?.register == false) return
         let section = SearchRegistry.findSection(this)
         if (section && title) section.addKeyword(title)
-        if (section && tooltip) section.addKeyword(tooltip)
+    }
+
+    readonly property string currentSearch: SearchRegistry.currentSearch
+    onCurrentSearchChanged: {
+        if (SearchRegistry.currentSearch.toLowerCase() === root.title.toLowerCase()) {
+            highlightOverlay.startAnimation()
+        }
     }
 
     RowLayout {
         ContentSubsectionLabel {
+            opacity: 1 - highlightOverlay.opacity
             visible: root.title && root.title.length > 0
             text: root.title
         }
@@ -43,6 +50,10 @@ ColumnLayout {
                     text: root.tooltip
                 }
             }
+        }
+        HighlightOverlay {
+            id: highlightOverlay
+            visible: false
         }
         Item { Layout.fillWidth: true }
     }

@@ -4,7 +4,6 @@ import QtQuick
 
 Rectangle {
     id: highlightOverlay
-    anchors.fill: parent
     color: Appearance.colors.colSecondaryContainer
     radius: Appearance.rounding.small
     opacity: 0
