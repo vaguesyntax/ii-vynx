@@ -23,26 +23,14 @@ Item {
         anchors.fill: parent
     }
 
+    SearchHandler {
+        searchString: root.text
+    }
+
     RowLayout {
         id: rowLayout
         anchors.fill: parent
         spacing: 0
-
-        /// Search Registry ///
-        Component.onCompleted: {
-            if (page?.register == false) return
-            if (!visible) return
-            let section = SearchRegistry.findSection(root)
-            if (section && text) section.addKeyword(text)
-        }
-
-        readonly property string currentSearch: SearchRegistry.currentSearch
-        onCurrentSearchChanged: {
-            if (SearchRegistry.currentSearch.toLowerCase() === root.text.toLowerCase()) {
-                highlightOverlay.startAnimation()
-                SearchRegistry.currentSearch = ""
-            }
-        }
 
         RowLayout {
             spacing: 10

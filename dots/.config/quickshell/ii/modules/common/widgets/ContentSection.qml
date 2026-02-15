@@ -42,11 +42,8 @@ ColumnLayout {
         stringMap.push(word)
     }
 
-    readonly property string currentSearch: SearchRegistry.currentSearch
-    onCurrentSearchChanged: {
-        if (SearchRegistry.currentSearch.toLowerCase() === root.title.toLowerCase()) {
-            highlightOverlay.startAnimation()
-        }
+    SearchHandler {
+        searchString: root.title
     }
 
     RowLayout {

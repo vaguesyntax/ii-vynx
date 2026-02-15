@@ -22,19 +22,8 @@ RippleButton {
 
     colBackground: normalColor
 
-    /// Search Registry ///
-    Component.onCompleted: {
-        if (page?.register == false) return
-        if (!visible) return
-        let section = SearchRegistry.findSection(this)
-        if (section && text) section.addKeyword(text)
-    }
-
-    readonly property string currentSearch: SearchRegistry.currentSearch
-    onCurrentSearchChanged: {
-        if (SearchRegistry.currentSearch.toLowerCase() === root.text.toLowerCase()) {
-            highlightOverlay.startAnimation()
-        }
+    SearchHandler {
+        searchString: root.text
     }
 
     HighlightOverlay {

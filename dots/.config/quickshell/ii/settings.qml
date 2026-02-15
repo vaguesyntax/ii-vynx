@@ -101,7 +101,8 @@ ApplicationWindow {
     Timer {
         id: registerTimer
         interval: 100
-        running: Config.options.settings.enableSearchFunctionality
+        //running: Config.options.settings.enableSearchFunctionality
+        running: false //FIXME
         onTriggered: {
             allowHeavyLoad = true
             // console.log("[Settings] Starting registration")
@@ -290,7 +291,7 @@ ApplicationWindow {
                             
                             root.resultsCount = results.length
                             root.currentPage = result.pageIndex
-                            root.scrollPos = result.yPos
+                            //root.scrollPos = result.yPos
                             SearchRegistry.currentSearch = result.matchedString
                         }
                     }
