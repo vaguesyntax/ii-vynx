@@ -16,14 +16,6 @@ Item {
         console.log("Current found search result string:", currentSearch)
     }
 
-    // used by config components like ConfigSwitch, ConfigSpinBox
-    function findSection(item) {
-        while (item) {
-            if (item.addKeyword) return item
-            item = item.parent
-        }
-    }
-
     FileView {
         id: pageFile
         path: Directories.interfaceConfigPath

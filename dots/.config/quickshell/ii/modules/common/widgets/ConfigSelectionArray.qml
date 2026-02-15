@@ -33,20 +33,6 @@ Flow {
     property var currentValue: null
     property var register: false // not registering every selection array
 
-    /// Search Registry ///
-    Component.onCompleted: {
-        if (page?.register == false) return
-        if (root.register == false) return
-        let section = SearchRegistry.findSection(this)
-        if (section) {
-            for (let i = 0; i < options.length; i++) {
-                if (options[i].displayName) {
-                    section.addKeyword(options[i].displayName)
-                }
-            }
-        }
-    }
-
 
     signal selected(var newValue)
 

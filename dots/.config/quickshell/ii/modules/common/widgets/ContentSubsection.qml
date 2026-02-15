@@ -14,12 +14,6 @@ ColumnLayout {
     Layout.topMargin: 4
     spacing: 2
 
-    Component.onCompleted: {
-        if (page?.register == false) return
-        let section = SearchRegistry.findSection(this)
-        if (section && title) section.addKeyword(title)
-    }
-
     SearchHandler {
         searchString: root.title
     }
