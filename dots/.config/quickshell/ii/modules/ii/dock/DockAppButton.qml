@@ -139,16 +139,10 @@ DockButton {
                         implicitHeight: root.countDotHeight
                         color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
                         Behavior on color {
-                            ColorAnimation {
-                                duration: 150
-                                easing.type: Easing.InOutQuad
-                            }
+                            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
                         }
                         Behavior on implicitWidth {
-                            NumberAnimation {
-                                duration: 200
-                                easing.type: Easing.InOutQuad
-                            }
+                            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                         }
                     }
                 }
