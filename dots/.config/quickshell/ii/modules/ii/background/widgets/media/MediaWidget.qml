@@ -24,6 +24,8 @@ AbstractBackgroundWidget {
     readonly property bool useAlbumColors: Config.options.background.widgets.media.useAlbumColors
     readonly property bool useDynamicColors: root.useAlbumColors && root.currentPlayer != null 
     readonly property bool showPreviousToggle: Config.options.background.widgets.media.showPreviousToggle
+    readonly property bool hideAllButtons: Config.options.background.widgets.media.hideAllButtons
+    readonly property bool showRestButtons: hideAllButtons ? hovering : true
 
     readonly property var playerList: MprisController.players
     property var filteredPlayerList: playerList.filter(player => player != null && player.trackAlbum != "")
@@ -73,12 +75,14 @@ AbstractBackgroundWidget {
     implicitWidth: contentItem.implicitWidth
 
     // 'Switch button' visiblity on hover
+    property bool hovering: false
     hoverEnabled: true
     onEntered: {
-        if (root.playerList.length <= 1) return
-        showSwitchButton = true
+        hovering = true
     }
-    onExited: showSwitchButton = false
+    onExited: {
+        hovering = false
+    }
         
     allowMiddleClick: true
     onClicked: (event) => {
@@ -171,7 +175,7 @@ AbstractBackgroundWidget {
                 bottom: parent.bottom
             }
             z: 3
-            shown: showSwitchButton
+            shown: root.hovering && root.playerList.length <= 1
             sourceComponent: ControlButton {
                 colBackground: root.dynamicColors.colPrimaryBackground
                 colBackgroundHover: root.dynamicColors.colPrimaryBackgroundHover
@@ -264,67 +268,83 @@ AbstractBackgroundWidget {
             }
         }
 
-        ControlButton {
-            id: playButton
+        FadeLoader {
+            shown: root.showRestButtons
             anchors {
                 left: parent.left
                 bottom: parent.bottom
             }
-            buttonRadius: root.currentPlayer?.isPlaying ? Appearance.rounding.normal : controlsSize / 2
-            colBackground: root.dynamicColors.colSecondaryBackground
-            colBackgroundHover: root.dynamicColors.colSecondaryBackgroundHover
-            colRipple: root.dynamicColors.colSecondaryRipple
-            symbolText: root.currentPlayer?.isPlaying ? "pause" : "play_arrow"
-            symbolColor: useAlbumColors ?  blendedColors.colTertiary : Appearance.colors.colTertiary
-            onClicked: {
-                root.currentPlayer.togglePlaying()
+            sourceComponent: ControlButton {
+                id: playButton
+                anchors {
+                    left: parent.left
+                    bottom: parent.bottom
+                }
+                buttonRadius: root.currentPlayer?.isPlaying ? Appearance.rounding.normal : controlsSize / 2
+                colBackground: root.dynamicColors.colSecondaryBackground
+                colBackgroundHover: root.dynamicColors.colSecondaryBackgroundHover
+                colRipple: root.dynamicColors.colSecondaryRipple
+                symbolText: root.currentPlayer?.isPlaying ? "pause" : "play_arrow"
+                symbolColor: useAlbumColors ?  blendedColors.colTertiary : Appearance.colors.colTertiary
+                onClicked: {
+                    root.currentPlayer.togglePlaying()
+                }
             }
         }
+        
 
-        Rectangle {
+        Loader {
+            active: root.showRestButtons
             anchors {
                 top: parent.top
                 right: parent.right
             }
-            implicitWidth: root.showPreviousToggle ? controlsSize * 2 : controlsSize
-            implicitHeight: controlsSize
-            z: 2
-            radius: Appearance.rounding.full
-            color: dynamicColors.colTertiaryBackground
+            sourceComponent: Rectangle {
+                anchors {
+                    top: parent.top
+                    right: parent.right
+                }
+                implicitWidth: root.showPreviousToggle ? controlsSize * 2 : controlsSize
+                implicitHeight: controlsSize
+                z: 2
+                radius: Appearance.rounding.full
+                color: dynamicColors.colTertiaryBackground
 
-            Behavior on implicitWidth {
-                animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
-            }
+                Behavior on implicitWidth {
+                    animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
+                }
 
-            FadeLoader {
-                shown: root.showPreviousToggle
-                sourceComponent: ControlButton {
-                    anchors.left: parent.left
+                FadeLoader {
+                    shown: root.showPreviousToggle
+                    sourceComponent: ControlButton {
+                        anchors.left: parent.left
+                        colBackground: root.dynamicColors.colTertiaryBackground
+                        colBackgroundHover: root.dynamicColors.colTertiaryBackgroundHover
+                        colRipple: root.dynamicColors.colTertiaryRipple
+                        symbolColor: root.dynamicColors.colSecondary
+                        symbolText: "skip_previous"
+                        onClicked: {
+                            currentPlayer.previous()
+                        }
+                    }
+                }
+
+                ControlButton {
+                    anchors.right: parent.right 
+
                     colBackground: root.dynamicColors.colTertiaryBackground
                     colBackgroundHover: root.dynamicColors.colTertiaryBackgroundHover
                     colRipple: root.dynamicColors.colTertiaryRipple
                     symbolColor: root.dynamicColors.colSecondary
-                    symbolText: "skip_previous"
+                    symbolText: "skip_next"
                     onClicked: {
-                        currentPlayer.previous()
+                        currentPlayer.next()
                     }
                 }
+
             }
-
-            ControlButton {
-                anchors.right: parent.right 
-
-                colBackground: root.dynamicColors.colTertiaryBackground
-                colBackgroundHover: root.dynamicColors.colTertiaryBackgroundHover
-                colRipple: root.dynamicColors.colTertiaryRipple
-                symbolColor: root.dynamicColors.colSecondary
-                symbolText: "skip_next"
-                onClicked: {
-                    currentPlayer.next()
-                }
-            }
-
         }
+        
     }
 
     component ControlButton : RippleButton {

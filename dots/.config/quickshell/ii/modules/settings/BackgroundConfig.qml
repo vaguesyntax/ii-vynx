@@ -758,23 +758,37 @@ ContentPage {
             }
         }
 
-        ConfigSwitch {
-            buttonIcon: "colors"
-            text: Translation.tr("Tint art cover")
-            checked: Config.options.background.widgets.media.tintArtCover
-            onCheckedChanged: {
-                Config.options.background.widgets.media.tintArtCover = checked;
-            }
-        }
-
         ConfigRow {
             uniform: true
+            ConfigSwitch {
+                buttonIcon: "colors"
+                text: Translation.tr("Tint art cover")
+                checked: Config.options.background.widgets.media.tintArtCover
+                onCheckedChanged: {
+                    Config.options.background.widgets.media.tintArtCover = checked;
+                }
+            }
             ConfigSwitch {
                 buttonIcon: "opacity"
                 text: Translation.tr("Use album colors")
                 checked: Config.options.background.widgets.media.useAlbumColors
                 onCheckedChanged: {
                     Config.options.background.widgets.media.useAlbumColors = checked;
+                }
+            }
+        }
+
+        ConfigRow {
+            uniform: true
+            ConfigSwitch {
+                buttonIcon: "block"
+                text: Translation.tr("Hide all controls")
+                checked: Config.options.background.widgets.media.hideAllButtons
+                onCheckedChanged: {
+                    Config.options.background.widgets.media.hideAllButtons = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Buttons will only be visible on hover")
                 }
             }
             ConfigSwitch {
