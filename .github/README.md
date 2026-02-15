@@ -58,40 +58,13 @@ Run the setup script:
 ```
 
 <div align="center">
-    <h2>• wiki •</h2>
+    <h2>• documentation •</h2>
 </div>
 
 Please refer to [this repository's wiki](https://github.com/vaguesyntax/ii-vynx/wiki) for detailed component descriptions and further information.
 
-<div align="center">
-    <h2>• known issues and current bugs •</h2>
-</div>
+Please refer to [this wiki page about limitations](https://github.com/vaguesyntax/ii-vynx/wiki/Known-Issues-and-Limitations) to see current bugs, the details of known issues about this repo and limitations of hyprscrolling plugin implementation.
 
-Please refer to [this wiki page](https://github.com/vaguesyntax/ii-vynx/wiki/Known-Issues-and-Limitations) to see current bugs, the details of known issues about this repo and limitations of hyprscrolling plugin implementation.
-
-
-<div align="center">
-    <h2>• PRs •</h2>
-</div>
-
-- PR: https://github.com/end-4/dots-hyprland/pull/2539 -> Video wallpaper fixes | Branch: [video-wallpaper-fixes](https://github.com/vaguesyntax/dots-hyprland/tree/video-wallpaper-fixes)
-
-<div align="center">
-    <h2>• other available features •</h2>
-</div>
-
-- Bar rework  **_// security and timer indicators, custom ordering and more.._**
-- Workspaces widget rework **_// ability to show multiple windows in one workspace_**
-- Background media widget
-- Settings color scheme previews **_// custom color schemes_**
-- Cookie clock improvements
-- File search functionality in launcher
-- Multiple tab support in overlay/notes widget
-- Wallpaper browser in sidebar **_// allows fetching wallpapers from walhaven and unsplash_**
-- Extended calendar functionality from this PR: https://github.com/end-4/dots-hyprland/pull/1887 _**// in sync with google calendar, tweaked**_
-- Current overview changes for [hyprscrolling plugin](https://github.com/vaguesyntax/hyprscrolling) 
-- New overview style for my hyprscrolling plugin:
-<img width="960" height="540" alt="image" src="https://github.com/user-attachments/assets/40579084-3cc5-4330-b598-9be6015d7a3a" />
 
 <div align="center">
     <h2>• hyprscrolling implementation •</h2>
