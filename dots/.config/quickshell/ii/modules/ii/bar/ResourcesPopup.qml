@@ -88,6 +88,16 @@ StyledPopup {
                     label: Translation.tr("Load:")
                     value: `${Math.round(ResourceUsage.cpuUsage * 100)}%`
                 }
+                StyledPopupValueRow {
+                    icon: "speed"
+                    label: Translation.tr("Freq:")
+                    value: ResourceUsage.cpuCurrentFreqString
+                }
+                StyledPopupValueRow {
+                    icon: "device_thermostat"
+                    label: Translation.tr("Temp:")
+                    value: ResourceUsage.cpuTemperatureString
+                }
             }
         }
     }
