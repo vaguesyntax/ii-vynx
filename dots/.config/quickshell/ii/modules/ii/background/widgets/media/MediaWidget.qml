@@ -28,8 +28,20 @@ AbstractBackgroundWidget {
     readonly property bool showRestButtons: hideAllButtons ? hovering : true
 
     readonly property var playerList: MprisController.players
-    property var filteredPlayerList: playerList.filter(player => player != null && player.trackAlbum != "")
-    property var filteredActivePlayer: MprisController.activePlayer?.trackAlbum != "" ? MprisController.activePlayer : null
+
+    property var filteredPlayerList: playerList.filter(player => 
+        player != null && 
+        (player.trackTitle != null && player.trackTitle !== "")  
+    )
+    
+    property var filteredActivePlayer: {
+        let active = MprisController.activePlayer;
+        if (active && active.trackTitle && active.trackTitle !== "") {
+            return active;
+        }
+
+        return filteredPlayerList.length > 0 ? filteredPlayerList[0] : null;
+    }
     
     property MprisPlayer currentPlayer : filteredActivePlayer
     property var artUrl: currentPlayer?.trackArtUrl
