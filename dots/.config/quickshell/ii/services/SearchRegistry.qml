@@ -16,7 +16,8 @@ Item {
         console.log("Current found search result string:", currentSearch)
     }
 
-    Component.onCompleted: {
+    function startIndexing() {
+        sections = []
         pageFile.start([
             Directories.generalConfigPath,
             Directories.barConfigPath,
@@ -25,6 +26,15 @@ Item {
             Directories.servicesConfigPath,
             Directories.advancedConfigPath
         ])
+    }
+
+    Component.onCompleted: startIndexing()
+
+    Connections {
+        target: Translation
+        function onLanguageCodeChanged() {
+            startIndexing()
+        }
     }
 
     FileView {
@@ -108,7 +118,7 @@ Item {
             })
         }
 
-        console.log("[SearchRegistry] Indexed", sections.length, "sections")
+        console.log("[SearchRegistry] Indexed", sections.length, "sections", "| Language:", Translation.languageCode)
     }
 
     // Helper function for indexQmlFile(), extracts blocks from the qml file
@@ -161,8 +171,8 @@ Item {
     function extractProperty(block, prop) {
         let m
 
-        // Translation.tr("")
-        m = block.match(new RegExp(prop + "\\s*:\\s*Translation\\.tr\\(\"([^\"]+)\"\\)"))
+        // Translation.tr("") or Translation.tr('')
+        m = block.match(new RegExp(prop + "\\s*:\\s*Translation\\.tr\\(\\s*[\"']([^\"']+)[\"']\\s*\\)"))
         if (m) return m[1]
 
         // ""
@@ -217,7 +227,14 @@ Item {
     }
 
     function registerSection(data) {
-        let combined = (data.title + " " + data.searchStrings.join(" ")).toLowerCase()
+        const titleKey = data.title
+        const searchStringsKeys = [...data.searchStrings]
+
+        // Apply translations
+        data.title = Translation.tr(titleKey)
+        data.searchStrings = searchStringsKeys.map(s => Translation.tr(s))
+
+        let combined = (titleKey + " " + searchStringsKeys.join(" ") + " " + data.title + " " + data.searchStrings.join(" ")).toLowerCase()
         
         data._tokens = tokenize(combined)
         data._searchText = combined
