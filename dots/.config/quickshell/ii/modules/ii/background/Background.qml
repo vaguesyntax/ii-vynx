@@ -168,10 +168,11 @@ Variants {
                     if (Config.options.background.parallax.enableWorkspace && !bgRoot.verticalParallax) {
                         result = ((bgRoot.monitor.activeWorkspace?.id - lower) / range);
                     }
-                    if (Config.options.background.parallax.enableSidebar) {
-                        result += (0.15 * GlobalStates.effectiveLeftOpen - 0.15 * GlobalStates.effectiveRightOpen);                    
-                    }
                     return result;
+                }
+                property real sidebarOffsetX: {
+                    if (!Config.options.background.parallax.enableSidebar) return 0;
+                    return (0.15 * GlobalStates.effectiveRightOpen - 0.15 * GlobalStates.effectiveLeftOpen);
                 }
                 property real valueY: {
                     let result = 0.5;
@@ -180,7 +181,7 @@ Variants {
                     }
                     return result;
                 }
-                property real effectiveValueX: Math.max(0, Math.min(1, valueX))
+                property real effectiveValueX: Math.max(0, Math.min(1, valueX)) + sidebarOffsetX
                 property real effectiveValueY: Math.max(0, Math.min(1, valueY))
                 x: -(bgRoot.movableXSpace) - (effectiveValueX - 0.5) * 2 * bgRoot.movableXSpace
                 y: -(bgRoot.movableYSpace) - (effectiveValueY - 0.5) * 2 * bgRoot.movableYSpace
