@@ -143,6 +143,13 @@ Variants {
             }
         }
 
+        property bool mediaModeOpen: Persistent.states.media.mediaMode
+        onMediaModeOpenChanged: {
+            if (!mediaModeOpen) {
+                Wallpapers.apply(bgRoot.wallpaperPath);
+            }
+        }
+
         Item {
             id: wallpaperItem
             anchors.fill: parent
