@@ -255,6 +255,10 @@ Item { // MediaMode instance
                         ColumnLayout {
                             anchors.verticalCenter: parent.verticalCenter
                             width: parent.width
+                            
+                            StyledRectangularShadow {
+                                target: artBackground
+                            }
 
                             Rectangle { // Art background
                                 id: artBackground
@@ -272,6 +276,7 @@ Item { // MediaMode instance
                                         radius: artBackground.radius
                                     }
                                 }
+                                
 
                                 MouseArea {
                                     anchors.fill: artBackground
