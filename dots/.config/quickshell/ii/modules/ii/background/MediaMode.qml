@@ -61,13 +61,21 @@ Item { // MediaMode instance
         rescaleSize: 1 // Rescale to 1x1 pixel for faster processing
 
         onColorsChanged: {
-            if (Persistent.states.media.mediaMode && root.artUrl && root.downloaded && colors.length > 0) {
+            if (root.downloaded && colors.length > 0) {
                 let colStr = colors[0].toString();
-                if (colStr !== "") {
-                    switchColorProc.colorString = colStr;
-                    switchColorProc.running = true;
-                }
+                switchColorProc.colorString = colStr;
+                switchColorProc.running = true;
             }
+        }
+    }
+
+    // sometimes color quantizer's color change does not work (i have no idea why)
+    onDisplayedArtFilePathChanged: {
+        colorQuantizer.source = root.displayedArtFilePath;
+        let colStr = colorQuantizer.colors[0].toString();
+        if (root.artUrl && root.downloaded) {
+            switchColorProc.colorString = colStr;
+            switchColorProc.running = true;
         }
     }
     
