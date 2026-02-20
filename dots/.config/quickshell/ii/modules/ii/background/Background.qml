@@ -146,6 +146,11 @@ Variants {
             anchors.fill: parent
             clip: true
             scale: showOpeningAnimation && overviewOpen && Config.options.overview.style === "scrolling" ? zoomedRatio : defaultRatio
+            opacity: Persistent.states.mediaMode ? 0 : 1
+            
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
 
             Behavior on scale {
                 animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this)
@@ -349,6 +354,18 @@ Variants {
                         }
                     }
                 }
+            }
+        }
+        
+        Loader {
+            id: mediaModeLoader
+            anchors.fill: parent
+            active: Persistent.states.mediaMode
+            asynchronous: true
+            sourceComponent: MediaMode {}
+            opacity: status === Loader.Ready ? 1 : 0
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
             }
         }
     }

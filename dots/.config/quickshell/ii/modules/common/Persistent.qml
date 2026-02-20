@@ -183,6 +183,8 @@ Singleton {
             property JsonObject wallpaper: JsonObject {
                 property list<string> favourites: []
             }
+
+            property bool mediaMode: false
         }
     }
 }
