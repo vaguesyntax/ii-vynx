@@ -28,10 +28,11 @@ AbstractBackgroundWidget {
     readonly property bool showRestButtons: hideAllButtons ? hovering : true
 
     readonly property var playerList: MprisController.players
+
+    // not using for now, but could be useful in the future 
     property var filteredPlayerList: playerList.filter(player => player != null && player.trackAlbum != "")
-    property var filteredActivePlayer: MprisController.activePlayer?.trackAlbum != "" ? MprisController.activePlayer : null
     
-    property MprisPlayer currentPlayer : filteredActivePlayer
+    property MprisPlayer currentPlayer : MprisController.activePlayer
     property var artUrl: currentPlayer?.trackArtUrl
     property string artDownloadLocation: Directories.coverArt
     property string artFileName: Qt.md5(artUrl)
@@ -175,7 +176,7 @@ AbstractBackgroundWidget {
                 bottom: parent.bottom
             }
             z: 3
-            shown: root.hovering && root.playerList.length <= 1
+            shown: root.hovering
             sourceComponent: ControlButton {
                 colBackground: root.dynamicColors.colPrimaryBackground
                 colBackgroundHover: root.dynamicColors.colPrimaryBackgroundHover
