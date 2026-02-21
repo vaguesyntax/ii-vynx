@@ -81,7 +81,7 @@ Item { // MediaMode instance
                 return !(trimmed.startsWith("[") && trimmed.endsWith("]"))
             })
 
-            root.geniusLyricsString = filtered.slice(7).join("\n") //TODO: better approach to remove the metadata at the beginning of the lyrics
+            root.geniusLyricsString = filtered.join("\n")
         }
     }
 
@@ -407,47 +407,32 @@ Item { // MediaMode instance
                                 clip: true
                                 contentHeight: geniusText.implicitHeight
                                 interactive: true
-                                contentY: root.player.position / root.player.length * (geniusText.implicitHeight - height) - height / 2
 
-                                property real lastPosition: -1
-                                property bool userScrolling: false
+                                property real userOffset: 0
+                                property bool isSyncing: true
 
-                                onMovementStarted: {
-                                    geniusFlickable.userScrolling = true
-                                    userScrollCooldown.restart()
+                                readonly property real rawTargetY: {
+                                    var progress = root.player.position / root.player.length
+                                    var maxScroll = contentHeight - (geniusFlickable.height / 2)
+                                    return Math.max(0, (progress * maxScroll) - (geniusFlickable.height / 2))
                                 }
+
                                 onMovementEnded: {
-                                    userScrollCooldown.restart()
+                                    userOffset = contentY - rawTargetY
+                                    isSyncing = true 
+                                }
+
+                                onMovementStarted: isSyncing = false
+
+                                onRawTargetYChanged: {
+                                    if (isSyncing && !dragging && !flicking) {
+                                        contentY = Math.min(contentHeight - height, rawTargetY + userOffset)
+                                    }
                                 }
 
                                 Behavior on contentY {
-                                    NumberAnimation {
-                                        duration: 1000
-                                        easing.type: Easing.InOutSine
-                                    }
-                                }
-
-
-                                Timer {
-                                    id: userScrollCooldown
-                                    interval: 1500
-                                    onTriggered: {
-                                        geniusFlickable.userScrolling = false
-                                        // Cooldown bitince lastPosition'ı şimdiki zamana sync et
-                                        // böylece kullanıcının bıraktığı yerden devam eder
-                                        geniusFlickable.lastPosition = root.player?.position ?? 0
-                                    }
-                                }
-
-                                Connections {
-                                    target: root.player
-                                    function onPositionChanged() {
-                                        const position = root.player?.position ?? 0
-                                        const delta = Math.abs(position - geniusFlickable.lastPosition)
-                                        if (delta > 1) {
-                                            geniusFlickable.lastPosition = position
-                                        }
-                                    }
+                                    enabled: geniusFlickable.isSyncing
+                                    animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                                 }
 
                                 StyledText {
@@ -468,7 +453,6 @@ Item { // MediaMode instance
                             LyricScroller {
                                 id: lyricScroller
                                 anchors.fill: parent
-                                //visible: hasSyncedLines
                             }
                         }
 

@@ -41,10 +41,6 @@ if (apiKey && songTitle && artistName) {
             console.log("Song not found.");
             return;
         }
-        console.log(`Title: ${song.title}`);
-        console.log(`URL: ${song.url}`);
-        console.log(`Album Art: ${song.albumArt}`);
-        console.log("Lyrics:\n");
         console.log(song.lyrics);
     })();
 }
