@@ -144,30 +144,15 @@ Variants {
             }
         }
 
-        Timer {
-            id: mediaModeDelayTimer
-            interval: 600
-            repeat: false
-            onTriggered: {
-                bgRoot.effectiveMediaModeOpen = bgRoot.mediaModeOpen;
-            }
-        }
-
         property bool mediaModeOpen: Config.options.background.mediaMode.enable
-        property bool effectiveMediaModeOpen: false
-        onMediaModeOpenChanged: {
-            mediaModeDelayTimer.restart();
-            if (!mediaModeOpen) {
-                Wallpapers.apply(bgRoot.wallpaperPath);
-            }
-        }
+
 
         Item {
             id: wallpaperItem
             anchors.fill: parent
             clip: true
             scale: showOpeningAnimation && overviewOpen && Config.options.overview.style === "scrolling" ? zoomedRatio : defaultRatio
-            opacity: effectiveMediaModeOpen ? 0 : 1
+            opacity: mediaModeOpen ? 0 : 1
             
             Behavior on opacity {
                 NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
@@ -381,17 +366,18 @@ Variants {
         Loader {
             id: mediaModeLoader
             anchors.fill: parent
-            active: effectiveMediaModeOpen
-            asynchronous: true
+            active: mediaModeOpen
+            // asynchronous: true, should we use this? idk
             sourceComponent: MediaMode {}
             opacity: status === Loader.Ready ? 1 : 0
             Behavior on opacity {
-                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+                animation: Appearance.animation.elementMoveFast.opacityAnimation.createObject(this)
             }
 
             // IMPORTANT: FIXME: NOTE: TODO: FUCKME: Fix this, this is a really really really bad approach
             // I couldnt find a better place to put this global shortcut, YOU!, yes YOU, if you are reading this, 
             // please move this global shortcut to a more appropriate place, like maybe the media widget itself, or the global states, or literally anywhere else but here. This is really bad.
+            // increase this number when you read this text and havent fixed it: 4
             GlobalShortcut {
                 name: "mediaModeToggle"
                 description: "Toggles media mode on press"
