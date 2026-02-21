@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import qs
 import qs.services
 import qs.modules.common
-import qs.modules.common.utils
 import qs.modules.common.widgets
 import qs.modules.common.widgets.widgetCanvas
 import qs.modules.common.functions as CF
@@ -377,7 +376,7 @@ Variants {
             // IMPORTANT: FIXME: NOTE: TODO: FUCKME: Fix this, this is a really really really bad approach
             // I couldnt find a better place to put this global shortcut, YOU!, yes YOU, if you are reading this, 
             // please move this global shortcut to a more appropriate place, like maybe the media widget itself, or the global states, or literally anywhere else but here. This is really bad.
-            // increase this number when you read this text and havent fixed it: 4
+            // increase this number when you read this text and havent fixed it: 5
             GlobalShortcut {
                 name: "mediaModeToggle"
                 description: "Toggles media mode on press"
