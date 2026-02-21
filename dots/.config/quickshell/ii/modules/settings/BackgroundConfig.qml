@@ -61,6 +61,7 @@ ContentPage {
     ContentSection {
         icon: "music_note"
         title: Translation.tr("Media mode")
+        tooltip: Translation.tr("Toggle the mode with a keybind that executes 'quickshell:mediaModeToggle'\nExample: bindd = Super, Z, Toggle media mode, global, quickshell:mediaModeToggle")
 
         ConfigSwitch {
             buttonIcon: "animation"
