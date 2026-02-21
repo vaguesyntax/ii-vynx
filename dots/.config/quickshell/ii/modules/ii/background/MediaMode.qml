@@ -177,7 +177,7 @@ Item { // MediaMode instance
                             property: "x"
                             from: -50
                             to: 30
-                            duration: 18000
+                            duration: 16500
                             easing.type: Easing.InOutSine
                         }
                         NumberAnimation {
@@ -185,7 +185,7 @@ Item { // MediaMode instance
                             property: "x"
                             from: 30
                             to: -20
-                            duration: 14000
+                            duration: 11500
                             easing.type: Easing.InOutSine
                         }
                         NumberAnimation {
@@ -193,7 +193,7 @@ Item { // MediaMode instance
                             property: "x"
                             from: -20
                             to: 50
-                            duration: 22000
+                            duration: 19500
                             easing.type: Easing.InOutSine
                         }
                         NumberAnimation {
@@ -201,7 +201,7 @@ Item { // MediaMode instance
                             property: "x"
                             from: 50
                             to: -50
-                            duration: 16000
+                            duration: 14500
                             easing.type: Easing.InOutSine
                         }
                     }
@@ -215,7 +215,7 @@ Item { // MediaMode instance
                             property: "y"
                             from: 20
                             to: -50
-                            duration: 22000
+                            duration: 20000
                             easing.type: Easing.InOutSine
                         }
                         NumberAnimation {
@@ -223,7 +223,7 @@ Item { // MediaMode instance
                             property: "y"
                             from: -50
                             to: 30
-                            duration: 16000
+                            duration: 14000
                             easing.type: Easing.InOutSine
                         }
                         NumberAnimation {
@@ -239,7 +239,7 @@ Item { // MediaMode instance
                             property: "y"
                             from: -30
                             to: 20
-                            duration: 15000
+                            duration: 14500
                             easing.type: Easing.InOutSine
                         }
                     }
