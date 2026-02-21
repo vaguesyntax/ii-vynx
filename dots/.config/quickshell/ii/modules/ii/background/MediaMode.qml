@@ -57,6 +57,40 @@ Item { // MediaMode instance
             }
         }
     }
+    
+    property string geniusLyricsString: ""
+
+    LrclibLyrics {
+        id: lrclibLyrics
+        enabled: (root.player?.trackTitle?.length > 0) && (root.player?.trackArtist?.length > 0)
+        title: root.player?.trackTitle ?? ""
+        artist: root.player?.trackArtist ?? ""
+        duration: root.player?.length ?? 0
+        position: root.player?.position ?? 0
+        selectedId: 0
+    }
+
+    GeniusLyrics {
+        id: geniusLyrics
+        onLyricsUpdated: (lyrics) => {
+            // we have to remove first 7 lines because it contains metadata such as titlte, artist and contributors etc.
+            let lines = lyrics.split("\n")
+            root.geniusLyricsString = lines.slice(7).join("\n")
+        }
+    }
+
+    Component.onCompleted: {
+        if (root.player) {
+            geniusLyrics.fetchLyrics(root.player.trackArtist, root.player.trackTitle)
+        }
+    }
+
+    readonly property string trackTitle: root.player?.trackTitle
+    onTrackTitleChanged: {
+        if (root.player) {
+            geniusLyrics.fetchLyrics(root.player.trackArtist, root.player.trackTitle)
+        }
+    }
 
     ColorQuantizer {
         id: colorQuantizer
@@ -353,16 +387,6 @@ Item { // MediaMode instance
                             anchors.topMargin: 40
                             anchors.bottomMargin: 40
 
-                            LrclibLyrics {
-                                id: lrclibLyrics
-                                enabled: (root.player?.trackTitle?.length > 0) && (root.player?.trackArtist?.length > 0)
-                                title: root.player?.trackTitle ?? ""
-                                artist: root.player?.trackArtist ?? ""
-                                duration: root.player?.length ?? 0
-                                position: root.player?.position ?? 0
-                                selectedId: 0
-                            }
-
                             Timer {
                                 running: root.player?.playbackState == MprisPlaybackState.Playing && lyricScroller.hasSyncedLines
                                 interval: 250
@@ -370,10 +394,78 @@ Item { // MediaMode instance
                                 onTriggered: root.player.positionChanged()
                             }
 
+                            Flickable {
+                                id: geniusFlickable
+                                anchors.fill: parent
+                                visible: !lyricScroller.hasSyncedLines && root.geniusLyricsString.length > 0
+                                clip: true
+                                contentHeight: geniusText.implicitHeight
+                                interactive: true
+                                contentY: root.player.position / root.player.length * (geniusText.implicitHeight - height) - height / 2
+
+                                property real lastPosition: -1
+                                property bool userScrolling: false
+
+                                onMovementStarted: {
+                                    geniusFlickable.userScrolling = true
+                                    userScrollCooldown.restart()
+                                }
+                                onMovementEnded: {
+                                    userScrollCooldown.restart()
+                                }
+
+                                Behavior on contentY {
+                                    NumberAnimation {
+                                        duration: 1000
+                                        easing.type: Easing.InOutSine
+                                    }
+                                }
+
+
+                                Timer {
+                                    id: userScrollCooldown
+                                    interval: 1500
+                                    onTriggered: {
+                                        geniusFlickable.userScrolling = false
+                                        // Cooldown bitince lastPosition'ı şimdiki zamana sync et
+                                        // böylece kullanıcının bıraktığı yerden devam eder
+                                        geniusFlickable.lastPosition = root.player?.position ?? 0
+                                    }
+                                }
+
+                                Connections {
+                                    target: root.player
+                                    function onPositionChanged() {
+                                        const position = root.player?.position ?? 0
+                                        const delta = Math.abs(position - geniusFlickable.lastPosition)
+                                        if (delta > 1) {
+                                            geniusFlickable.lastPosition = position
+                                        }
+                                    }
+                                }
+
+                                StyledText {
+                                    id: geniusText
+                                    width: parent.width
+                                    text: root.geniusLyricsString
+                                    color: Appearance.colors.colOnLayer0
+                                    font.pixelSize: Appearance.font.pixelSize.hugeass
+                                    font.weight: Font.Medium
+                                    wrapMode: Text.Wrap
+                                    horizontalAlignment: Text.AlignLeft
+                                    verticalAlignment: Text.AlignTop
+                                    lineHeight: 1.6
+                                }
+                            }
+
+
                             LyricScroller {
                                 id: lyricScroller
+                                anchors.fill: parent
+                                //visible: hasSyncedLines
                             }
                         }
+
                     }
                 }
             }
@@ -383,8 +475,9 @@ Item { // MediaMode instance
     component LyricScroller: Item {
         anchors.fill: parent
         clip: true
+        visible: lrclibLyrics.lines.length > 0
 
-        readonly property bool hasSyncedLines: visible ? lrclibLyrics.lines.length > 0 : false
+        readonly property bool hasSyncedLines: lrclibLyrics.lines.length > 0
         readonly property int rowHeight: Math.max(30, Math.min(Math.floor(height / 5), Appearance.font.pixelSize.hugeass * 3))
         readonly property real baseY: (height - rowHeight) / 2
         readonly property real downScale: 0.85

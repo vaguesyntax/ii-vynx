@@ -117,6 +117,18 @@ Singleton {
                 Cliphist.wipe();
             }
         },
+        {
+            action: "genius",
+            execute: args => {
+                if (!args || args.trim().length === 0) {
+                    Quickshell.execDetached(["notify-send", "Genius API", 
+                        Translation.tr("Usage: /genius YOUR_API_KEY"), "-a", "Shell"]);
+                    return;
+                }
+                KeyringStorage.setNestedField(["apiKeys", "genius"], args.trim());
+                Quickshell.execDetached(["notify-send", "Genius API", Translation.tr("API key saved!"), "-a", "Shell"]);
+            }
+        },
     ]
 
     // Combined built-in and user actions
