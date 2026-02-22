@@ -184,73 +184,12 @@ StyledOverlayWidget {
                     }
                 }
 
-                ButtonGroup {
-                    Layout.preferredHeight: parent.height / 1.2
-                    Layout.fillWidth: false
-
-                    GroupButton { // Previous button
-                        baseWidth: 30
-                        baseHeight: parent.height
-                        
-
-                        MaterialSymbol {
-                            anchors.centerIn: parent
-                            fill: 1
-                            iconSize: 24
-                            color: Appearance.colors.colPrimary
-                            text: "skip_previous"
-                        }
-
-                        onClicked: {
-                            root.currentPlayer?.previous()
-                        }
-
-                    }
-
-                    GroupButton { // Play/Pause button
-                        baseWidth: 50
-                        baseHeight: parent.height
-
-                        buttonRadius: Appearance.rounding.full
-                        buttonRadiusPressed: Appearance.rounding.full
-                        colBackground: Appearance.colors.colPrimary
-                        colBackgroundHover: Appearance.colors.colPrimaryHover
-                        colBackgroundActive: Appearance.colors.colPrimaryActive
-                        colBackgroundToggled: Appearance.colors.colPrimary
-                        colBackgroundToggledHover: Appearance.colors.colPrimaryHover
-                        colBackgroundToggledActive: Appearance.colors.colPrimaryActive
-
-                        MaterialSymbol {
-                            anchors.centerIn: parent
-                            iconSize: 24
-                            fill: 1
-                            color: Appearance.colors.colOnPrimary
-                            text: root.currentPlayer?.isPlaying ? "pause" : "play_arrow"
-                        }
-
-                        onClicked: {
-                            root.currentPlayer?.togglePlaying()
-                        }
-
-                    }
-
-                    GroupButton { // Next button
-                        baseWidth: 30
-                        baseHeight: parent.height
-
-                        MaterialSymbol {
-                            anchors.centerIn: parent
-                            iconSize: 24
-                            fill: 1
-                            color: Appearance.colors.colPrimary
-                            text: "skip_next"
-                        }
-
-                        onClicked: {
-                            root.currentPlayer?.next()
-                        }
-
-                    }
+                MaterialMusicControls {
+                    id: musicControls
+                    Layout.alignment: Qt.AlignVCenter
+                    player: root.currentPlayer
+                    baseButtonWidth: 30
+                    baseButtonHeight: 30
                 }
             }   
         }

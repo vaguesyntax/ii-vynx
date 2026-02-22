@@ -3,6 +3,7 @@ import qs.modules.common
 import qs.modules.common.widgets
 
 ButtonGroup {
+    id: root
     property int baseButtonWidth: 50
     property int baseButtonHeight: 50
     property real playPauseButtonWidthScale: 1.5
