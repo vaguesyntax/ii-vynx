@@ -388,6 +388,7 @@ Item { // MediaMode instance
                                 anchors.fill: parent
                                 defaultLyricsSize: Appearance.font.pixelSize.hugeass * 1.5
                                 textAlign: "left"
+                                changeTextWeight: true
                             }
                         }
 

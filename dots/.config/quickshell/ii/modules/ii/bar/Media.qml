@@ -153,68 +153,12 @@ Item {
             Layout.preferredWidth: hasSyncedLines ? root.implicitWidth - (mediaCircProg.implicitSize + rowLayout.spacing * 2) : 0
             Layout.preferredHeight: parent.height
             Layout.alignment: Qt.AlignCenter
+            
             defaultLyricsSize: Appearance.font.pixelSize.smallest
-            halfVisibleLines: 2
-            rowHeight: 10
             useGradientMask: root.useGradientMask
+            halfVisibleLines: 2
             downScale: 0.95
+            rowHeight: 10
         }
     }
-
-    component LyricLine: Item {
-        id: lyricLineItem
-        required property string text
-        property bool highlight: false
-        property bool useGradient: false
-        property string gradientDirection: "top" // "top" or "bottom"
-        property bool reallyUseGradient: useGradient && root.useGradientMask
-
-        width: parent.width
-        height: lyricScroller.rowHeight
-
-        StyledText { // text for middle line
-            id: lyricText
-            anchors.fill: parent
-            text: lyricLineItem.text
-            color: lyricLineItem.highlight ? Appearance.colors.colOnLayer1 : Appearance.colors.colSubtext
-            font.pixelSize: Appearance.font.pixelSize.smallie
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
-            visible: !lyricLineItem.reallyUseGradient
-        }
-
-        Item {
-            anchors.fill: parent
-            visible: lyricLineItem.reallyUseGradient
-            layer.enabled: visible
-            layer.effect: OpacityMask {
-                maskSource: Rectangle {
-                    width: lyricLineItem.width
-                    height: lyricLineItem.height
-                    gradient: Gradient {
-                        GradientStop { 
-                            position: 0.0
-                            color: lyricLineItem.gradientDirection === "top" ? "transparent" : "black" // colShadow makes it look bad
-                        }
-                        GradientStop { 
-                            position: 1.0
-                            color: lyricLineItem.gradientDirection === "top" ?  "black" : "transparent"
-                        }
-                    }
-                }
-            }
-
-            StyledText { // text with gradient mask
-                anchors.fill: parent
-                text: lyricLineItem.text
-                color: Appearance.colors.colSubtext
-                font.pixelSize: Appearance.font.pixelSize.smallie
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                elide: Text.ElideRight
-            }
-        }
-    }
-
 }

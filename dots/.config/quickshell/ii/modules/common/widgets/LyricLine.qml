@@ -23,13 +23,15 @@ Item {
 
     property real currentLyricsSize: defaultLyricsSize
 
+    property bool changeTextWeight: false
+
     StyledText {
         id: lyricText
         anchors.fill: parent
         text: lyricLineItem.text
         color: lyricLineItem.highlight ? Appearance.colors.colOnLayer0 : Appearance.colors.colSubtext
         font.pixelSize: lyricLineItem.currentLyricsSize * (lyricLineItem.highlight ? 1.2 : 1.0)
-        font.weight: lyricLineItem.highlight ? Font.Bold : Font.Medium
+        font.weight: changeTextWeight ? lyricLineItem.highlight ? Font.Bold : Font.Medium : Font.Medium
         horizontalAlignment: lyricLineItem.textHorizontalAlignment
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight

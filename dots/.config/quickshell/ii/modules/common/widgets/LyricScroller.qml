@@ -22,6 +22,7 @@ Item {
 
     property real defaultLyricsSize: Appearance.font.pixelSize.normal * 1.5
     property string textAlign: "center"
+    property bool changeTextWeight: false
 
     property int lastIndex: -1
     property bool isMovingForward: true
@@ -63,7 +64,7 @@ Item {
                 property bool isValidLine: root.hasSyncedLines && actualIndex >= 0 && actualIndex < LyricsService.syncedLines.length
 
                 defaultLyricsSize: root.defaultLyricsSize
-
+                changeTextWeight: root.changeTextWeight
                 textHorizontalAlignment: root.textAlign === "left"  ? Text.AlignLeft  :
                              root.textAlign === "right" ? Text.AlignRight :
                                                           Text.AlignHCenter
