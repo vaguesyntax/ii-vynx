@@ -386,6 +386,8 @@ Item { // MediaMode instance
                             LyricScroller {
                                 id: lyricScroller
                                 anchors.fill: parent
+                                defaultLyricsSize: Appearance.font.pixelSize.hugeass * 1.5
+                                textAlign: "left"
                             }
                         }
 

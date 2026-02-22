@@ -13,11 +13,14 @@ Item {
 
     property real defaultLyricsSize: Appearance.font.pixelSize.hugeass * 1.5
 
+    property int textHorizontalAlignment: Text.AlignHCenter
+
     width: parent.width
     height: lyricScroller.rowHeight
-    transformOrigin: Item.Left
+    transformOrigin: lyricLineItem.textHorizontalAlignment === Text.AlignLeft  ? Item.Left  :
+                 lyricLineItem.textHorizontalAlignment === Text.AlignRight ? Item.Right :
+                                                                              Item.Center
 
-    // Expose defaultLyricsSize properly
     property real currentLyricsSize: defaultLyricsSize
 
     StyledText {
@@ -27,7 +30,7 @@ Item {
         color: lyricLineItem.highlight ? Appearance.colors.colOnLayer0 : Appearance.colors.colSubtext
         font.pixelSize: lyricLineItem.currentLyricsSize * (lyricLineItem.highlight ? 1.2 : 1.0)
         font.weight: lyricLineItem.highlight ? Font.Bold : Font.Medium
-        horizontalAlignment: Text.AlignLeft
+        horizontalAlignment: lyricLineItem.textHorizontalAlignment
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
         visible: !lyricLineItem.reallyUseGradient
@@ -62,7 +65,7 @@ Item {
             color: Appearance.colors.colSubtext
             font.pixelSize: lyricLineItem.currentLyricsSize
             font.weight: Font.Medium
-            horizontalAlignment: Text.AlignLeft
+            horizontalAlignment: lyricLineItem.textHorizontalAlignment
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
             wrapMode: Text.Wrap

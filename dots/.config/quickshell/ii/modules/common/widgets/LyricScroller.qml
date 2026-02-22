@@ -3,6 +3,7 @@ import qs.services
 import QtQuick
 
 // Shows synced lyrics from Lrclib
+// default values are for media mode visuals, but these can be overridden by the parent
 
 Item {
     id: root
@@ -10,14 +11,17 @@ Item {
     clip: true
 
     readonly property bool hasSyncedLines: LyricsService.syncedLines.length > 0
-    readonly property int rowHeight: Math.max(30, Math.min(Math.floor(height / 5), Appearance.font.pixelSize.hugeass * 3))
     readonly property real baseY: (height - rowHeight) / 2
-    readonly property real downScale: 0.85
-
-    property int halfVisibleLines: 3
     property int visibleLineCount: halfVisibleLines * 2 + 1
-
     readonly property int targetCurrentIndex: hasSyncedLines ? LyricsService.currentIndex : -1
+
+    property int rowHeight: Math.max(30, Math.min(Math.floor(height / 5), Appearance.font.pixelSize.hugeass * 3))
+    property real downScale: 0.85
+    property int halfVisibleLines: 3
+    property bool useGradientMask: true
+
+    property real defaultLyricsSize: Appearance.font.pixelSize.normal * 1.5
+    property string textAlign: "center"
 
     property int lastIndex: -1
     property bool isMovingForward: true
@@ -58,6 +62,12 @@ Item {
                 property int actualIndex: root.targetCurrentIndex + lineOffset
                 property bool isValidLine: root.hasSyncedLines && actualIndex >= 0 && actualIndex < LyricsService.syncedLines.length
 
+                defaultLyricsSize: root.defaultLyricsSize
+
+                textHorizontalAlignment: root.textAlign === "left"  ? Text.AlignLeft  :
+                             root.textAlign === "right" ? Text.AlignRight :
+                                                          Text.AlignHCenter
+
                 text: isValidLine ? LyricsService.syncedLines[actualIndex].text : (lineOffset === 0 && root.targetCurrentIndex === -1 ? (LyricsService.statusText || "♪") : "")
 
                 // The old line offset maps where this visual line was logically positioned in the previous state.
@@ -93,7 +103,7 @@ Item {
                 property real startScale: getScaleForOffset(oldLineOffset)
                 scale: startScale + (targetScale - startScale) * (1.0 - root.animProgress)
 
-                useGradient: highlightFactor <= 0.5
+                useGradient: highlightFactor <= 0.5 && root.useGradientMask
                 gradientDirection: lineOffset < 0 ? "top" : "bottom"
             }
         }
