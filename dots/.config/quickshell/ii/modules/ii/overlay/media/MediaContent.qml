@@ -89,7 +89,7 @@ StyledOverlayWidget {
                 LyricScroller {
                     id: lyricScroller
                     anchors.fill: parent
-                    defaultLyricsSize: Appearance.font.pixelSize.large
+                    defaultLyricsSize: Config.options.overlay.media.lyricSize
                     halfVisibleLines: 2
                     rowHeight: 20
                 }
@@ -188,7 +188,8 @@ StyledOverlayWidget {
                     Layout.alignment: Qt.AlignVCenter
                     player: root.currentPlayer
                     baseButtonWidth: 30
-                    baseButtonHeight: 30
+                    baseButtonHeight: 35
+                    playPauseButtonWidthScale: 1.75
                 }
             }   
         }
