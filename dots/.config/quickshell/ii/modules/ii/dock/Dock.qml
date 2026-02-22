@@ -12,40 +12,47 @@ import Quickshell.Widgets
 import Quickshell.Wayland
 import Quickshell.Hyprland
 
-Scope { // Scope
+Scope {
     id: root
     property bool pinned: Config.options?.dock.pinnedOnStartup ?? false
+    property string position: "bottom" // "auto" | "bottom" | "top" | "left" | "right"
+    
+    readonly property string effectivePosition: {
+        if (position === "auto")
+            return (Config.options?.bar.bottom && !Config.options?.bar.vertical) ? "top" : "bottom"
+        return position
+    }
+
+    readonly property bool isVertical: effectivePosition === "left" || effectivePosition === "right"
 
     Variants {
-        // For each monitor
         model: Quickshell.screens
 
         PanelWindow {
             id: dockRoot
-            // Window
             required property var modelData
             screen: modelData
             visible: !GlobalStates.screenLocked
 
+            readonly property real dockThickness: (Config.options?.dock.height ?? 70) + Appearance.sizes.elevationMargin + Appearance.sizes.hyprlandGapsOut
+
             property bool reveal: root.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || dockApps.requestDockShow || (!ToplevelManager.activeToplevel?.activated)
 
-            property bool isBarBottom: !Config.options.bar.vertical && Config.options.bar.bottom
-
             anchors {
-                bottom: !isBarBottom
-                top: isBarBottom
-                left: true
-                right: true
+                top: root.effectivePosition === "top" || root.isVertical
+                bottom: root.effectivePosition === "bottom" || root.isVertical
+                left: root.effectivePosition === "left" || !root.isVertical
+                right: root.effectivePosition === "right" || !root.isVertical
             }
 
-            exclusiveZone: root.pinned ? implicitHeight - (Appearance.sizes.hyprlandGapsOut) - (Appearance.sizes.elevationMargin - Appearance.sizes.hyprlandGapsOut) : 0
+            exclusiveZone: root.pinned ? dockThickness - Appearance.sizes.hyprlandGapsOut - (Appearance.sizes.elevationMargin - Appearance.sizes.hyprlandGapsOut) : 0
 
-            implicitWidth: dockBackground.implicitWidth
+            implicitWidth: root.isVertical ? dockThickness : dockBackground.implicitWidth
+            implicitHeight: root.isVertical ? dockBackground.implicitHeight : dockThickness
+
             WlrLayershell.namespace: "quickshell:dock"
             WlrLayershell.layer: WlrLayer.Overlay
             color: "transparent"
-
-            implicitHeight: (Config.options?.dock.height ?? 70) + Appearance.sizes.elevationMargin + Appearance.sizes.hyprlandGapsOut
 
             mask: Region {
                 item: dockMouseArea
@@ -53,42 +60,32 @@ Scope { // Scope
 
             MouseArea {
                 id: dockMouseArea
-                height: parent.height
-                anchors {
-                    topMargin: isBarBottom ? 0 : dockRoot.reveal ? 0 : Config.options?.dock.hoverToReveal ? (dockRoot.implicitHeight - Config.options.dock.hoverRegionHeight) : (dockRoot.implicitHeight + 1)
-                    bottomMargin: isBarBottom ? dockRoot.reveal ? 0 : Config.options?.dock.hoverToReveal ? (dockRoot.implicitHeight - Config.options.dock.hoverRegionHeight) : (dockRoot.implicitHeight + 1) : 0
-                    horizontalCenter: parent.horizontalCenter
-                }
-                implicitWidth: dockHoverRegion.implicitWidth + Appearance.sizes.elevationMargin * 2
                 hoverEnabled: true
 
-                state: isBarBottom ? "bottomAnchored" : "topAnchored"
-                states: [
-                    State {
-                        name: "topAnchored"
-                        AnchorChanges {
-                            target: dockMouseArea
-                            anchors.top: parent.top
-                            anchors.bottom: undefined
-                        }
-                    },
-                    State {
-                        name: "bottomAnchored"
-                        AnchorChanges {
-                            target: dockMouseArea
-                            anchors.top: undefined
-                            anchors.bottom: parent.bottom
-                        }
-                    }
-                ]
+                property real hiddenOffset: dockRoot.dockThickness - (Config.options?.dock.hoverRegionHeight ?? 10)
+                property real fullyHiddenOffset: dockRoot.dockThickness + 1
+                property real currentOffset: dockRoot.reveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
 
-                Behavior on anchors.topMargin {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-                }
+                width: root.isVertical ? dockRoot.dockThickness : dockHoverRegion.implicitWidth + Appearance.sizes.elevationMargin * 2
+                height: root.isVertical ? dockHoverRegion.implicitHeight + Appearance.sizes.elevationMargin * 2 : dockRoot.dockThickness
 
-                Behavior on anchors.bottomMargin {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
-                }
+                anchors.horizontalCenter: root.isVertical ? undefined : parent.horizontalCenter
+                anchors.verticalCenter: root.isVertical ? parent.verticalCenter : undefined
+
+                anchors.top: root.effectivePosition === "top" ? parent.top : undefined
+                anchors.bottom: root.effectivePosition === "bottom" ? parent.bottom : undefined
+                anchors.left: root.effectivePosition === "left" ? parent.left : undefined
+                anchors.right: root.effectivePosition === "right" ? parent.right : undefined
+
+                anchors.topMargin: root.effectivePosition === "top" ? -currentOffset : 0
+                anchors.bottomMargin: root.effectivePosition === "bottom" ? -currentOffset : 0
+                anchors.leftMargin: root.effectivePosition === "left" ? -currentOffset : 0
+                anchors.rightMargin: root.effectivePosition === "right" ? -currentOffset : 0
+
+                Behavior on anchors.topMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
+                Behavior on anchors.bottomMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
+                Behavior on anchors.leftMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
+                Behavior on anchors.rightMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
 
                 Item {
                     id: dockHoverRegion
@@ -152,20 +149,6 @@ Scope { // Scope
                             DockApps {
                                 id: dockApps
                                 buttonPadding: dockRow.padding
-                            }
-                            DockSeparator {}
-                            DockButton {
-                                Layout.fillHeight: true
-                                onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
-                                topInset: Appearance.sizes.hyprlandGapsOut + dockRow.padding
-                                bottomInset: Appearance.sizes.hyprlandGapsOut + dockRow.padding
-                                contentItem: MaterialSymbol {
-                                    anchors.fill: parent
-                                    horizontalAlignment: Text.AlignHCenter
-                                    font.pixelSize: parent.width / 2
-                                    text: "apps"
-                                    color: Appearance.colors.colOnLayer0
-                                }
                             }
                         }
                     }
