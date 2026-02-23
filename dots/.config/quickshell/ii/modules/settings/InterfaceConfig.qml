@@ -1111,7 +1111,9 @@ ContentPage {
 
         RowLayout {
             Layout.topMargin: 10
+            
             StyledText {
+                Layout.preferredWidth: 150
                 property bool firstError: page.hyprscrollingPluginEnabled && !configEnabled
                 property bool secondError: !page.hyprscrollingPluginEnabled & configEnabled
                 property bool configEnabled: Config.options.overview.hyprscrollingImplementation.enable

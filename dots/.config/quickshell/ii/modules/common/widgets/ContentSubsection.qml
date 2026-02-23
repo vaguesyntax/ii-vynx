@@ -14,17 +14,8 @@ ColumnLayout {
     Layout.topMargin: 4
     spacing: 2
 
-    Component.onCompleted: {
-        if (page?.register == false) return
-        let section = SearchRegistry.findSection(this)
-        if (section && title) section.addKeyword(title)
-    }
-
-    readonly property string currentSearch: SearchRegistry.currentSearch
-    onCurrentSearchChanged: {
-        if (SearchRegistry.currentSearch.toLowerCase() === root.title.toLowerCase()) {
-            highlightOverlay.startAnimation()
-        }
+    SearchHandler {
+        searchString: root.title
     }
 
     RowLayout {

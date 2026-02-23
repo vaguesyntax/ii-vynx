@@ -9,6 +9,7 @@ MaterialShape {
     property alias font: symbol.font
     property alias colSymbol: symbol.color
     property alias fill: symbol.fill
+    property alias animateChange: symbol.animateChange
     property real padding: 6
     
 

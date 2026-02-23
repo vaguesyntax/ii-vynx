@@ -4,6 +4,7 @@ import qs.modules.common
 import qs.modules.common.functions
 import QtQuick
 import Quickshell
+import Quickshell.Io
 
 Item {
     id: root
@@ -15,12 +16,181 @@ Item {
         console.log("Current found search result string:", currentSearch)
     }
 
-    // used by config components like ConfigSwitch, ConfigSpinBox
-    function findSection(item) {
-        while (item) {
-            if (item.addKeyword) return item
-            item = item.parent
+    function startIndexing() {
+        sections = []
+        pageFile.start([
+            Directories.generalConfigPath,
+            Directories.barConfigPath,
+            Directories.backgroundConfigPath,
+            Directories.interfaceConfigPath,
+            Directories.servicesConfigPath,
+            Directories.advancedConfigPath
+        ])
+    }
+
+    Component.onCompleted: startIndexing()
+
+    Connections {
+        target: Translation
+        function onLanguageCodeChanged() {
+            startIndexing()
         }
+    }
+
+    FileView {
+        id: pageFile
+        blockLoading: true
+
+        property var files: []
+        property int currentIndex: 0
+
+        function start(filesArray) {
+            files = filesArray
+            currentIndex = 0
+            loadNext()
+        }
+
+        function loadNext() {
+            if (currentIndex >= files.length)
+                return
+
+            path = files[currentIndex]
+        }
+
+        onLoaded: {
+            root.indexQmlFile(text())
+
+            currentIndex++
+
+            Qt.callLater(() => loadNext())
+        }
+    }
+
+
+    // Fetches the needed string like text, title from the qml file
+
+    function indexQmlFile(qmlText) {
+        if (!qmlText)
+            return
+
+        let sections = extractBlocks(qmlText, "ContentSection")
+
+        for (let sectionBlock of sections) {
+
+            let title = extractProperty(sectionBlock, "title")
+
+            let searchStrings = []
+            if (title)
+                searchStrings.push(title)
+
+            // subsections
+            let subsections = extractBlocks(sectionBlock, "ContentSubsection")
+            for (let subBlock of subsections) {
+                let subTitle = extractProperty(subBlock, "title")
+                if (subTitle)
+                    searchStrings.push(subTitle)
+            }
+
+            // switches
+            let switches = extractBlocks(sectionBlock, "ConfigSwitch")
+            for (let swBlock of switches) {
+                let text = extractProperty(swBlock, "text")
+                if (text)
+                    searchStrings.push(text)
+            }
+
+            // spinbox
+            let spins = extractBlocks(sectionBlock, "ConfigSpinBox")
+            for (let spBlock of spins) {
+                let text = extractProperty(spBlock, "text")
+                if (text)
+                    searchStrings.push(text)
+            }
+
+            //console.log("[SearchRegistry] Indexed:", title, searchStrings)
+
+            let pageIndex = extractPageIndex(qmlText)
+
+            registerSection({
+                pageIndex: pageIndex,
+                title: title || "Unknown",
+                searchStrings: searchStrings
+            })
+        }
+
+        console.log("[SearchRegistry] Indexed", sections.length, "sections", "| Language:", Translation.languageCode)
+    }
+
+    // Helper function for indexQmlFile(), extracts blocks from the qml file
+
+    function extractBlocks(text, type) {
+        let results = []
+        let i = 0
+
+        while (i < text.length) {
+            let index = text.indexOf(type, i)
+            if (index === -1)
+                break
+
+            let braceStart = text.indexOf("{", index)
+            if (braceStart === -1)
+                break
+
+            let depth = 1
+            let j = braceStart + 1
+            let inString = false
+            let stringChar = ""
+
+            while (j < text.length && depth > 0) {
+                let ch = text[j]
+
+                if (!inString && (ch === '"' || ch === "'")) {
+                    inString = true
+                    stringChar = ch
+                } else if (inString && ch === stringChar) {
+                    inString = false
+                } else if (!inString) {
+                    if (ch === "{") depth++
+                    else if (ch === "}") depth--
+                }
+
+                j++
+            }
+
+            let block = text.substring(braceStart + 1, j - 1)
+            results.push(block)
+
+            i = j
+        }
+
+        return results
+    }
+
+    // Helper function for indexQmlFile(), extracts properties from the qml file
+
+    function extractProperty(block, prop) {
+        let m
+
+        // Translation.tr("") or Translation.tr('')
+        m = block.match(new RegExp(prop + "\\s*:\\s*Translation\\.tr\\(\\s*[\"']([^\"']+)[\"']\\s*\\)"))
+        if (m) return m[1]
+
+        // ""
+        m = block.match(new RegExp(prop + "\\s*:\\s*\"([^\"]+)\""))
+        if (m) return m[1]
+
+        // ''
+        m = block.match(new RegExp(prop + "\\s*:\\s*'([^']+)'"))
+        if (m) return m[1]
+
+        return ""
+    }
+
+    // Helper function for indexQmlFile(), extracts the page index
+    
+    function extractPageIndex(qmlText) {
+        let m = qmlText.match(/readonly\s+property\s+int\s+index\s*:\s*(\d+)/)
+        return m ? parseInt(m[1]) : -1
     }
 
     function tokenize(text) {
@@ -57,7 +227,14 @@ Item {
     }
 
     function registerSection(data) {
-        let combined = (data.title + " " + data.searchStrings.join(" ")).toLowerCase()
+        const titleKey = data.title
+        const searchStringsKeys = [...data.searchStrings]
+
+        // Apply translations
+        data.title = Translation.tr(titleKey)
+        data.searchStrings = searchStringsKeys.map(s => Translation.tr(s))
+
+        let combined = (titleKey + " " + searchStringsKeys.join(" ") + " " + data.title + " " + data.searchStrings.join(" ")).toLowerCase()
         
         data._tokens = tokenize(combined)
         data._searchText = combined

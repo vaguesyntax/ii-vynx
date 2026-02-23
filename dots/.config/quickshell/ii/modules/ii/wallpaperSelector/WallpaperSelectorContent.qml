@@ -15,6 +15,7 @@ MouseArea {
     property int columns: 4
     property real previewCellAspectRatio: 4 / 3
     property bool useDarkMode: Appearance.m3colors.darkmode
+    property bool favMode: false
 
     function updateThumbnails() {
         const totalImageMargin = (Appearance.sizes.wallpaperSelectorItemMargins + Appearance.sizes.wallpaperSelectorItemPadding) * 2
@@ -25,7 +26,38 @@ MouseArea {
     Connections {
         target: Wallpapers
         function onDirectoryChanged() {
+            root.favMode = false;
             root.updateThumbnails()
+        }
+    }
+
+    Connections {
+        target: Persistent.states.wallpaper
+        function onFavouritesChanged() {
+            if (root.favMode) {
+                root.refreshFavourites();
+            }
+        }
+    }
+
+    ListModel {
+        id: favouritesModel
+    }
+
+    function refreshFavourites() {
+        favouritesModel.clear();
+        const favs = Persistent.states.wallpaper.favourites;
+        const query = filterField.text.toLowerCase();
+        for (let i = 0; i < favs.length; i++) {
+            const path = favs[i];
+            const fileName = path.split('/').pop();
+            if (query === "" || fileName.toLowerCase().includes(query)) {
+                favouritesModel.append({
+                    filePath: path,
+                    fileName: fileName,
+                    fileIsDir: false
+                });
+            }
         }
     }
 
@@ -170,6 +202,7 @@ MouseArea {
                             { icon: "image", name: "Pictures", path: Directories.pictures }, 
                             { icon: "movie", name: "Videos", path: Directories.videos }, 
                             { icon: "", name: "---", path: "INTENTIONALLY_INVALID_DIR" }, 
+                            { icon: "favorite", name: "Favourites", path: "FAVOURITES_MODE" }, 
                             { icon: "wallpaper", name: "Wallpapers", path: `${Directories.pictures}/Wallpapers` }, 
                             ...(Config.options.policies.weeb === 1 ? [{ icon: "favorite", name: "Homework", path: `${Directories.pictures}/homework` }] : []),
                         ]
@@ -180,9 +213,17 @@ MouseArea {
                                 left: parent.left
                                 right: parent.right
                             }
-                            onClicked: Wallpapers.setDirectory(quickDirButton.modelData.path)
+                            onClicked: {
+                                if (quickDirButton.modelData.path === "FAVOURITES_MODE") {
+                                    root.favMode = true;
+                                    root.refreshFavourites();
+                                } else {
+                                    root.favMode = false;
+                                    Wallpapers.setDirectory(quickDirButton.modelData.path)
+                                }
+                            }
                             enabled: modelData.icon.length > 0
-                            toggled: Wallpapers.directory === Qt.resolvedUrl(modelData.path)
+                            toggled: modelData.path === "FAVOURITES_MODE" ? root.favMode : (!root.favMode && Wallpapers.directory === Qt.resolvedUrl(modelData.path))
                             colBackgroundToggled: Appearance.colors.colSecondaryContainer
                             colBackgroundToggledHover: Appearance.colors.colSecondaryContainerHover
                             colRippleToggled: Appearance.colors.colSecondaryContainerActive
@@ -219,10 +260,42 @@ MouseArea {
                     Layout.fillWidth: true
                     Layout.fillHeight: false
                     directory: Wallpapers.effectiveDirectory
+                    visible: !root.favMode
                     onNavigateToDirectory: path => {
                         Wallpapers.setDirectory(path.length == 0 ? "/" : path);
                     }
                     radius: wallpaperGridBackground.radius - Layout.margins
+                }
+
+                Rectangle {
+                    id: favHeader
+                    visible: root.favMode
+                    Layout.margins: 4
+                    Layout.fillWidth: true
+                    implicitHeight: addressBar.implicitHeight
+                    color: Appearance.colors.colLayer2
+                    radius: wallpaperGridBackground.radius - Layout.margins
+
+                    RowLayout {
+                        spacing: 12
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: 14
+                        
+                        MaterialSymbol {
+                            text: "favorite"
+                            color: Appearance.colors.colPrimary
+                            iconSize: Appearance.font.pixelSize.larger
+                        }
+                        ConfigSelectionArray {
+                            options: [
+                                {
+                                    displayName: Translation.tr("Favourites")
+                                }
+                            ]
+                        }
+                    }
+                    
                 }
 
                 Item {
@@ -248,9 +321,17 @@ MouseArea {
                         anchors.fill: indeterminateProgressBar
                     }
 
+                    StyledText {
+                        visible: root.favMode && grid.model.count === 0
+                        text: Translation.tr("No favourites yet. Click the heart icon on any wallpaper to add it to favourites.")
+                        anchors.centerIn: parent
+
+                        font.family: Appearance.font.family.reading
+                    }
+
                     GridView {
                         id: grid
-                        visible: Wallpapers.folderModel.count > 0
+                        visible: count > 0
 
                         readonly property int columns: root.columns
                         readonly property int rows: Math.max(1, Math.ceil(count / columns))
@@ -280,7 +361,7 @@ MouseArea {
                             root.selectWallpaperPath(filePath);
                         }
 
-                        model: Wallpapers.folderModel
+                        model: root.favMode ? favouritesModel : Wallpapers.folderModel
                         onModelChanged: currentIndex = 0
                         delegate: WallpaperDirectoryItem {
                             required property var modelData
@@ -312,6 +393,7 @@ MouseArea {
 
                     Toolbar {
                         id: extraOptions
+                        z: 1
                         colBackground: Appearance.m3colors.m3surfaceContainerLow
                         anchors {
                             bottom: parent.bottom
@@ -339,7 +421,15 @@ MouseArea {
                         IconToolbarButton {
                             implicitWidth: height
                             onClicked: {
-                                Wallpapers.randomFromCurrentFolder();
+                                if (root.favMode) {
+                                    const favs = Persistent.states.wallpaper.favourites;
+                                    if (favs.length > 0) {
+                                        const randomPath = favs[Math.floor(Math.random() * favs.length)];
+                                        root.selectWallpaperPath(randomPath);
+                                    }
+                                } else {
+                                    Wallpapers.randomFromCurrentFolder();
+                                }
                             }
                             text: "ifl"
                             StyledToolTip {
@@ -367,6 +457,9 @@ MouseArea {
                             // Search
                             onTextChanged: {
                                 Wallpapers.searchQuery = text;
+                                if (root.favMode) {
+                                    root.refreshFavourites();
+                                }
                             }
 
                             Keys.onPressed: event => {

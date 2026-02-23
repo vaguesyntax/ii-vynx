@@ -65,10 +65,10 @@ Item {
             applyStyle(14, "full", "classic", "classic", "classic", "rect")
         }
     }
-    
+
     FileView {
         id: categoryFileView
-        path: Directories.generatedWallpaperCategoryPath
+        path: Config.ready ? Directories.generatedWallpaperCategoryPath : ""
         watchChanges: true
         onFileChanged: this.reload()
         onLoaded: {
@@ -78,7 +78,7 @@ Item {
 
     property string backgroundStyle: Config.options.background.widgets.clock.cookie.backgroundStyle
     StyledDropShadow {
-        target: backgroundStyle === "sine" ? sineCookieLoader : backgroundStyle === "cookie" ? roundedPolygonCookieLoader : materialShapeCookieLoader
+        target: root.useSineCookie ? sineCookieLoader : roundedPolygonCookieLoader
 
         RotationAnimation on rotation {
             running: Config.options.background.widgets.clock.cookie.constantlyRotate
@@ -93,7 +93,7 @@ Item {
         id: sineCookieLoader
         z: 0
         visible: false // The DropShadow already draws it
-        active: backgroundStyle === "sine"
+        active: root.useSineCookie
         sourceComponent: SineCookie {
             implicitSize: root.implicitSize
             sides: Config.options.background.widgets.clock.cookie.sides
@@ -104,7 +104,7 @@ Item {
         id: roundedPolygonCookieLoader
         z: 0
         visible: false // The DropShadow already draws it
-        active: backgroundStyle === "cookie"
+        active: !root.useSineCookie
         sourceComponent: MaterialCookie {
             implicitSize: root.implicitSize
             sides: Config.options.background.widgets.clock.cookie.sides

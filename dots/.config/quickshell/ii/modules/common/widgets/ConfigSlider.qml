@@ -18,14 +18,6 @@ RowLayout {
     property real from: slider.from
     property real to: slider.to
     property real textWidth: 120
-    
-    /// Search Registry ///
-    Component.onCompleted: {
-        if (page?.register == false) return
-        if (!visible) return
-        let section = SearchRegistry.findSection(this)
-        if (section && text) section.addKeyword(text)
-    }
 
     readonly property string currentSearch: SearchRegistry.currentSearch
     onCurrentSearchChanged: {

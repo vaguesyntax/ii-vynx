@@ -12,6 +12,13 @@ import Quickshell.Hyprland
 Scope {
     id: root
 
+    // Ensure Idle service is always loaded so the idle inhibitor works in both panel families
+    // (e.g. even when "Keep right sidebar loaded" is off in ii).
+    Item {
+        id: idleServiceAnchor
+        property bool _ensureIdleLoaded: Idle.inhibit
+    }
+
     required property Component lockSurface
     property alias context: lockContext
     property Component sessionLockSurface: WlSessionLockSurface {
@@ -144,6 +151,9 @@ Scope {
             KeyringStorage.fetchKeyringData();
         }
     }
+
+    Component.onCompleted: initIfReady()
+
     Connections {
         target: Config
         function onReadyChanged() {

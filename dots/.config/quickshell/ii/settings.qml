@@ -77,50 +77,6 @@ ApplicationWindow {
     visible: true
     onClosing: Qt.quit()
     title: "illogical-impulse Settings"
-
-    property bool allowHeavyLoad: false
-    property int currentLoadIndex: 0
-
-    Repeater {
-        model: root.pages
-        delegate: Loader {
-            required property var modelData
-            required property int index
-            id: testLoader
-            active: allowHeavyLoad && index === root.currentLoadIndex
-            source: modelData.component
-            property bool register: true
-            onLoaded: {
-                active = false
-                // Bir sonraki sayfayı yükle
-                loadNextTimer.start()
-            }
-        }
-    }
-    
-    Timer {
-        id: registerTimer
-        interval: 100
-        running: Config.options.settings.enableSearchFunctionality
-        onTriggered: {
-            allowHeavyLoad = true
-            // console.log("[Settings] Starting registration")
-        }
-    }
-
-    Timer {
-        id: loadNextTimer
-        interval: 100
-        onTriggered: {
-            root.currentLoadIndex++
-            // console.log("[Settings] Loaded page", root.currentLoadIndex, "/", root.pages.length)
-            
-            if (root.currentLoadIndex >= root.pages.length) {
-                console.log("[Settings] All pages registered")
-            }
-        }
-    }
-
     
     Component.onCompleted: {
         MaterialThemeLoader.reapplyTheme()
@@ -197,7 +153,8 @@ ApplicationWindow {
                 MaterialShapeWrappedMaterialSymbol {
                     iconSize: Appearance.font.pixelSize.huge
                     shape: MaterialShape.Shape.Ghostish
-                    text: resultText.show ? "" : Config.options.settings.enableSearchFunctionality ? "search" : "search_off"
+                    text: resultText.show ? "" : "search" 
+                    animateChange: true
 
                     StyledText {
                         id: resultText
@@ -224,8 +181,7 @@ ApplicationWindow {
                     Layout.topMargin: 4
                     Layout.bottomMargin: 4
                     font.pixelSize: Appearance.font.pixelSize.small
-                    enabled: Config.options.settings.enableSearchFunctionality
-                    placeholderText: Config.options.settings.enableSearchFunctionality ? Translation.tr("Search all settings..") : Translation.tr("Searching is disabled")
+                    placeholderText: Translation.tr("Search all settings..")
                     implicitWidth: Appearance.sizes.searchWidth
 
                     Component.onCompleted: {
@@ -233,10 +189,8 @@ ApplicationWindow {
                     }
 
                     onTextChanged: {
-                        if (text === "") {
-                            root.lastSearchIndex = -1
-                            root.resultsCount = 0
-                        }
+                        root.lastSearchIndex = -1
+                        root.resultsCount = 0
                     }
 
                     // We may use this in the future, this only searches the best result
@@ -290,7 +244,7 @@ ApplicationWindow {
                             
                             root.resultsCount = results.length
                             root.currentPage = result.pageIndex
-                            root.scrollPos = result.yPos
+                            //root.scrollPos = result.yPos
                             SearchRegistry.currentSearch = result.matchedString
                         }
                     }

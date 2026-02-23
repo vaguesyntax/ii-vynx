@@ -313,23 +313,6 @@ ContentPage {
         }
         
     }
-
-    ContentSection {
-        icon: "settings"
-        title: Translation.tr("Settings")
-
-        ConfigSwitch {  
-            buttonIcon: "search"  
-            text: Translation.tr("Enable search functionality")  
-            checked: Config.options.settings.enableSearchFunctionality  
-            onCheckedChanged: {  
-                Config.options.settings.enableSearchFunctionality = checked;  
-            }  
-            StyledToolTip {
-                text: Translation.tr("Search system loads all pages at the start of the settings app.\nThey are being loaded in the background with a delay between them\nto prevent lag. But it may be still laggy for some users.")
-            }
-        }  
-    }
   
     ContentSection {  
         icon: "notification_sound"  

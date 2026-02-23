@@ -31,7 +31,7 @@ Item {
     Rectangle {
         id: background
         anchors.fill: parent
-        color: Appearance.colors.colLayer3
+        color: Appearance.m3colors.m3surfaceContainer
         implicitHeight: 56
         implicitWidth: toolbarLayout.implicitWidth + root.padding * 2
         radius: height / 2

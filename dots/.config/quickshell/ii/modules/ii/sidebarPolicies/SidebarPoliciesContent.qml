@@ -53,6 +53,7 @@ Item {
             visible: tabButtonList.length > 0
             Layout.alignment: Qt.AlignHCenter
             enableShadow: false
+            colBackground: Appearance.colors.colLayer3
             ToolbarTabBar {
                 id: tabBar
                 Layout.alignment: Qt.AlignHCenter

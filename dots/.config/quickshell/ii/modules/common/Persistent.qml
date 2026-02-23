@@ -85,6 +85,7 @@ Singleton {
 
             property JsonObject idle: JsonObject {
                 property bool inhibit: false
+                property string sessionId: ""
             }
 
             property JsonObject overlay: JsonObject {
@@ -178,6 +179,10 @@ Singleton {
             }
             property JsonObject media: JsonObject {
                 property rect popupRect: Qt.rect(0, 0, 0, 0)
+            }
+
+            property JsonObject wallpaper: JsonObject {
+                property list<string> favourites: []
             }
         }
     }

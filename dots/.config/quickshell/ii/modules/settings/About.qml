@@ -157,9 +157,10 @@ ContentPage {
             spacing: 20
             Layout.topMargin: 10
             Layout.bottomMargin: 10
-            IconImage {
-                implicitSize: 80
-                source: Quickshell.iconPath("illogical-impulse")
+            CustomIcon {
+                width: 80
+                height: 80
+                source: "ii-vynx"
             }
             ColumnLayout {
                 Layout.alignment: Qt.AlignVCenter
@@ -185,13 +186,6 @@ ContentPage {
             spacing: 5
 
             RippleButtonWithIcon {
-                materialIcon: "auto_stories"
-                mainText: Translation.tr("Documentation")
-                onClicked: {
-                    Qt.openUrlExternally("https://github.com/vaguesyntax/ii-vynx/wiki")
-                }
-            }
-            RippleButtonWithIcon {
                 materialIcon: "adjust"
                 materialIconFill: false
                 mainText: Translation.tr("Issues")
@@ -199,6 +193,21 @@ ContentPage {
                     Qt.openUrlExternally("https://github.com/vaguesyntax/ii-vynx/issues")
                 }
             }
+            RippleButtonWithIcon {
+                materialIcon: "auto_stories"
+                mainText: Translation.tr("Documentation")
+                onClicked: {
+                    Qt.openUrlExternally("https://github.com/vaguesyntax/ii-vynx/wiki")
+                }
+            }
+            RippleButtonWithIcon {
+                materialIcon: "bug_report"
+                mainText: Translation.tr("Known Issues")
+                onClicked: {
+                    Qt.openUrlExternally("https://github.com/vaguesyntax/ii-vynx/wiki/Known-Issues-and-Limitations")
+                }
+            }
+            
 
             
         }

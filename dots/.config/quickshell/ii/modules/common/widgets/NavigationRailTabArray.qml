@@ -25,6 +25,10 @@ Item {
         implicitHeight: root.expanded ? itemHeight : baseHighlightHeight
         implicitWidth: tabBarColumn?.children[root.currentIndex]?.visualWidth ?? 100
 
+        Behavior on implicitWidth {
+            animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
+        }
+
         Behavior on anchors.topMargin {
             NumberAnimation {
                 duration: Appearance.animationCurves.expressiveFastSpatialDuration

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.utils //FIXME. remove
 import qs.modules.common.widgets
 import qs.modules.common.widgets.widgetCanvas
 import qs.modules.common.functions as CF
@@ -22,6 +23,8 @@ import qs.modules.ii.background.widgets.media
 Variants {
     id: root
     model: Quickshell.screens
+
+    
 
     PanelWindow {
         id: bgRoot
@@ -141,11 +144,24 @@ Variants {
             }
         }
 
+        property bool mediaModeOpen: Config.options.background.mediaMode.enable
+        onMediaModeOpenChanged: {
+            if (!mediaModeOpen) {
+                Wallpapers.apply(Config.options.background.wallpaperPath)
+            }
+        }
+
+
         Item {
             id: wallpaperItem
             anchors.fill: parent
             clip: true
             scale: showOpeningAnimation && overviewOpen && Config.options.overview.style === "scrolling" ? zoomedRatio : defaultRatio
+            opacity: mediaModeOpen ? 0 : 1
+            
+            Behavior on opacity {
+                NumberAnimation { duration: 300; easing.type: Easing.InOutQuad }
+            }
 
             Behavior on scale {
                 animation: Appearance.animation.elementMoveEnter.numberAnimation.createObject(this)
@@ -168,10 +184,11 @@ Variants {
                     if (Config.options.background.parallax.enableWorkspace && !bgRoot.verticalParallax) {
                         result = ((bgRoot.monitor.activeWorkspace?.id - lower) / range);
                     }
-                    if (Config.options.background.parallax.enableSidebar) {
-                        result += (0.15 * GlobalStates.effectiveLeftOpen - 0.15 * GlobalStates.effectiveRightOpen);                    
-                    }
                     return result;
+                }
+                property real sidebarOffsetX: {
+                    if (!Config.options.background.parallax.enableSidebar) return 0;
+                    return (0.15 * GlobalStates.effectiveRightOpen - 0.15 * GlobalStates.effectiveLeftOpen);
                 }
                 property real valueY: {
                     let result = 0.5;
@@ -180,7 +197,7 @@ Variants {
                     }
                     return result;
                 }
-                property real effectiveValueX: Math.max(0, Math.min(1, valueX))
+                property real effectiveValueX: Math.max(0, Math.min(1, valueX)) + sidebarOffsetX
                 property real effectiveValueY: Math.max(0, Math.min(1, valueY))
                 x: -(bgRoot.movableXSpace) - (effectiveValueX - 0.5) * 2 * bgRoot.movableXSpace
                 y: -(bgRoot.movableYSpace) - (effectiveValueY - 0.5) * 2 * bgRoot.movableYSpace
@@ -347,6 +364,32 @@ Variants {
                             })
                         }
                     }
+                }
+            }
+        }
+        
+        Loader {
+            id: mediaModeLoader
+            anchors.fill: parent
+            active: mediaModeOpen
+            // asynchronous: true, should we use this? idk
+            sourceComponent: MediaMode {}
+            opacity: status === Loader.Ready ? 1 : 0
+            Behavior on opacity {
+                animation: Appearance.animation.elementMoveFast.opacityAnimation.createObject(this)
+            }
+
+            // IMPORTANT: FIXME: NOTE: TODO: FUCKME: Fix this, this is a really really really bad approach
+            // I couldnt find a better place to put this global shortcut, YOU!, yes YOU, if you are reading this, 
+            // please move this global shortcut to a more appropriate place, like maybe the media widget itself, or the global states, or literally anywhere else but here. This is really bad.
+            // increase this number when you read this text and havent fixed it: 5
+            GlobalShortcut {
+                name: "mediaModeToggle"
+                description: "Toggles media mode on press"
+
+                onPressed: {
+                    if (!monitor.focused) return
+                    Config.options.background.mediaMode.enable = !Config.options.background.mediaMode.enable;
                 }
             }
         }

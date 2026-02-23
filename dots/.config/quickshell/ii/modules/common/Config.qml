@@ -213,8 +213,10 @@ Singleton {
                         property real x: 800
                         property real y: 100
                         property bool useAlbumColors: true
+                        property bool hideAllButtons: false
                         property bool showPreviousToggle: true
                         property bool tintArtCover: false
+                        property string backgroundShape: "Circle"  // Options: MaterialShape.Shape enum values as string
                         property JsonObject glow: JsonObject {
                             property bool enable: true
                             property real brightness: 10
@@ -243,6 +245,12 @@ Singleton {
                     property real workspaceZoom: 1.07 // Relative to your screen, not wallpaper size
                     property bool enableSidebar: true
                     property real widgetsFactor: 1.2
+                }
+                property JsonObject mediaMode: JsonObject {
+                    property bool enable: false
+                    property string backgroundShape: "Square"
+                    property bool enableBackgroundAnimation: true // It **may** cause nausea for someone
+                    property bool changeShellColor: true // Changes the shell color to the album color
                 }
             }
 
@@ -575,6 +583,10 @@ Singleton {
                 property int historyLength: 60
             }
 
+            property JsonObject lyricsService: JsonObject {
+                property bool enable: true
+            }
+
             property JsonObject tray: JsonObject {
                 property bool monochromeIcons: true
                 property bool showItemId: false
@@ -615,10 +627,6 @@ Singleton {
                     property string imageSearchEngineBaseUrl: "https://lens.google.com/uploadbyurl?url="
                     property bool useCircleSelection: false
                 }
-            }
-
-            property JsonObject settings: JsonObject {
-                property bool enableSearchFunctionality: true // some people may wanna disable this bc it loads all pages at the startup so it may be laggy for some users
             }
 
             property JsonObject sidebar: JsonObject {
@@ -709,6 +717,7 @@ Singleton {
             }
 
             property JsonObject updates: JsonObject {
+                property bool enableCheck: true
                 property int checkInterval: 120 // minutes
                 property int adviseUpdateThreshold: 75 // packages
                 property int stronglyAdviseUpdateThreshold: 200 // packages

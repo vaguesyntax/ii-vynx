@@ -121,6 +121,24 @@ ContentPage {
         
     }
 
+
+    ContentSection {
+        icon: "lyrics"
+        title: Translation.tr("Lyrics")
+
+        ConfigSwitch {
+            buttonIcon: "check"
+            text: Translation.tr("Enable lyrics service")
+            checked: Config.options.lyricsService.enable
+            onCheckedChanged: {
+                Config.options.lyricsService.enable = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Disabling this will prevent the API from being called, but already cached lyrics will still be available.")
+            }
+        }
+    }
+
     ContentSection {
         icon: "file_open"
         title: Translation.tr("Save paths")
@@ -293,6 +311,32 @@ ContentPage {
             }
         }
     }
+
+    // There's no update indicator in ii for now so we shouldn't show this yet
+    // ContentSection {
+    //     icon: "deployed_code_update"
+    //     title: Translation.tr("System updates (Arch only)")
+
+    //     ConfigSwitch {
+    //         text: Translation.tr("Enable update checks")
+    //         checked: Config.options.updates.enableCheck
+    //         onCheckedChanged: {
+    //             Config.options.updates.enableCheck = checked;
+    //         }
+    //     }
+
+    //     ConfigSpinBox {
+    //         icon: "av_timer"
+    //         text: Translation.tr("Check interval (mins)")
+    //         value: Config.options.updates.checkInterval
+    //         from: 60
+    //         to: 1440
+    //         stepSize: 60
+    //         onValueChanged: {
+    //             Config.options.updates.checkInterval = value;
+    //         }
+    //     }
+    // }
 
     ContentSection {
         icon: "weather_mix"
