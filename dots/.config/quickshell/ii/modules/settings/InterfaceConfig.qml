@@ -178,6 +178,45 @@ ContentPage {
                 Config.options.dock.monochromeIcons = checked;
             }
         }
+        ConfigRow {
+            ContentSubsection {
+                title: Translation.tr("Dock position")
+                ConfigSelectionArray {
+                    register: true
+                    currentValue: Config.options.dock.position
+                    onSelected: newValue => {
+                        Config.options.dock.position = newValue;
+                    }
+                    options: [
+                        {
+                            displayName: Translation.tr("Auto"),
+                            icon: "auto_awesome",
+                            value: "auto"
+                        },
+                        {
+                            displayName: Translation.tr("Bottom"),
+                            icon: "vertical_align_bottom",
+                            value: "bottom"
+                        },
+                        {
+                            displayName: Translation.tr("Top"),
+                            icon: "vertical_align_top",
+                            value: "top"
+                        },
+                        {
+                            displayName: Translation.tr("Left"),
+                            icon: "align_horizontal_left",
+                            value: "left"
+                        },
+                        {
+                            displayName: Translation.tr("Right"),
+                            icon: "align_horizontal_right",
+                            value: "right"
+                        }
+                    ]
+                }
+            }
+        }
     }
 
     ContentSection {

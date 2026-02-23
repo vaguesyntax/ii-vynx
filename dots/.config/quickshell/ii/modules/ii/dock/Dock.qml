@@ -14,17 +14,11 @@ import Quickshell.Hyprland
 
 Scope {
     id: root
+
+    // Whether the dock is pinned (always visible, reserves screen space via exclusiveZone)
     property bool pinned: Config.options?.dock.pinnedOnStartup ?? false
-    property string position: "bottom" // "auto" | "bottom" | "top" | "left" | "right"
-    
-    readonly property string effectivePosition: {
-        if (position === "auto")
-            return (Config.options?.bar.bottom && !Config.options?.bar.vertical) ? "top" : "bottom"
-        return position
-    }
 
-    readonly property bool isVertical: effectivePosition === "left" || effectivePosition === "right"
-
+    // Create one dock instance per screen
     Variants {
         model: Quickshell.screens
 
@@ -32,126 +26,157 @@ Scope {
             id: dockRoot
             required property var modelData
             screen: modelData
-            visible: !GlobalStates.screenLocked
+            visible: !GlobalStates.screenLocked && !positionChanging
 
+            // Temporarily hidden while changing position to avoid
+            // Hyprland layer animation glitches during anchor transitions
+            property bool positionChanging: false
+
+            // Total thickness of the dock panel including margins and gaps
             readonly property real dockThickness: (Config.options?.dock.height ?? 70) + Appearance.sizes.elevationMargin + Appearance.sizes.hyprlandGapsOut
 
-            property bool reveal: root.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || dockApps.requestDockShow || (!ToplevelManager.activeToplevel?.activated)
+            // The dock is visible when: manually pinned, hover-to-reveal is active and mouse is over it,
+            // or no window is currently active on the workspace
+            property bool reveal: root.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (!ToplevelManager.activeToplevel?.activated)
 
+            // Anchor to all 4 sides so the panel covers the full edge.
+            // For horizontal positions (top/bottom): anchor left+right to stretch full width.
+            // For vertical positions (left/right): anchor top+bottom to stretch full height.
             anchors {
-                top: root.effectivePosition === "top" || root.isVertical
-                bottom: root.effectivePosition === "bottom" || root.isVertical
-                left: root.effectivePosition === "left" || !root.isVertical
-                right: root.effectivePosition === "right" || !root.isVertical
+                top: GlobalStates.dockEffectivePosition === "top" || GlobalStates.dockIsVertical
+                bottom: GlobalStates.dockEffectivePosition === "bottom" || GlobalStates.dockIsVertical
+                left: GlobalStates.dockEffectivePosition === "left" || !GlobalStates.dockIsVertical
+                right: GlobalStates.dockEffectivePosition === "right" || !GlobalStates.dockIsVertical
             }
 
+            // Reserve screen space only when pinned, so windows don't go under the dock
             exclusiveZone: root.pinned ? dockThickness - Appearance.sizes.hyprlandGapsOut - (Appearance.sizes.elevationMargin - Appearance.sizes.hyprlandGapsOut) : 0
 
-            implicitWidth: root.isVertical ? dockThickness : dockBackground.implicitWidth
-            implicitHeight: root.isVertical ? dockBackground.implicitHeight : dockThickness
+            // Placeholder size — will be replaced by actual content dimensions
+            implicitWidth: GlobalStates.dockIsVertical ? dockThickness : 400
+            implicitHeight: GlobalStates.dockIsVertical ? 400 : dockThickness
 
             WlrLayershell.namespace: "quickshell:dock"
             WlrLayershell.layer: WlrLayer.Overlay
             color: "transparent"
 
+            // Restrict input to the dock area only, ignoring the transparent panel space
             mask: Region {
                 item: dockMouseArea
+            }
+
+            // Brief hide during position change to avoid Hyprland animating the layer window moving
+            Timer {
+                id: positionChangeTimer
+                interval: 150
+                onTriggered: dockRoot.positionChanging = false
+            }
+
+            Connections {
+                target: GlobalStates
+                function onDockEffectivePositionChanged() {
+                    dockRoot.positionChanging = true
+                    positionChangeTimer.restart()
+                }
             }
 
             MouseArea {
                 id: dockMouseArea
                 hoverEnabled: true
 
+                // Offset when dock is partially hidden — leaves a thin strip for hover detection
                 property real hiddenOffset: dockRoot.dockThickness - (Config.options?.dock.hoverRegionHeight ?? 10)
+                // Offset when dock is fully hidden — no strip visible
                 property real fullyHiddenOffset: dockRoot.dockThickness + 1
+                // Selects the correct offset based on reveal state and config
                 property real currentOffset: dockRoot.reveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
 
-                width: root.isVertical ? dockRoot.dockThickness : dockHoverRegion.implicitWidth + Appearance.sizes.elevationMargin * 2
-                height: root.isVertical ? dockHoverRegion.implicitHeight + Appearance.sizes.elevationMargin * 2 : dockRoot.dockThickness
+                // Placeholder size — will be replaced by actual content dimensions
+                width: GlobalStates.dockIsVertical ? dockRoot.dockThickness : 400
+                height: GlobalStates.dockIsVertical ? 400 : dockRoot.dockThickness
 
-                anchors.horizontalCenter: root.isVertical ? undefined : parent.horizontalCenter
-                anchors.verticalCenter: root.isVertical ? parent.verticalCenter : undefined
+                // Use states + AnchorChanges instead of conditional bindings to ensure
+                // previous anchors are properly cleared when switching position,
+                // preventing layout conflicts and stretching artifacts
+                state: GlobalStates.dockEffectivePosition
 
-                anchors.top: root.effectivePosition === "top" ? parent.top : undefined
-                anchors.bottom: root.effectivePosition === "bottom" ? parent.bottom : undefined
-                anchors.left: root.effectivePosition === "left" ? parent.left : undefined
-                anchors.right: root.effectivePosition === "right" ? parent.right : undefined
+                states: [
+                    State {
+                        name: "top"
+                        AnchorChanges {
+                            target: dockMouseArea
+                            anchors.top: parent.top
+                            anchors.bottom: undefined
+                            anchors.left: undefined
+                            anchors.right: undefined
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: undefined
+                        }
+                        PropertyChanges { target: dockMouseArea; anchors.topMargin: -currentOffset }
+                    },
+                    State {
+                        name: "bottom"
+                        AnchorChanges {
+                            target: dockMouseArea
+                            anchors.bottom: parent.bottom
+                            anchors.top: undefined
+                            anchors.left: undefined
+                            anchors.right: undefined
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: undefined
+                        }
+                        PropertyChanges { target: dockMouseArea; anchors.bottomMargin: -currentOffset }
+                    },
+                    State {
+                        name: "left"
+                        AnchorChanges {
+                            target: dockMouseArea
+                            anchors.left: parent.left
+                            anchors.right: undefined
+                            anchors.top: undefined
+                            anchors.bottom: undefined
+                            anchors.horizontalCenter: undefined
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        PropertyChanges { target: dockMouseArea; anchors.leftMargin: -currentOffset }
+                    },
+                    State {
+                        name: "right"
+                        AnchorChanges {
+                            target: dockMouseArea
+                            anchors.right: parent.right
+                            anchors.left: undefined
+                            anchors.top: undefined
+                            anchors.bottom: undefined
+                            anchors.horizontalCenter: undefined
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        PropertyChanges { target: dockMouseArea; anchors.rightMargin: -currentOffset }
+                    }
+                ]
 
-                anchors.topMargin: root.effectivePosition === "top" ? -currentOffset : 0
-                anchors.bottomMargin: root.effectivePosition === "bottom" ? -currentOffset : 0
-                anchors.leftMargin: root.effectivePosition === "left" ? -currentOffset : 0
-                anchors.rightMargin: root.effectivePosition === "right" ? -currentOffset : 0
-
+                // Animate the slide in/out when reveal state changes
                 Behavior on anchors.topMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
                 Behavior on anchors.bottomMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
                 Behavior on anchors.leftMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
                 Behavior on anchors.rightMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
 
-                Item {
-                    id: dockHoverRegion
+                StyledRectangularShadow {
+                    target: dockVisualBackground
+                }
+
+                Rectangle {
+                    id: dockVisualBackground
                     anchors.fill: parent
-                    implicitWidth: dockBackground.implicitWidth
-
-                    Item { // Wrapper for the dock background
-                        id: dockBackground
-                        anchors {
-                            top: parent.top
-                            bottom: parent.bottom
-                            horizontalCenter: parent.horizontalCenter
-                        }
-
-                        implicitWidth: dockRow.implicitWidth + 5 * 2
-                        height: parent.height - Appearance.sizes.elevationMargin - Appearance.sizes.hyprlandGapsOut
-
-                        StyledRectangularShadow {
-                            target: dockVisualBackground
-                        }
-                        Rectangle { // The real rectangle that is visible
-                            id: dockVisualBackground
-                            property real margin: Appearance.sizes.elevationMargin
-                            anchors.fill: parent
-                            anchors.topMargin: Appearance.sizes.elevationMargin
-                            anchors.bottomMargin: Appearance.sizes.hyprlandGapsOut
-                            color: Appearance.colors.colLayer0
-                            border.width: 1
-                            border.color: Appearance.colors.colLayer0Border
-                            radius: Appearance.rounding.large
-                        }
-
-                        RowLayout {
-                            id: dockRow
-                            anchors.top: parent.top
-                            anchors.bottom: parent.bottom
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            spacing: 3
-                            property real padding: 5
-
-                            VerticalButtonGroup {
-                                Layout.topMargin: Appearance.sizes.hyprlandGapsOut // why does this work
-                                GroupButton {
-                                    // Pin button
-                                    baseWidth: 35
-                                    baseHeight: 35
-                                    clickedWidth: baseWidth
-                                    clickedHeight: baseHeight + 20
-                                    buttonRadius: Appearance.rounding.normal
-                                    toggled: root.pinned
-                                    onClicked: root.pinned = !root.pinned
-                                    contentItem: MaterialSymbol {
-                                        text: "keep"
-                                        horizontalAlignment: Text.AlignHCenter
-                                        iconSize: Appearance.font.pixelSize.larger
-                                        color: root.pinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
-                                    }
-                                }
-                            }
-                            DockSeparator {}
-                            DockApps {
-                                id: dockApps
-                                buttonPadding: dockRow.padding
-                            }
-                        }
-                    }
+                    // Push the background away from the screen edge, toward the screen center
+                    anchors.topMargin: GlobalStates.dockEffectivePosition === "top" ? Appearance.sizes.hyprlandGapsOut : Appearance.sizes.elevationMargin
+                    anchors.bottomMargin: GlobalStates.dockEffectivePosition === "bottom" ? Appearance.sizes.hyprlandGapsOut : Appearance.sizes.elevationMargin
+                    anchors.leftMargin: GlobalStates.dockEffectivePosition === "left" ? Appearance.sizes.hyprlandGapsOut : Appearance.sizes.elevationMargin
+                    anchors.rightMargin: GlobalStates.dockEffectivePosition === "right" ? Appearance.sizes.hyprlandGapsOut : Appearance.sizes.elevationMargin
+                    color: Appearance.colors.colLayer0
+                    border.width: 1
+                    border.color: Appearance.colors.colLayer0Border
+                    radius: Appearance.rounding.large
                 }
             }
         }
