@@ -33,13 +33,23 @@ Scope {
             // Dock reveals when: pinned, hover-to-reveal active, or no active window on workspace
             property bool reveal: root.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (!ToplevelManager.activeToplevel?.activated)
 
-            // Full-edge anchoring so the invisible panel covers the whole side for mouse detection
-            anchors { top: true; bottom: true; left: true; right: true }
+                        // Full-edge anchoring so the invisible panel covers the whole side for mouse detection
+            // Rimuovi l'ancoraggio full-screen
+            anchors {
+                top:    GlobalStates.dockEffectivePosition !== "bottom"
+                bottom: GlobalStates.dockEffectivePosition !== "top"
+                left:   GlobalStates.dockEffectivePosition !== "right"
+                right:  GlobalStates.dockEffectivePosition !== "left"
+            }
 
-            implicitWidth:  0
-            implicitHeight: 0
+            // Dimensioni "zero" nella direzione opposta all'edge
+            implicitWidth:  isVertical ? dockThickness : 0
+            implicitHeight: isVertical ? 0 : dockThickness
 
-            exclusiveZone: root.pinned ? dockThickness - Appearance.sizes.hyprlandGapsOut - (Appearance.sizes.elevationMargin - Appearance.sizes.hyprlandGapsOut) : 0
+            // Exclusive zone SOLO quando pinned (e calcolata correttamente)
+            exclusiveZone: root.pinned ? (Config.options?.dock.height ?? 70) + Appearance.sizes.hyprlandGapsOut : 0
+            // Oppure usa dockThickness - margini se vuoi essere preciso, ma semplifica a:
+            // exclusiveZone: root.pinned ? dockThickness : 0
 
             WlrLayershell.namespace: "quickshell:dock"
             WlrLayershell.layer: WlrLayer.Overlay
@@ -72,8 +82,7 @@ Scope {
                 property real currentOffset: dockRoot.reveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
 
                 // MouseArea is always full dockThickness on the perpendicular axis.
-                // On the parallel axis it is driven by dockApps directly (not through dockVisualBackground)
-                // to avoid a binding loop through the child hierarchy.
+                // On the parallel axis it is driven by dockApps directly.
                 width:  dockRoot.isVertical ? dockRoot.dockThickness : dockApps.implicitWidth  + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2
                 height: dockRoot.isVertical ? dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2 : dockRoot.dockThickness
 
@@ -89,7 +98,6 @@ Scope {
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: undefined
                         }
-                        // FIXED: Moved dockVisualBackground anchors here to prevent conflicting bindings during transitions
                         AnchorChanges {
                             target: dockVisualBackground
                             anchors.top: dockMouseArea.top; anchors.bottom: undefined
@@ -108,7 +116,6 @@ Scope {
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: undefined
                         }
-                        // FIXED
                         AnchorChanges {
                             target: dockVisualBackground
                             anchors.bottom: dockMouseArea.bottom; anchors.top: undefined
@@ -127,7 +134,6 @@ Scope {
                             anchors.horizontalCenter: undefined
                             anchors.verticalCenter: parent.verticalCenter
                         }
-                        // FIXED
                         AnchorChanges {
                             target: dockVisualBackground
                             anchors.left: dockMouseArea.left; anchors.right: undefined
@@ -146,7 +152,6 @@ Scope {
                             anchors.horizontalCenter: undefined
                             anchors.verticalCenter: parent.verticalCenter
                         }
-                        // FIXED
                         AnchorChanges {
                             target: dockVisualBackground
                             anchors.right: dockMouseArea.right; anchors.left: undefined
@@ -168,12 +173,9 @@ Scope {
                 Rectangle {
                     id: dockVisualBackground
 
-                    // Pill sized from dockApps directly — same source as MouseArea, no loop
                     width:  dockApps.implicitWidth  + Appearance.sizes.hyprlandGapsOut * 2
                     height: dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2
 
-                    // FIXED: Removed conditional anchors (e.g. anchors.top: condition ? parent.top : undefined).
-                    // They are now handled atomically by AnchorChanges in the states above to prevent Wayland layer stretching.
                     anchors.topMargin:    Appearance.sizes.hyprlandGapsOut
                     anchors.bottomMargin: Appearance.sizes.hyprlandGapsOut
                     anchors.leftMargin:   Appearance.sizes.hyprlandGapsOut
@@ -187,7 +189,11 @@ Scope {
                     DockApps {
                         id: dockApps
                         anchors.centerIn: parent
-                        isVertical: dockRoot.isVertical
+                        // Pass properties to DockApps
+                        isPinned: root.pinned
+                        onTogglePinRequested: {
+                            root.pinned = !root.pinned
+                        }
                     }
                 }
             }

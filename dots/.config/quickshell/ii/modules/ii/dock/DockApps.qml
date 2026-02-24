@@ -5,42 +5,38 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
 import Quickshell.Wayland
+import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
 
-// The root Item acts as the container for all the dock buttons.
-// Its size is entirely dictated by the GridLayout inside it.
 Item {
     id: root
 
     // Tracks the global orientation of the dock (horizontal or vertical).
-    // Read from GlobalStates to keep the UI in sync with the config.
     property bool isVertical: GlobalStates.dockIsVertical
 
-    // Padding applied around the buttons inside the dock.
-    // This keeps the icons from touching the outer border of the dock pill.
+    // State passed from the main Dock file to know if the dock is pinned
+    property bool isPinned: false
+    // Signal emitted when the user clicks the Pin button
+    signal togglePinRequested()
+
+    // Padding applied around all buttons inside the dock.
     property real buttonPadding: 5
 
     // An array that holds the processed list of apps to display.
     property var processedApps: []
 
     // --- STUBS FOR FUTURE POPUP LOGIC ---
-    // We keep these properties so DockAppButton doesn't throw ReferenceErrors
-    // when assigning them on mouse enter/exit. They are ready for when you re-add the popup.
     property Item lastHoveredButton
     property bool buttonHovered: false
 
     // Expose the layout's calculated size to this root Item.
-    // The parent pill background (in the main dock file) uses this implicit size 
-    // to wrap tightly around the buttons without creating circular dependency loops.
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
 
     // Function to transform the raw TaskbarApps data into an array of objects.
-    // We assign a "uniqueKey" (the appId) to each item so the Repeater knows exactly 
-    // which app is which, preventing visual glitches when windows are opened or closed.
     function updateModel() {
         const apps = TaskbarApps.apps || []
         const newModel = []
@@ -51,59 +47,120 @@ Item {
         processedApps = newModel
     }
 
-    // Listens to changes in the open/pinned apps from the backend service 
-    // and refreshes our local model immediately.
     Connections {
         target: TaskbarApps
         function onAppsChanged() { updateModel() }
     }
 
-    // Initialize the model as soon as this component is created.
     Component.onCompleted: updateModel()
 
-    // We use GridLayout because it calculates dimensions mathematically and reliably.
-    // It prevents the transient "bounding box spikes" that Flow or ListView can cause 
-    // during orientation changes, which was the root cause of the giant background bug.
     GridLayout {
         id: layout
 
-        // Switch the layout direction based on the dock's global orientation.
         flow: root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
-        
-        // Force the grid to strictly stay on a single row or single column. 
-        // This prevents the dock from splitting into multiple rows if too many apps are open.
-        // (-1 means "infinite limit" on that axis).
         rows: root.isVertical ? -1 : 1
         columns: root.isVertical ? 1 : -1
-        
-        // Spacing applied strictly between the app buttons.
         columnSpacing: 2
         rowSpacing: 2
-
-        // Anchoring to center ensures the layout is properly positioned within the parent Item.
         anchors.centerIn: parent
 
-        // Repeater creates a new UI element (DockAppButton) for every item in our processedApps array.
+        // --- 1. PIN BUTTON ---
+        Item {
+            // FIXED: We wrap the old GroupButton in a rigid 50x50 Item so it doesn't 
+            // break the perfect symmetry of the GridLayout, but it can still bounce inside!
+            Layout.preferredWidth: 50
+            Layout.preferredHeight: 50
+
+            GroupButton {
+                anchors.centerIn: parent
+                
+                // Matches the aesthetics of your old configuration
+                baseWidth: 35
+                baseHeight: 35
+                buttonRadius: Appearance.rounding.normal
+                
+                // FIXED: Animation stretches along the correct axis dynamically
+                clickedWidth:  root.isVertical ? baseWidth : baseWidth + 20
+                clickedHeight: root.isVertical ? baseHeight + 20 : baseHeight
+                
+                toggled: root.isPinned
+                onClicked: root.togglePinRequested()
+
+                contentItem: MaterialSymbol {
+                    anchors.centerIn: parent
+                    text: "keep"
+                    iconSize: Appearance.font.pixelSize.larger
+                    color: root.isPinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
+                }
+            }
+        }
+
+        // --- 2. LEFT/TOP SEPARATOR ---
+        Item {
+            visible: root.processedApps.length > 0
+            Layout.preferredWidth:  root.isVertical ? 50 : 1
+            Layout.preferredHeight: root.isVertical ? 1 : 50
+            
+            DockSeparator {
+                anchors.fill: parent
+                anchors.topMargin:    root.isVertical ? 0 : 8
+                anchors.bottomMargin: root.isVertical ? 0 : 8
+                anchors.leftMargin:   root.isVertical ? 8 : 0
+                anchors.rightMargin:  root.isVertical ? 8 : 0
+            }
+        }
+
+        // --- 3. THE APPS ---
         Repeater {
             model: ScriptModel {
                 objectProp: "uniqueKey"
                 values: root.processedApps
             }
-            
             delegate: DockAppButton {
                 required property var modelData
-                
-                // Pass the raw app data and a reference to the root Item down to the button.
                 appToplevel: modelData.appData
                 appListRoot: root
 
-                // Symmetrical insets guarantee that the button remains a perfect square (50x50).
-                // The parent pill background already handles the outer screen margins (hyprlandGapsOut),
-                // so we only need to apply our inner padding (buttonPadding) here.
                 topInset:    root.buttonPadding
                 bottomInset: root.buttonPadding
                 leftInset:   root.buttonPadding
                 rightInset:  root.buttonPadding
+            }
+        }
+
+        // --- 4. RIGHT/BOTTOM SEPARATOR ---
+        Item {
+            visible: root.processedApps.length > 0
+            Layout.preferredWidth:  root.isVertical ? 50 : 1
+            Layout.preferredHeight: root.isVertical ? 1 : 50
+            
+            DockSeparator {
+                anchors.fill: parent
+                anchors.topMargin:    root.isVertical ? 0 : 8
+                anchors.bottomMargin: root.isVertical ? 0 : 8
+                anchors.leftMargin:   root.isVertical ? 8 : 0
+                anchors.rightMargin:  root.isVertical ? 8 : 0
+            }
+        }
+
+        // --- 5. OVERVIEW BUTTON ---
+        DockButton {
+            id: overviewButton
+            
+            Layout.preferredWidth: 50
+            Layout.preferredHeight: 50
+            topInset:    root.buttonPadding
+            bottomInset: root.buttonPadding
+            leftInset:   root.buttonPadding
+            rightInset:  root.buttonPadding
+
+            onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
+
+            contentItem: MaterialSymbol {
+                anchors.centerIn: parent
+                text: "apps"
+                iconSize: parent.width / 2
+                color: Appearance.colors.colOnLayer0
             }
         }
     }
