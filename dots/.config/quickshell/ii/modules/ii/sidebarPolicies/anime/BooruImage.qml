@@ -175,7 +175,7 @@ Button {
                                 root.showActions = false;
                                 const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
                                 Quickshell.execDetached(["bash", "-c", 
-                                    `mkdir -p '${targetPath}' && curl '${root.imageData.file_url}' -o '${targetPath}/${root.fileName}' && notify-send '${Translation.tr("Download complete")}' '${root.downloadPath}/${root.fileName}' -a 'Shell'`
+                                    `mkdir -p '${targetPath}' && curl -H "Referer: https://gelbooru.com/index.php?page=post&s=view&id=${root.imageData.id}" '${root.imageData.file_url}' -o '${targetPath}/${root.fileName}' && notify-send '${Translation.tr("Download complete")}' '${root.downloadPath}/${root.fileName}' -a 'Shell'`
                                 ])
                             }
                         }
