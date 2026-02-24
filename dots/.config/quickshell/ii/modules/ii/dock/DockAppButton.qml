@@ -15,37 +15,54 @@ DockButton {
     property real iconSize: 35
     property real countDotWidth: 10
     property real countDotHeight: 4
-    property bool appIsActive: appToplevel.toplevels.find(t => (t.activated == true)) !== undefined
+    
+    // Sicurezza contro null pointer se appToplevel non è ancora caricato
+    property bool appIsActive: appToplevel && appToplevel.toplevels.find(t => (t.activated == true)) !== undefined
     
     property int _desktopEntriesUpdateTrigger: 0
 
-    readonly property bool isSeparator: appToplevel.appId === "SEPARATOR"
-    property var desktopEntry: DesktopEntries.heuristicLookup(appToplevel.appId)
+    readonly property bool isSeparator: appToplevel && appToplevel.appId === "SEPARATOR"
+    property var desktopEntry: appToplevel ? DesktopEntries.heuristicLookup(appToplevel.appId) : null
+    
+    // FIXED: Leggiamo isVertical da appListRoot, evitando il ReferenceError su GlobalStates
+    property bool isVertical: appListRoot ? appListRoot.isVertical : false
     
     Connections {
         target: DesktopEntries
         function onApplicationsChanged() {
             _desktopEntriesUpdateTrigger++;
-            root.desktopEntry = DesktopEntries.heuristicLookup(root.appToplevel.appId);
+            if (root.appToplevel) {
+                root.desktopEntry = DesktopEntries.heuristicLookup(root.appToplevel.appId);
+            }
         }
     }
 
     enabled: !isSeparator
-    implicitWidth: isSeparator ? 1 : implicitHeight - topInset - bottomInset
+    
+    // FIXED: Forziamo i limiti massimi e minimi per impedire che il RippleButton espanda il separatore
+    Layout.preferredWidth:  isSeparator ? (isVertical ? root.baseSize : 1) : root.baseSize
+    Layout.preferredHeight: isSeparator ? (isVertical ? 1 : root.baseSize) : root.baseSize
+    Layout.minimumWidth:    Layout.preferredWidth
+    Layout.minimumHeight:   Layout.preferredHeight
+    Layout.maximumWidth:    Layout.preferredWidth
+    Layout.maximumHeight:   Layout.preferredHeight
 
     Loader {
         active: isSeparator
         anchors {
             fill: parent
-            topMargin: dockVisualBackground.margin + dockRow.padding + Appearance.rounding.normal
-            bottomMargin: dockVisualBackground.margin + dockRow.padding + Appearance.rounding.normal
+            // Il margin inverte l'asse a seconda se il dock è verticale o orizzontale
+            topMargin:    isVertical ? 0 : 8
+            bottomMargin: isVertical ? 0 : 8
+            leftMargin:   isVertical ? 8 : 0
+            rightMargin:  isVertical ? 8 : 0
         }
         sourceComponent: DockSeparator {}
     }
 
     Loader {
         anchors.fill: parent
-        active: appToplevel.toplevels.length > 0
+        active: appToplevel && appToplevel.toplevels.length > 0
         sourceComponent: MouseArea {
             id: mouseArea
             anchors.fill: parent
@@ -65,7 +82,7 @@ DockButton {
     }
 
     onClicked: {
-        if (appToplevel.toplevels.length === 0) {
+        if (!appToplevel || appToplevel.toplevels.length === 0) {
             root.desktopEntry?.execute();
             return;
         }
@@ -78,7 +95,9 @@ DockButton {
     }
 
     altAction: () => {
-        TaskbarApps.togglePin(appToplevel.appId);
+        if (appToplevel) {
+            TaskbarApps.togglePin(appToplevel.appId);
+        }
     }
 
     contentItem: Loader {
@@ -97,7 +116,7 @@ DockButton {
                 sourceComponent: IconImage {
                     source: {
                         root._desktopEntriesUpdateTrigger;
-                        return Quickshell.iconPath(AppSearch.guessIcon(appToplevel.appId), "image-missing");
+                        return Quickshell.iconPath(AppSearch.guessIcon(root.appToplevel.appId), "image-missing");
                     }
                     implicitSize: root.iconSize
                 }
@@ -109,7 +128,7 @@ DockButton {
                 sourceComponent: Item {
                     Desaturate {
                         id: desaturatedIcon
-                        visible: false // There's already color overlay
+                        visible: false
                         anchors.fill: parent
                         source: iconImageLoader
                         desaturation: 0.8
@@ -130,12 +149,12 @@ DockButton {
                     horizontalCenter: parent.horizontalCenter
                 }
                 Repeater {
-                    model: Math.min(appToplevel.toplevels.length, 3)
+                    model: root.appToplevel ? Math.min(root.appToplevel.toplevels.length, 3) : 0
                     delegate: Rectangle {
                         required property int index
                         radius: Appearance.rounding.full
-                        implicitWidth: (appToplevel.toplevels.length <= 3) ? 
-                            root.countDotWidth : root.countDotHeight // Circles when too many
+                        implicitWidth: (root.appToplevel.toplevels.length <= 3) ? 
+                            root.countDotWidth : root.countDotHeight
                         implicitHeight: root.countDotHeight
                         color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
                         Behavior on color {

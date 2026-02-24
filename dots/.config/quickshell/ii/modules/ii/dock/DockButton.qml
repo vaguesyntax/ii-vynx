@@ -1,13 +1,13 @@
 import qs.modules.common
 import qs.modules.common.widgets
 import QtQuick
-import QtQuick.Layouts
 
 RippleButton {
-    Layout.fillHeight: true
-    Layout.topMargin: Appearance.sizes.elevationMargin - Appearance.sizes.hyprlandGapsOut
-    implicitWidth: implicitHeight - topInset - bottomInset
-    buttonRadius: Appearance.rounding.normal
+    // FIXED: Added baseSize property so we can reference it dynamically for the separator
+    property real baseSize: 50
 
-    background.implicitHeight: 50
+    implicitWidth: baseSize
+    implicitHeight: baseSize
+    buttonRadius: Appearance.rounding.normal
+    background.implicitHeight: baseSize
 }
