@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Yandex Music
+Exec=/opt/yandex-music/yandexmusic
+Icon=/opt/yandex-music/resources/assets/icons/icon_32x32.png
+Terminal=false
+Type=Application
+Categories=Audio;Music;
+StartupWMClass=yandexmusic

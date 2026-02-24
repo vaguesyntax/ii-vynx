@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+out_dir="${XDG_CACHE_HOME:-$HOME/.cache}/quickshell"
+out_file="$out_dir/temps.json"
+mkdir -p "$out_dir"
+
+read_int_file() {
+  # prints integer content of file or 0
+  local f="${1:-}"
+  local v="0"
+  if [[ -n "$f" && -r "$f" ]]; then
+    v="$(tr -d '\n' < "$f" 2>/dev/null || true)"
+  fi
+  printf "%d" "${v:-0}" 2>/dev/null || printf "0"
+}
+
+to_celsius_1dp() {
+  # milliC -> C with 1 decimal
+  local milli="${1:-0}"
+  awk -v v="$milli" 'BEGIN{ if (v>0) printf "%.1f", v/1000.0; else printf "0.0" }'
+}
+
+find_hwmon_temp_input() {
+
+  local name_re="${1:-}"
+  local tempn="${2:-1}"
+  local d name
+
+  for d in /sys/class/hwmon/hwmon*; do
+    [[ -d "$d" ]] || continue
+    [[ -r "$d/name" ]] || continue
+    name="$(tr -d '\n' < "$d/name" 2>/dev/null || true)"
+
+    [[ -n "$name_re" && ! "$name" =~ $name_re ]] && continue
+
+    if [[ -r "$d/temp${tempn}_input" ]]; then
+      echo "$d/temp${tempn}_input"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+find_any_temp_input() {
+  # As fallback: pick the first readable temp*_input under any hwmon
+  local f
+  for f in /sys/class/hwmon/hwmon*/temp*_input; do
+    [[ -r "$f" ]] && { echo "$f"; return 0; }
+  done
+  return 1
+}
+
+# CPU: common names:
+#  - Intel: coretemp
+#  - AMD:   k10temp
+cpu_path="$(find_hwmon_temp_input 'coretemp|k10temp' 1 || true)"
+
+# GPU: common names:
+#  - AMD: amdgpu
+#  - nouveau (NVIDIA open): nouveau
+#  - sometimes "nvidia" appears as hwmon, sometimes not
+gpu_path="$(find_hwmon_temp_input 'amdgpu|nouveau|nvidia' 1 || true)"
+
+if [[ -z "${cpu_path:-}" ]]; then
+  cpu_path="$(find_any_temp_input || true)"
+fi
+
+
+cpu_milli="$(read_int_file "${cpu_path:-}")"
+gpu_milli="$(read_int_file "${gpu_path:-}")"
+
+cpu_c="$(to_celsius_1dp "$cpu_milli")"
+gpu_c="$(to_celsius_1dp "$gpu_milli")"
+
+
+tmp="$(mktemp)"
+cat > "$tmp" <<JSON
+{"cpu_milli":$cpu_milli,"gpu_milli":$gpu_milli,"cpu_c":$cpu_c,"gpu_c":$gpu_c}
+JSON
+mv "$tmp" "$out_file"
+

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Деда
+Comment=Play this game on Steam
+Exec=steam steam://rungameid/4216400
+Icon=steam_icon_4216400
+Terminal=false
+Type=Application
+Categories=Game;

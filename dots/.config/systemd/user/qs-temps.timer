@@ -1,0 +1,10 @@
+[Unit]
+Description=Update temps.json periodically for Quickshell
+
+[Timer]
+OnBootSec=1s
+OnUnitActiveSec=2s
+AccuracySec=1s
+
+[Install]
+WantedBy=default.target

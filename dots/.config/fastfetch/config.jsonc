@@ -1,0 +1,109 @@
+{
+    "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+    "logo": {
+       "type": "file",
+        "source": "$(find ~/.config/fastfetch/logos/ -type f -name 'hyprland1.txt' | shuf -n 1)",
+     "padding": {
+        "right": 4,
+        "top": 1
+     }
+    },
+    "display": {
+        "separator": ">  ",
+        "color": {
+            "separator": "red"
+        },
+        "constants": [
+            "───────────────────────────────────────────────────────────────────────────",
+            "│\u001b[75C│\u001b[75D"
+        ]
+    },
+    "modules": [
+        "break",
+        {
+            "format": "{#1}{#keys}╭{$1}╮\u001b[76D {user-name-colored}{at-symbol-colored}{host-name-colored} 🖥  ",
+            "type": "title"
+        },
+        {
+            "key": "{$2}{#33}{icon} distro   ",
+            "type": "os"
+        },
+        {
+            "key": "{$2}{#31} kernel   ",
+            "type": "kernel"
+        },
+        {
+            "key": "{$2}{#32}󰅐 uptime   ",
+            "type": "uptime"
+        },
+        {
+            "key": "{$2}{#34}󰇄 desktop  ",
+            "type": "de"
+        },
+        {
+            "key": "{$2}{#35} term     ",
+            "type": "terminal"
+        },
+        {
+            "key": "{$2}{#36} shell    ",
+            "type": "shell"
+        },
+        {
+            "key": "{$2}{#35}󰍛 cpu      ",
+            "type": "cpu"
+        },
+        {
+            "key": "{$2}{#34}󰍛 gpu      ",
+            "type": "gpu"
+        },
+        {
+            "key": "{$2}{#33}󰉉 disk     ",
+            "type": "disk",
+            "folders": "/"
+        },
+        {
+            "key": "{$2}{#32} memory   ",
+            "type": "memory"
+        },
+        {
+            "format": "{#1}{#keys}├{$1}┤",
+            "type": "custom"
+        },
+        {
+            "type": "command",
+            "key": "{$2}{#35}󰃭 Sys age  ",
+            "text": "birth=$(stat -c %W /); [ $birth -eq 0 ] && echo 'неизвестно' || echo \"$(date -d @$birth '+%Y-%m-%d') ($(( ( $(date +%s) - birth ) / 86400 )) days)\""
+        },
+        {
+            "type": "command",
+            "key": "{$2}{#31}󰇚 Last UP  ",
+            "text": "last=$(stat -c %Y /var/log/pacman.log 2>/dev/null); [ -z \"$last\" ] && echo 'неизвестно' || echo \"$(date -d @$last '+%Y-%m-%d') ($(( ( $(date +%s) - last ) / 86400 )) days)\""
+        },
+        {
+        "type": "command",
+            "key": "{$2}{#32}󰖂 VPN      ",
+            "text": "if ! nmcli -t -f NAME,TYPE,STATE con show --active | grep -q '^throne-tun:'; then echo 'In-active'; exit 0; fi; ts=$(nmcli -g connection.timestamp con show throne-tun 2>/dev/null); if [ -z \"$ts\" ] || ! expr \"$ts\" : '[0-9][0-9]*$' >/dev/null; then echo 'Active (time unknown)'; else age=$(( $(date +%s) - ts )); d=$((age/86400)); h=$(( (age%86400)/3600 )); m=$(( (age%3600)/60 )); s=$((age%60)); out=''; [ $d -gt 0 ] && out=\"${out}${d}d \"; [ $h -gt 0 ] && out=\"${out}${h}h \"; [ $m -gt 0 ] && out=\"${out}${m}m \"; [ $s -gt 0 ] || [ -z \"$out\" ] && out=\"${out}${s}s\"; echo \"Active (${out})\"; fi"
+        },
+        {
+            "format": "{#1}{#keys}├{$1}┤",
+            "type": "custom"
+        },
+        {
+            "key": "{$2}{#39} colors   ",
+            "type": "colors",
+            "symbol": "circle"
+        },
+        {
+            "format": "{#1}{#keys}╰{$1}╯",
+            "type": "custom"
+        },
+        {
+            "type": "separator",
+            "string": " "
+        },
+        {
+            "type": "separator",
+            "string": " "
+        }
+    ]
+}

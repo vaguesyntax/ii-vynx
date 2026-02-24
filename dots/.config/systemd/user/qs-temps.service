@@ -1,0 +1,6 @@
+[Unit]
+Description=Write CPU/GPU temperatures for Quickshell
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/qs-temps
