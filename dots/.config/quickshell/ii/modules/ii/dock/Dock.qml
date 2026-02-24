@@ -33,8 +33,6 @@ Scope {
             // Dock reveals when: pinned, hover-to-reveal active, or no active window on workspace
             property bool reveal: root.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (!ToplevelManager.activeToplevel?.activated)
 
-                        // Full-edge anchoring so the invisible panel covers the whole side for mouse detection
-            // Rimuovi l'ancoraggio full-screen
             anchors {
                 top:    GlobalStates.dockEffectivePosition !== "bottom"
                 bottom: GlobalStates.dockEffectivePosition !== "top"
@@ -42,13 +40,10 @@ Scope {
                 right:  GlobalStates.dockEffectivePosition !== "left"
             }
 
-            // Dimensioni "zero" nella direzione opposta all'edge
             implicitWidth:  isVertical ? dockThickness : 0
             implicitHeight: isVertical ? 0 : dockThickness
 
-            // Exclusive zone SOLO quando pinned (e calcolata correttamente)
             exclusiveZone: root.pinned ? (Config.options?.dock.height ?? 70) + Appearance.sizes.hyprlandGapsOut : 0
-            // Oppure usa dockThickness - margini se vuoi essere preciso, ma semplifica a:
             // exclusiveZone: root.pinned ? dockThickness : 0
 
             WlrLayershell.namespace: "quickshell:dock"

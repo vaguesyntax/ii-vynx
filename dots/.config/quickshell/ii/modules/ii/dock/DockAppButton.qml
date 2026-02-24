@@ -54,7 +54,6 @@ DockButton {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
     }
 
-    // Separatore
     Loader {
         active: isSeparator
         anchors {
@@ -67,7 +66,6 @@ DockButton {
         sourceComponent: DockSeparator {}
     }
 
-    // MouseArea unificata
     MouseArea {
         id: mainMouseArea
         anchors.fill: parent

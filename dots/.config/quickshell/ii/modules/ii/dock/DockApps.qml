@@ -63,9 +63,7 @@ Item {
             anchors.centerIn: parent
             implicitSize: 45
             opacity: 0.7
-            source: root.draggedAppId !== ""
-                ? Quickshell.iconPath(AppSearch.guessIcon(root.draggedAppId), "image-missing")
-                : ""
+            source: root.draggedAppId !== "" ? Quickshell.iconPath(AppSearch.guessIcon(root.draggedAppId), "image-missing") : ""
 
             transform: Scale {
                 origin.x: ghostIcon.width / 2
