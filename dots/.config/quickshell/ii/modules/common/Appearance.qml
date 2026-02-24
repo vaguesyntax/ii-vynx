@@ -390,8 +390,7 @@ Singleton {
         property real searchWidthCollapsed: 210
         property real searchWidth: 360
         property real sidebarWidth: 460
-        property real sidebarWidthExpanded: 570 // when all 4 policies are enabled
-        property real sidebarWidthExtended: 750
+        property real sidebarWidthExtended: 1920
         property real baseVerticalBarWidth: Config.options.bar.sizes.width
         property real verticalBarWidth: Config.options.bar.cornerStyle === 1 ? 
             (baseVerticalBarWidth + root.sizes.hyprlandGapsOut * 2) : baseVerticalBarWidth
