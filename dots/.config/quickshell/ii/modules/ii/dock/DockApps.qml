@@ -14,29 +14,24 @@ import qs.modules.common.functions
 Item {
     id: root
 
-    // Tracks the global orientation of the dock (horizontal or vertical).
     property bool isVertical: GlobalStates.dockIsVertical
-
-    // State passed from the main Dock file to know if the dock is pinned
     property bool isPinned: false
-    // Signal emitted when the user clicks the Pin button
     signal togglePinRequested()
 
-    // Padding applied around all buttons inside the dock.
     property real buttonPadding: 5
-
-    // An array that holds the processed list of apps to display.
     property var processedApps: []
 
-    // --- STUBS FOR FUTURE POPUP LOGIC ---
     property Item lastHoveredButton
     property bool buttonHovered: false
 
-    // Expose the layout's calculated size to this root Item.
+    // Drag state
+    property string draggedAppId: ""
+    property var dragSource: null
+    property bool _dragActive: false
+
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
 
-    // Function to transform the raw TaskbarApps data into an array of objects.
     function updateModel() {
         const apps = TaskbarApps.apps || []
         const newModel = []
@@ -54,6 +49,102 @@ Item {
 
     Component.onCompleted: updateModel()
 
+        // --- DRAG GHOST ---
+    Rectangle {
+        id: dragGhost
+        width: 50
+        height: 50
+        radius: Appearance.rounding.normal
+        color: Appearance.colors.colLayer1
+        border.color: Appearance.colors.colPrimary
+        border.width: 0
+        opacity: 0.85
+        visible: root._dragActive
+        z: 999
+
+        IconImage {
+            id: ghostIcon
+            anchors.centerIn: parent
+            implicitSize: 35
+            source: root.draggedAppId !== ""
+                ? Quickshell.iconPath(AppSearch.guessIcon(root.draggedAppId), "image-missing")
+                : ""
+        }
+
+        Loader {
+            active: Config.options.dock.monochromeIcons
+            anchors.fill: ghostIcon
+            sourceComponent: Item {
+                Desaturate {
+                    id: desaturatedIcon
+                    visible: false
+                    anchors.fill: parent
+                    source: ghostIcon
+                    desaturation: 0.8
+                }
+                ColorOverlay {
+                    anchors.fill: desaturatedIcon
+                    source: desaturatedIcon
+                    color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.9)
+                }
+            }
+        }
+    }
+
+    // --- DRAG FUNCTIONS ---
+    function startDrag(appId, sourceItem) {
+        draggedAppId = appId
+        dragSource = sourceItem
+        const pos = sourceItem.mapToItem(root, 0, 0)
+        dragGhost.x = pos.x
+        dragGhost.y = pos.y
+        _dragActive = true
+    }
+
+    function moveDragGhost(x, y) {
+        dragGhost.x = x - dragGhost.width / 2
+        dragGhost.y = y - dragGhost.height / 2
+        const cx = dragGhost.x + dragGhost.width / 2
+        const cy = dragGhost.y + dragGhost.height / 2
+        for (let i = 0; i < layout.children.length; i++) {
+            const child = layout.children[i]
+            if (child.isDropTarget === undefined) continue
+            if (!child.appToplevel?.pinned || child.appToplevel?.appId === root.draggedAppId || child.isSeparator) {
+                child.isDropTarget = false
+                continue
+            }
+            const p = child.mapToItem(root, 0, 0)
+            child.isDropTarget = cx >= p.x && cx <= p.x + child.width &&
+                                  cy >= p.y && cy <= p.y + child.height
+        }
+    }
+
+    function endDrag() {
+        const cx = dragGhost.x + dragGhost.width / 2
+        const cy = dragGhost.y + dragGhost.height / 2
+        for (let i = 0; i < layout.children.length; i++) {
+            const child = layout.children[i]
+            if (!child.appToplevel?.pinned) continue
+            if (child.appToplevel?.appId === root.draggedAppId) continue
+            if (child.isSeparator) continue
+            const p = child.mapToItem(root, 0, 0)
+            if (cx >= p.x && cx <= p.x + child.width &&
+                cy >= p.y && cy <= p.y + child.height) {
+                TaskbarApps.reorderPinnedApp(root.draggedAppId, child.appToplevel.appId)
+                break
+            }
+        }
+
+        // Reset
+        for (let i = 0; i < layout.children.length; i++) {
+            const child = layout.children[i]
+            if (child.isDropTarget !== undefined) child.isDropTarget = false
+        }
+        _dragActive = false
+        draggedAppId = ""
+        dragSource = null
+    }
+
     GridLayout {
         id: layout
 
@@ -66,33 +157,30 @@ Item {
 
         // --- 1. PIN BUTTON ---
         Item {
-            id: pinButton
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
+            Layout.maximumWidth: 50
+            Layout.maximumHeight: 50
             Layout.alignment: Qt.AlignCenter
 
-            VerticalButtonGroup {
+            GroupButton {
                 anchors.centerIn: parent
+                baseWidth: 35
+                baseHeight: 35
+                buttonRadius: Appearance.rounding.normal
+                clickedWidth:  root.isVertical ? baseWidth : baseWidth + 20
+                clickedHeight: root.isVertical ? baseHeight + 20 : baseHeight
+                toggled: root.isPinned
+                onClicked: root.togglePinRequested()
 
-                GroupButton {
-                    baseWidth: 35
-                    baseHeight: 35
-                    buttonRadius: Appearance.rounding.normal
-                    clickedWidth:  root.isVertical ? baseWidth : baseWidth + 20
-                    clickedHeight: root.isVertical ? baseHeight + 20 : baseHeight
-                    toggled: root.isPinned
-                    onClicked: root.togglePinRequested()
-
-                    contentItem: Item {
-                        implicitWidth: 35
-                        implicitHeight: 35
-
-                        MaterialSymbol {
-                            anchors.centerIn: parent
-                            text: "keep"
-                            iconSize: pinButton.Layout.preferredWidth / 2
-                            color: root.isPinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
-                        }
+                contentItem: Item {
+                    implicitWidth: 35
+                    implicitHeight: 35
+                    MaterialSymbol {
+                        anchors.centerIn: parent
+                        text: "keep"
+                        iconSize: Appearance.font.pixelSize.huge
+                        color: root.isPinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
                     }
                 }
             }
@@ -103,7 +191,7 @@ Item {
             visible: root.processedApps.length > 0
             Layout.preferredWidth:  root.isVertical ? 50 : 1
             Layout.preferredHeight: root.isVertical ? 1 : 50
-            
+
             DockSeparator {
                 anchors.fill: parent
                 anchors.topMargin:    root.isVertical ? 0 : 8
@@ -136,7 +224,7 @@ Item {
             visible: root.processedApps.length > 0
             Layout.preferredWidth:  root.isVertical ? 50 : 1
             Layout.preferredHeight: root.isVertical ? 1 : 50
-            
+
             DockSeparator {
                 anchors.fill: parent
                 anchors.topMargin:    root.isVertical ? 0 : 8
@@ -145,23 +233,29 @@ Item {
                 anchors.rightMargin:  root.isVertical ? 8 : 0
             }
         }
+
         // --- 5. OVERVIEW BUTTON ---
-        DockButton {
-            id: overviewButton
+        Item {
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
+            Layout.maximumWidth: 50
+            Layout.maximumHeight: 50
             Layout.alignment: Qt.AlignCenter
-            onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
 
-            contentItem: Item {
-                implicitWidth: overviewButton.baseSize
-                implicitHeight: overviewButton.baseSize
+            DockButton {
+                id: overviewButton
+                anchors.centerIn: parent
+                onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
 
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "apps"
-                    iconSize: overviewButton.baseSize / 2
-                    color: Appearance.colors.colOnLayer0
+                contentItem: Item {
+                    implicitWidth: overviewButton.baseSize
+                    implicitHeight: overviewButton.baseSize
+                    MaterialSymbol {
+                        anchors.centerIn: parent
+                        text: "apps"
+                        iconSize: overviewButton.baseSize / 2
+                        color: Appearance.colors.colOnLayer0
+                    }
                 }
             }
         }

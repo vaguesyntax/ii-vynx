@@ -15,31 +15,28 @@ DockButton {
     property real iconSize: 35
     property real countDotWidth: 10
     property real countDotHeight: 4
-    
-    // Sicurezza contro null pointer se appToplevel non è ancora caricato
-    property bool appIsActive: appToplevel && appToplevel.toplevels.find(t => (t.activated == true)) !== undefined
-    
+
+    property bool appIsActive: appToplevel && appToplevel.toplevels.find(t => t.activated === true) !== undefined
     property int _desktopEntriesUpdateTrigger: 0
 
     readonly property bool isSeparator: appToplevel && appToplevel.appId === "SEPARATOR"
     property var desktopEntry: appToplevel ? DesktopEntries.heuristicLookup(appToplevel.appId) : null
-    
-    // FIXED: Leggiamo isVertical da appListRoot, evitando il ReferenceError su GlobalStates
     property bool isVertical: appListRoot ? appListRoot.isVertical : false
-    
+
+    property bool isDropTarget: false
+    readonly property bool isDragging: appListRoot?.draggedAppId === appToplevel?.appId
+
     Connections {
         target: DesktopEntries
         function onApplicationsChanged() {
-            _desktopEntriesUpdateTrigger++;
-            if (root.appToplevel) {
-                root.desktopEntry = DesktopEntries.heuristicLookup(root.appToplevel.appId);
-            }
+            _desktopEntriesUpdateTrigger++
+            if (root.appToplevel)
+                root.desktopEntry = DesktopEntries.heuristicLookup(root.appToplevel.appId)
         }
     }
 
     enabled: !isSeparator
-    
-    // FIXED: Forziamo i limiti massimi e minimi per impedire che il RippleButton espanda il separatore
+
     Layout.preferredWidth:  isSeparator ? (isVertical ? root.baseSize : 1) : root.baseSize
     Layout.preferredHeight: isSeparator ? (isVertical ? 1 : root.baseSize) : root.baseSize
     Layout.minimumWidth:    Layout.preferredWidth
@@ -47,11 +44,27 @@ DockButton {
     Layout.maximumWidth:    Layout.preferredWidth
     Layout.maximumHeight:   Layout.preferredHeight
 
+    opacity: isDragging ? 0.3 : 1.0
+    Behavior on opacity {
+        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
+    }
+
+    // Bordo drop target
+    Rectangle {
+        visible: root.isDropTarget
+        anchors.fill: parent
+        color: "transparent"
+        border.color: Appearance.colors.colPrimary
+        border.width: 1.5
+        radius: Appearance.rounding.small
+        z: 10
+    }
+
+    // Separatore
     Loader {
         active: isSeparator
         anchors {
             fill: parent
-            // Il margin inverte l'asse a seconda se il dock è verticale o orizzontale
             topMargin:    isVertical ? 0 : 8
             bottomMargin: isVertical ? 0 : 8
             leftMargin:   isVertical ? 8 : 0
@@ -60,50 +73,71 @@ DockButton {
         sourceComponent: DockSeparator {}
     }
 
-    Loader {
+    MouseArea {
+        id: mainMouseArea
         anchors.fill: parent
-        active: appToplevel && appToplevel.toplevels.length > 0
-        sourceComponent: MouseArea {
-            id: mouseArea
-            anchors.fill: parent
-            hoverEnabled: true
-            acceptedButtons: Qt.NoButton
-            onEntered: {
-                appListRoot.lastHoveredButton = root
-                appListRoot.buttonHovered = true
-                lastFocused = appToplevel.toplevels.length - 1
+        hoverEnabled: true
+        preventStealing: true
+
+        property real pressedX: 0
+        property real pressedY: 0
+        property bool dragStarted: false
+        property bool wasDragging: false  // <-- nuovo
+
+        onPressed: (mouse) => {
+            pressedX = mouse.x
+            pressedY = mouse.y
+            dragStarted = false
+            wasDragging = false  // <-- reset
+        }
+
+        onPositionChanged: (mouse) => {
+            if (!pressed || !root.appToplevel?.pinned) return
+            if (!dragStarted) {
+                const dist = Math.abs(mouse.x - pressedX) + Math.abs(mouse.y - pressedY)
+                if (dist < 10) return
+                dragStarted = true
+                wasDragging = true  
+                appListRoot.startDrag(root.appToplevel.appId, root)
             }
-            onExited: {
-                if (appListRoot.lastHoveredButton === root) {
-                    appListRoot.buttonHovered = false
-                }
+            if (dragStarted) {
+                const pos = mapToItem(appListRoot, mouse.x, mouse.y)
+                appListRoot.moveDragGhost(pos.x, pos.y)
             }
+        }
+
+        onReleased: {
+            if (dragStarted) {
+                appListRoot.endDrag()
+                dragStarted = false
+            }
+        }
+
+        onClicked: (mouse) => {
+            if (wasDragging) {
+                wasDragging = false  
+                return
+            }
+            if (!appToplevel || appToplevel.toplevels.length === 0) {
+                root.desktopEntry?.execute()
+                return
+            }
+            lastFocused = (lastFocused + 1) % appToplevel.toplevels.length
+            appToplevel.toplevels[lastFocused].activate()
         }
     }
 
-    onClicked: {
-        if (!appToplevel || appToplevel.toplevels.length === 0) {
-            root.desktopEntry?.execute();
-            return;
-        }
-        lastFocused = (lastFocused + 1) % appToplevel.toplevels.length
-        appToplevel.toplevels[lastFocused].activate()
-    }
-
-    middleClickAction: () => {
-        root.desktopEntry?.execute();
-    }
+    middleClickAction: () => root.desktopEntry?.execute()
 
     altAction: () => {
-        if (appToplevel) {
-            TaskbarApps.togglePin(appToplevel.appId);
-        }
+        if (appToplevel)
+            TaskbarApps.togglePin(appToplevel.appId)
     }
 
     contentItem: Loader {
         active: !isSeparator
         sourceComponent: Item {
-            anchors.centerIn: parent
+            anchors.fill: parent
 
             Loader {
                 id: iconImageLoader
@@ -115,8 +149,8 @@ DockButton {
                 active: !root.isSeparator
                 sourceComponent: IconImage {
                     source: {
-                        root._desktopEntriesUpdateTrigger;
-                        return Quickshell.iconPath(AppSearch.guessIcon(root.appToplevel.appId), "image-missing");
+                        root._desktopEntriesUpdateTrigger
+                        return Quickshell.iconPath(AppSearch.guessIcon(root.appToplevel.appId), "image-missing")
                     }
                     implicitSize: root.iconSize
                 }
@@ -153,15 +187,15 @@ DockButton {
                     delegate: Rectangle {
                         required property int index
                         radius: Appearance.rounding.full
-                        implicitWidth: (root.appToplevel.toplevels.length <= 3) ? 
+                        implicitWidth: root.appToplevel.toplevels.length <= 3 ?
                             root.countDotWidth : root.countDotHeight
                         implicitHeight: root.countDotHeight
                         color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
                         Behavior on color {
-                            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+                            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root)
                         }
                         Behavior on implicitWidth {
-                            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                            animation: Appearance.animation.elementMove.numberAnimation.createObject(root)
                         }
                     }
                 }
