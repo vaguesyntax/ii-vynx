@@ -66,31 +66,34 @@ Item {
 
         // --- 1. PIN BUTTON ---
         Item {
-            // FIXED: We wrap the old GroupButton in a rigid 50x50 Item so it doesn't 
-            // break the perfect symmetry of the GridLayout, but it can still bounce inside!
+            id: pinButton
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
+            Layout.alignment: Qt.AlignCenter
 
-            GroupButton {
+            VerticalButtonGroup {
                 anchors.centerIn: parent
-                
-                // Matches the aesthetics of your old configuration
-                baseWidth: 35
-                baseHeight: 35
-                buttonRadius: Appearance.rounding.normal
-                
-                // FIXED: Animation stretches along the correct axis dynamically
-                clickedWidth:  root.isVertical ? baseWidth : baseWidth + 20
-                clickedHeight: root.isVertical ? baseHeight + 20 : baseHeight
-                
-                toggled: root.isPinned
-                onClicked: root.togglePinRequested()
 
-                contentItem: MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "keep"
-                    iconSize: Appearance.font.pixelSize.larger
-                    color: root.isPinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
+                GroupButton {
+                    baseWidth: 35
+                    baseHeight: 35
+                    buttonRadius: Appearance.rounding.normal
+                    clickedWidth:  root.isVertical ? baseWidth : baseWidth + 20
+                    clickedHeight: root.isVertical ? baseHeight + 20 : baseHeight
+                    toggled: root.isPinned
+                    onClicked: root.togglePinRequested()
+
+                    contentItem: Item {
+                        implicitWidth: 35
+                        implicitHeight: 35
+
+                        MaterialSymbol {
+                            anchors.centerIn: parent
+                            text: "keep"
+                            iconSize: pinButton.Layout.preferredWidth / 2
+                            color: root.isPinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
+                        }
+                    }
                 }
             }
         }
@@ -142,25 +145,24 @@ Item {
                 anchors.rightMargin:  root.isVertical ? 8 : 0
             }
         }
-
         // --- 5. OVERVIEW BUTTON ---
         DockButton {
             id: overviewButton
-            
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
-            topInset:    root.buttonPadding
-            bottomInset: root.buttonPadding
-            leftInset:   root.buttonPadding
-            rightInset:  root.buttonPadding
-
+            Layout.alignment: Qt.AlignCenter
             onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
 
-            contentItem: MaterialSymbol {
-                anchors.centerIn: parent
-                text: "apps"
-                iconSize: parent.width / 2
-                color: Appearance.colors.colOnLayer0
+            contentItem: Item {
+                implicitWidth: overviewButton.baseSize
+                implicitHeight: overviewButton.baseSize
+
+                MaterialSymbol {
+                    anchors.centerIn: parent
+                    text: "apps"
+                    iconSize: overviewButton.baseSize / 2
+                    color: Appearance.colors.colOnLayer0
+                }
             }
         }
     }
