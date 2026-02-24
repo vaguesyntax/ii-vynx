@@ -23,7 +23,6 @@ DockButton {
     property var desktopEntry: appToplevel ? DesktopEntries.heuristicLookup(appToplevel.appId) : null
     property bool isVertical: appListRoot ? appListRoot.isVertical : false
 
-    property bool isDropTarget: false
     readonly property bool isDragging: appListRoot?.draggedAppId === appToplevel?.appId
 
     Connections {
@@ -44,20 +43,15 @@ DockButton {
     Layout.maximumWidth:    Layout.preferredWidth
     Layout.maximumHeight:   Layout.preferredHeight
 
-    opacity: isDragging ? 0.3 : 1.0
+    implicitWidth:  isDragging ? 0 : root.baseSize
+    implicitHeight: isDragging ? 0 : root.baseSize
+
+    Behavior on implicitWidth  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
+    Behavior on implicitHeight { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
+
+    opacity: isDragging ? 0.0 : 1.0
     Behavior on opacity {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
-    }
-
-    // Bordo drop target
-    Rectangle {
-        visible: root.isDropTarget
-        anchors.fill: parent
-        color: "transparent"
-        border.color: Appearance.colors.colPrimary
-        border.width: 1.5
-        radius: Appearance.rounding.small
-        z: 10
     }
 
     // Separatore
@@ -73,6 +67,7 @@ DockButton {
         sourceComponent: DockSeparator {}
     }
 
+    // MouseArea unificata
     MouseArea {
         id: mainMouseArea
         anchors.fill: parent
@@ -82,13 +77,25 @@ DockButton {
         property real pressedX: 0
         property real pressedY: 0
         property bool dragStarted: false
-        property bool wasDragging: false  // <-- nuovo
+        property bool wasDragging: false
+
+        onEntered: {
+            if (!appListRoot?._dragActive) {
+                appListRoot.lastHoveredButton = root
+                appListRoot.buttonHovered = true
+                if (appToplevel) lastFocused = appToplevel.toplevels.length - 1
+            }
+        }
+        onExited: {
+            if (appListRoot?.lastHoveredButton === root)
+                appListRoot.buttonHovered = false
+        }
 
         onPressed: (mouse) => {
             pressedX = mouse.x
             pressedY = mouse.y
             dragStarted = false
-            wasDragging = false  // <-- reset
+            wasDragging = false
         }
 
         onPositionChanged: (mouse) => {
@@ -97,7 +104,7 @@ DockButton {
                 const dist = Math.abs(mouse.x - pressedX) + Math.abs(mouse.y - pressedY)
                 if (dist < 10) return
                 dragStarted = true
-                wasDragging = true  
+                wasDragging = true
                 appListRoot.startDrag(root.appToplevel.appId, root)
             }
             if (dragStarted) {
@@ -115,7 +122,7 @@ DockButton {
 
         onClicked: (mouse) => {
             if (wasDragging) {
-                wasDragging = false  
+                wasDragging = false
                 return
             }
             if (!appToplevel || appToplevel.toplevels.length === 0) {

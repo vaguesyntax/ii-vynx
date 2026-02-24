@@ -28,6 +28,7 @@ Item {
     property string draggedAppId: ""
     property var dragSource: null
     property bool _dragActive: false
+    property var liveOrder: []
 
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
@@ -49,26 +50,29 @@ Item {
 
     Component.onCompleted: updateModel()
 
-        // --- DRAG GHOST ---
-    Rectangle {
+    // --- DRAG GHOST ---
+    Item {
         id: dragGhost
-        width: 50
-        height: 50
-        radius: Appearance.rounding.normal
-        color: Appearance.colors.colLayer1
-        border.color: Appearance.colors.colPrimary
-        border.width: 0
-        opacity: 0.85
+        width: 55
+        height: 55
         visible: root._dragActive
         z: 999
 
         IconImage {
             id: ghostIcon
             anchors.centerIn: parent
-            implicitSize: 35
+            implicitSize: 45
+            opacity: 0.7
             source: root.draggedAppId !== ""
                 ? Quickshell.iconPath(AppSearch.guessIcon(root.draggedAppId), "image-missing")
                 : ""
+
+            transform: Scale {
+                origin.x: ghostIcon.width / 2
+                origin.y: ghostIcon.height / 2
+                xScale: 1.15
+                yScale: 1.15
+            }
         }
 
         Loader {
@@ -95,6 +99,7 @@ Item {
     function startDrag(appId, sourceItem) {
         draggedAppId = appId
         dragSource = sourceItem
+        liveOrder = Config.options.dock.pinnedApps.slice()
         const pos = sourceItem.mapToItem(root, 0, 0)
         dragGhost.x = pos.x
         dragGhost.y = pos.y
@@ -104,24 +109,12 @@ Item {
     function moveDragGhost(x, y) {
         dragGhost.x = x - dragGhost.width / 2
         dragGhost.y = y - dragGhost.height / 2
-        const cx = dragGhost.x + dragGhost.width / 2
-        const cy = dragGhost.y + dragGhost.height / 2
-        for (let i = 0; i < layout.children.length; i++) {
-            const child = layout.children[i]
-            if (child.isDropTarget === undefined) continue
-            if (!child.appToplevel?.pinned || child.appToplevel?.appId === root.draggedAppId || child.isSeparator) {
-                child.isDropTarget = false
-                continue
-            }
-            const p = child.mapToItem(root, 0, 0)
-            child.isDropTarget = cx >= p.x && cx <= p.x + child.width &&
-                                  cy >= p.y && cy <= p.y + child.height
-        }
-    }
 
-    function endDrag() {
         const cx = dragGhost.x + dragGhost.width / 2
         const cy = dragGhost.y + dragGhost.height / 2
+
+        let hoveredAppId = ""
+        let hoveredPos = -1
         for (let i = 0; i < layout.children.length; i++) {
             const child = layout.children[i]
             if (!child.appToplevel?.pinned) continue
@@ -130,18 +123,30 @@ Item {
             const p = child.mapToItem(root, 0, 0)
             if (cx >= p.x && cx <= p.x + child.width &&
                 cy >= p.y && cy <= p.y + child.height) {
-                TaskbarApps.reorderPinnedApp(root.draggedAppId, child.appToplevel.appId)
+                hoveredAppId = child.appToplevel.appId
                 break
             }
         }
 
-        // Reset
-        for (let i = 0; i < layout.children.length; i++) {
-            const child = layout.children[i]
-            if (child.isDropTarget !== undefined) child.isDropTarget = false
+        if (hoveredAppId !== "" && hoveredAppId !== root.draggedAppId) {
+            const newOrder = liveOrder.filter(id => id !== root.draggedAppId)
+            const targetIdx = newOrder.indexOf(hoveredAppId)
+            if (targetIdx !== -1) {
+                const oldIdx = liveOrder.indexOf(root.draggedAppId)
+                const hoverIdx = liveOrder.indexOf(hoveredAppId)
+                newOrder.splice(oldIdx < hoverIdx ? targetIdx + 1 : targetIdx, 0, root.draggedAppId)
+                liveOrder = newOrder
+            }
         }
+    }
+
+    function endDrag() {
+        if (liveOrder.length > 0)
+            Config.options.dock.pinnedApps = liveOrder
+
         _dragActive = false
         draggedAppId = ""
+        liveOrder = []
         dragSource = null
     }
 
@@ -179,7 +184,7 @@ Item {
                     MaterialSymbol {
                         anchors.centerIn: parent
                         text: "keep"
-                        iconSize: Appearance.font.pixelSize.huge
+                        iconSize: Appearance.font.pixelSize.larger
                         color: root.isPinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
                     }
                 }
@@ -205,7 +210,20 @@ Item {
         Repeater {
             model: ScriptModel {
                 objectProp: "uniqueKey"
-                values: root.processedApps
+                values: {
+                    if (!root._dragActive || root.liveOrder.length === 0)
+                        return root.processedApps
+
+                    const ordered = []
+                    for (const appId of root.liveOrder) {
+                        const found = root.processedApps.find(a => a.appData.appId === appId)
+                        if (found) ordered.push(found)
+                    }
+                    for (const app of root.processedApps) {
+                        if (!app.appData.pinned) ordered.push(app)
+                    }
+                    return ordered
+                }
             }
             delegate: DockAppButton {
                 required property var modelData
