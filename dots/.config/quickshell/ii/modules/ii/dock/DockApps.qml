@@ -14,6 +14,7 @@ import qs.modules.common.functions
 Item {
     id: root
 
+    // --- Core Properties ---
     property bool isVertical: GlobalStates.dockIsVertical
     property bool isPinned: false
     signal togglePinRequested()
@@ -21,10 +22,17 @@ Item {
     property real buttonPadding: 5
     property var processedApps: []
 
+    // --- Hover State ---
     property Item lastHoveredButton
     property bool buttonHovered: false
+    property bool requestDockShow: previewPopup.visible
 
-    // Drag state
+    // --- Original UI Constants ---
+    property real maxWindowPreviewHeight: 200
+    property real maxWindowPreviewWidth: 300
+    property real windowControlsHeight: 30
+
+    // --- Drag State ---
     property string draggedAppId: ""
     property var dragSource: null
     property bool _dragActive: false
@@ -33,6 +41,7 @@ Item {
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
 
+    // --- Model Update ---
     function updateModel() {
         const apps = TaskbarApps.apps || []
         const newModel = []
@@ -50,13 +59,57 @@ Item {
 
     Component.onCompleted: updateModel()
 
-    // --- DRAG GHOST ---
+    // --- Drag Functions ---
+    function startDrag(appId, sourceItem) {
+        draggedAppId = appId
+        dragSource = sourceItem
+        liveOrder = Config.options.dock.pinnedApps.slice()
+        const pos = sourceItem.mapToItem(root, 0, 0)
+        dragGhost.x = pos.x
+        dragGhost.y = pos.y
+        _dragActive = true
+    }
+
+    function moveDragGhost(x, y) {
+        dragGhost.x = x - dragGhost.width / 2
+        dragGhost.y = y - dragGhost.height / 2
+        const cx = dragGhost.x + dragGhost.width / 2
+        const cy = dragGhost.y + dragGhost.height / 2
+
+        let hoveredAppId = ""
+        for (let i = 0; i < layout.children.length; i++) {
+            const child = layout.children[i]
+            if (!child.appToplevel || child.appToplevel.appId === root.draggedAppId) continue
+            const p = child.mapToItem(root, 0, 0)
+            if (cx >= p.x && cx <= p.x + child.width && cy >= p.y && cy <= p.y + child.height) {
+                hoveredAppId = child.appToplevel.appId
+                break
+            }
+        }
+        if (hoveredAppId !== "" && hoveredAppId !== root.draggedAppId) {
+            const newOrder = liveOrder.filter(id => id !== root.draggedAppId)
+            const targetIdx = newOrder.indexOf(hoveredAppId)
+            if (targetIdx !== -1) {
+                const oldIdx = liveOrder.indexOf(root.draggedAppId)
+                const hoverIdx = liveOrder.indexOf(hoveredAppId)
+                newOrder.splice(oldIdx < hoverIdx ? targetIdx + 1 : targetIdx, 0, root.draggedAppId)
+                liveOrder = newOrder
+            }
+        }
+    }
+
+    function endDrag() {
+        if (liveOrder.length > 0) Config.options.dock.pinnedApps = liveOrder
+        _dragActive = false; draggedAppId = ""; liveOrder = []; dragSource = null
+    }
+
+    // Drag Ghost
     Item {
         id: dragGhost
         width: 55
         height: 55
         visible: root._dragActive
-        z: 999
+        z: 10
 
         IconImage {
             id: ghostIcon
@@ -93,72 +146,15 @@ Item {
         }
     }
 
-    // --- DRAG FUNCTIONS ---
-    function startDrag(appId, sourceItem) {
-        draggedAppId = appId
-        dragSource = sourceItem
-        liveOrder = Config.options.dock.pinnedApps.slice()
-        const pos = sourceItem.mapToItem(root, 0, 0)
-        dragGhost.x = pos.x
-        dragGhost.y = pos.y
-        _dragActive = true
-    }
-
-    function moveDragGhost(x, y) {
-        dragGhost.x = x - dragGhost.width / 2
-        dragGhost.y = y - dragGhost.height / 2
-
-        const cx = dragGhost.x + dragGhost.width / 2
-        const cy = dragGhost.y + dragGhost.height / 2
-
-        let hoveredAppId = ""
-        let hoveredPos = -1
-        for (let i = 0; i < layout.children.length; i++) {
-            const child = layout.children[i]
-            if (!child.appToplevel?.pinned) continue
-            if (child.appToplevel?.appId === root.draggedAppId) continue
-            if (child.isSeparator) continue
-            const p = child.mapToItem(root, 0, 0)
-            if (cx >= p.x && cx <= p.x + child.width &&
-                cy >= p.y && cy <= p.y + child.height) {
-                hoveredAppId = child.appToplevel.appId
-                break
-            }
-        }
-
-        if (hoveredAppId !== "" && hoveredAppId !== root.draggedAppId) {
-            const newOrder = liveOrder.filter(id => id !== root.draggedAppId)
-            const targetIdx = newOrder.indexOf(hoveredAppId)
-            if (targetIdx !== -1) {
-                const oldIdx = liveOrder.indexOf(root.draggedAppId)
-                const hoverIdx = liveOrder.indexOf(hoveredAppId)
-                newOrder.splice(oldIdx < hoverIdx ? targetIdx + 1 : targetIdx, 0, root.draggedAppId)
-                liveOrder = newOrder
-            }
-        }
-    }
-
-    function endDrag() {
-        if (liveOrder.length > 0)
-            Config.options.dock.pinnedApps = liveOrder
-
-        _dragActive = false
-        draggedAppId = ""
-        liveOrder = []
-        dragSource = null
-    }
-
+    // --- Main Dock Layout ---
     GridLayout {
         id: layout
-
         flow: root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
         rows: root.isVertical ? -1 : 1
         columns: root.isVertical ? 1 : -1
-        columnSpacing: 2
-        rowSpacing: 2
+        columnSpacing: 2; rowSpacing: 2
         anchors.centerIn: parent
 
-        // --- 1. PIN BUTTON ---
         Item {
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
@@ -188,7 +184,6 @@ Item {
             }
         }
 
-        // --- 2. LEFT/TOP SEPARATOR ---
         Item {
             visible: root.processedApps.length > 0
             Layout.preferredWidth:  root.isVertical ? 50 : 1
@@ -203,22 +198,17 @@ Item {
             }
         }
 
-        // --- 3. THE APPS ---
-        Repeater {
+        Repeater { // App Icons
             model: ScriptModel {
                 objectProp: "uniqueKey"
                 values: {
-                    if (!root._dragActive || root.liveOrder.length === 0)
-                        return root.processedApps
-
-                    const ordered = []
+                    if (!root._dragActive || root.liveOrder.length === 0) return root.processedApps
+                    const ordered = [];
                     for (const appId of root.liveOrder) {
                         const found = root.processedApps.find(a => a.appData.appId === appId)
                         if (found) ordered.push(found)
                     }
-                    for (const app of root.processedApps) {
-                        if (!app.appData.pinned) ordered.push(app)
-                    }
+                    for (const app of root.processedApps) { if (!app.appData.pinned) ordered.push(app) }
                     return ordered
                 }
             }
@@ -226,15 +216,12 @@ Item {
                 required property var modelData
                 appToplevel: modelData.appData
                 appListRoot: root
-
-                topInset:    root.buttonPadding
+                topInset: root.buttonPadding
                 bottomInset: root.buttonPadding
-                leftInset:   root.buttonPadding
-                rightInset:  root.buttonPadding
+                // Why adding left and right inset modifies the popups as well
             }
         }
 
-        // --- 4. RIGHT/BOTTOM SEPARATOR ---
         Item {
             visible: root.processedApps.length > 0
             Layout.preferredWidth:  root.isVertical ? 50 : 1
@@ -249,7 +236,6 @@ Item {
             }
         }
 
-        // --- 5. OVERVIEW BUTTON ---
         Item {
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
@@ -268,6 +254,154 @@ Item {
                         text: "apps"
                         iconSize: overviewButton.baseSize / 2
                         color: Appearance.colors.colOnLayer0
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Fast Preview Popup ---
+    PopupWindow {
+        id: previewPopup
+        
+        property var appTopLevel: root.lastHoveredButton?.appToplevel
+        
+        // Logical show condition
+        property bool show: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length > 0)
+        
+        // Visible immediately to allow animations and capture to start
+        visible: show
+        color: "transparent"
+
+        // Anchoring to the icon button
+        anchor {
+            item: root.lastHoveredButton
+            adjustment: PopupAdjustment.Slide
+            gravity: {
+                switch (GlobalStates.dockEffectivePosition) {
+                    case "bottom": return Edges.Top;    case "top":   return Edges.Bottom
+                    case "left":   return Edges.Right;  case "right": return Edges.Left
+                    default: return Edges.Top
+                }
+            }
+            edges: gravity
+        }
+
+        // Keep popup size large enough to avoid clipping during pill transitions
+        implicitWidth:  root.isVertical ? 500 : 1200
+        implicitHeight: root.isVertical ? 1200 : 500
+
+        MouseArea {
+            id: popupMouseArea
+            anchors.fill: parent
+            hoverEnabled: true
+
+            StyledRectangularShadow {
+                target: popupBackground
+                opacity: popupBackground.opacity
+                visible: popupBackground.visible
+            }
+
+            Rectangle {
+                id: popupBackground
+                
+                // Centering logic relative to the anchored icon
+                anchors.horizontalCenter: root.isVertical ? undefined : parent.horizontalCenter
+                anchors.verticalCenter:   root.isVertical ? parent.verticalCenter : undefined
+                
+                // Secondary axis positioning based on dock position
+                anchors.bottom: (GlobalStates.dockEffectivePosition === "bottom" && !root.isVertical) ? parent.bottom : undefined
+                anchors.top:    (GlobalStates.dockEffectivePosition === "top"    && !root.isVertical) ? parent.top : undefined
+                anchors.left:   (GlobalStates.dockEffectivePosition === "left"   &&  root.isVertical) ? parent.left : undefined
+                anchors.right:  (GlobalStates.dockEffectivePosition === "right"  &&  root.isVertical) ? parent.right : undefined
+                anchors.margins: 5
+
+                property real padding: 6
+                opacity: previewPopup.show ? 1 : 0
+                scale: previewPopup.show ? 1 : 0.98
+                visible: opacity > 0
+                clip: true
+                color: Appearance.m3colors.m3surfaceContainer
+                radius: Appearance.rounding.normal
+
+                implicitHeight: previewRowLayout.implicitHeight + padding * 2
+                implicitWidth:  previewRowLayout.implicitWidth + padding * 2
+
+                // Smooth transitions for a premium feel
+                Behavior on opacity { NumberAnimation { duration: 120 } }
+                Behavior on scale   { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+                Behavior on implicitWidth  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground) }
+                Behavior on implicitHeight { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground) }
+
+                GridLayout {
+                    id: previewRowLayout
+                    anchors.centerIn: parent
+                    flow: root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+                    columnSpacing: 6; rowSpacing: 6
+
+                    Repeater {
+                        model: ScriptModel { values: (previewPopup.appTopLevel?.toplevels ?? []) }
+                        delegate: RippleButton {
+                            id: windowButton
+                            required property var modelData
+                            padding: 0
+                            onClicked: { modelData?.activate(); root.buttonHovered = false }
+                            middleClickAction: () => modelData?.close()
+
+                            contentItem: ColumnLayout {
+                                // Dynamic sizing based on window content
+                                implicitWidth:  screencopyView.implicitWidth
+                                implicitHeight: screencopyView.implicitHeight
+
+                                ButtonGroup {
+                                    contentWidth: parent.width - anchors.margins * 2
+                                    WrapperRectangle {
+                                        Layout.fillWidth: true
+                                        color: ColorUtils.transparentize(Appearance.colors.colSurfaceContainer)
+                                        radius: Appearance.rounding.small
+                                        margin: 5
+                                        StyledText {
+                                            Layout.fillWidth: true
+                                            font.pixelSize: Appearance.font.pixelSize.small
+                                            text: windowButton.modelData?.title ?? ""
+                                            elide: Text.ElideRight
+                                            color: Appearance.m3colors.m3onSurface
+                                        }
+                                    }
+                                    GroupButton {
+                                        id: closeButton
+                                        colBackground: ColorUtils.transparentize(Appearance.colors.colSurfaceContainer)
+                                        baseWidth: root.windowControlsHeight
+                                        baseHeight: root.windowControlsHeight
+                                        buttonRadius: Appearance.rounding.full
+                                        contentItem: MaterialSymbol {
+                                            anchors.centerIn: parent
+                                            text: "close"
+                                            iconSize: Appearance.font.pixelSize.normal
+                                            color: Appearance.m3colors.m3onSurface
+                                        }
+                                        onClicked: windowButton.modelData?.close()
+                                    }
+                                }
+
+                                ScreencopyView {
+                                    id: screencopyView
+                                    captureSource: windowButton.modelData
+                                    live: previewPopup.show
+                                    paintCursor: true
+                                    constraintSize: Qt.size(root.maxWindowPreviewWidth, root.maxWindowPreviewHeight)
+                                    
+                                    layer.enabled: true
+                                    layer.effect: OpacityMask {
+                                        maskSource: Rectangle {
+                                            width: screencopyView.width
+                                            height: screencopyView.height
+                                            radius: Appearance.rounding.small
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

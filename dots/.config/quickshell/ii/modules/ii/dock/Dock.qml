@@ -30,8 +30,10 @@ Scope {
             readonly property bool isVertical: GlobalStates.dockIsVertical
             readonly property real dockThickness: (Config.options?.dock.height ?? 70) + Appearance.sizes.elevationMargin + Appearance.sizes.hyprlandGapsOut
 
-            // Dock reveals when: pinned, hover-to-reveal active, or no active window on workspace
-            property bool reveal: root.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (!ToplevelManager.activeToplevel?.activated)
+            property bool reveal: root.pinned 
+                            || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) 
+                            || (dockApps.requestDockShow)
+                            || (!ToplevelManager.activeToplevel?.activated)
 
             anchors {
                 top:    GlobalStates.dockEffectivePosition !== "bottom"
