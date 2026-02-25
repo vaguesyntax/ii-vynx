@@ -162,17 +162,16 @@ Item {
         Item {
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
-            Layout.maximumWidth: 50
-            Layout.maximumHeight: 50
             Layout.alignment: Qt.AlignCenter
 
             GroupButton {
-                anchors.centerIn: parent
+                anchors.fill: parent
+                anchors.margins: 8
                 baseWidth: 35
                 baseHeight: 35
                 buttonRadius: Appearance.rounding.normal
-                clickedWidth:  root.isVertical ? baseWidth : baseWidth + 20
-                clickedHeight: root.isVertical ? baseHeight + 20 : baseHeight
+                clickedWidth:  root.isVertical ? baseWidth : baseWidth + 15
+                clickedHeight: root.isVertical ? baseHeight + 15 : baseHeight
                 toggled: root.isPinned
                 onClicked: root.togglePinRequested()
 
@@ -182,7 +181,7 @@ Item {
                     MaterialSymbol {
                         anchors.centerIn: parent
                         text: "keep"
-                        iconSize: Appearance.font.pixelSize.larger
+                        iconSize: Appearance.font.pixelSize.huge
                         color: root.isPinned ? Appearance.m3colors.m3onPrimary : Appearance.colors.colOnLayer0
                     }
                 }
@@ -254,8 +253,6 @@ Item {
         Item {
             Layout.preferredWidth: 50
             Layout.preferredHeight: 50
-            Layout.maximumWidth: 50
-            Layout.maximumHeight: 50
             Layout.alignment: Qt.AlignCenter
 
             DockButton {
