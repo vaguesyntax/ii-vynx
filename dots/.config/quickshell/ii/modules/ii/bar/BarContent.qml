@@ -100,8 +100,15 @@ Item { // Bar content region
         onScrollUp: root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness + 0.05)
         onMovedAway: GlobalStates.osdBrightnessOpen = false
         onPressed: event => {
-            if (event.button === Qt.LeftButton)
-                GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
+            if (event.button !== Qt.LeftButton)
+                return;
+        
+            const leftIds = Config.options.bar.layouts.left.map(c => c.id)
+            if (leftIds.includes("dashboard_panel_button") && !leftIds.includes("policies_panel_button")) {
+                GlobalStates.dashboardPanelOpen = !GlobalStates.dashboardPanelOpen;
+            } else {
+                GlobalStates.policiesPanelOpen = !GlobalStates.policiesPanelOpen;
+            }
         }
 
         ScrollHint {
@@ -257,8 +264,14 @@ Item { // Bar content region
         onScrollUp: Audio.incrementVolume();
         onMovedAway: GlobalStates.osdVolumeOpen = false;
         onPressed: event => {
-            if (event.button === Qt.LeftButton) {
-                GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;
+            if (event.button !== Qt.LeftButton)
+                return;
+        
+            const leftIds = Config.options.bar.layouts.left.map(c => c.id)
+            if (leftIds.includes("dashboard_panel_button") && !leftIds.includes("policies_panel_button")) {
+                GlobalStates.policiesPanelOpen = !GlobalStates.policiesPanelOpen;
+            } else {
+                GlobalStates.dashboardPanelOpen = !GlobalStates.dashboardPanelOpen;
             }
         }
 
