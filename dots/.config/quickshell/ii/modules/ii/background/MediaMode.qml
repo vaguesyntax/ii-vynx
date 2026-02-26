@@ -20,13 +20,16 @@ Item { // MediaMode instance
     property string artDownloadLocation: Directories.coverArt
     property string artFileName: Qt.md5(artUrl)
     property string artFilePath: `${artDownloadLocation}/${artFileName}`
-    property color artDominantColor: colorQuantizer.colors[0] ?? "#31313131"
+    property color artDominantColor: colorQuantizer.colors[0] ?? "#31313131" // 31 means gooning in Turkish btw :)
     property bool downloaded: false
     property string displayedArtFilePath: ""
 
     readonly property string trackTitle: root.player.trackTitle || ""
     Component.onCompleted: Persistent.states.background.mediaMode.userScrollOffset = 0
     onTrackTitleChanged: Persistent.states.background.mediaMode.userScrollOffset = 0
+
+    property bool canChangeColor: true
+    property string geniusLyricsString: LyricsService.plainLyrics
 
     function updateArt() {
         coverArtDownloader.targetFile = root.artUrl 
@@ -45,8 +48,6 @@ Item { // MediaMode instance
         updateArt();
     }
 
-    property bool canChangeColor: true
-
     Process { // Cover art downloader
         id: coverArtDownloader
         property string targetFile: root.artUrl
@@ -60,8 +61,6 @@ Item { // MediaMode instance
         }
     }
     
-    property string geniusLyricsString: LyricsService.geniusLyrics
-
 
     ColorQuantizer {
         id: colorQuantizer

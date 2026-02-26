@@ -52,16 +52,6 @@ StyledOverlayWidget {
         }
     }
 
-    LrclibLyrics {
-        id: lrclibLyrics
-        enabled: (root.currentPlayer?.trackTitle?.length > 0) && (root.currentPlayer?.trackArtist?.length > 0)
-        title: root.currentPlayer?.trackTitle ?? ""
-        artist: root.currentPlayer?.trackArtist ?? ""
-        duration: root.currentPlayer?.length ?? 0
-        position: root.currentPlayer?.position ?? 0
-        selectedId: 0 //? I have no idea what this does, but it works so whatever
-    }
-
     Timer {
         running: root.currentPlayer?.playbackState == MprisPlaybackState.Playing && lyricScroller.hasSyncedLines
         interval: 250

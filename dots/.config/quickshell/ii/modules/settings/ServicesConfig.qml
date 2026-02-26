@@ -137,6 +137,30 @@ ContentPage {
                 text: Translation.tr("Disabling this will prevent the API from being called, but already cached lyrics will still be available.")
             }
         }
+
+
+        ConfigRow {
+            uniform: true
+
+            ConfigSwitch {
+                enabled: Config.options.lyricsService.enable
+                buttonIcon: "mood"
+                text: Translation.tr("Enable genius lyrics service")
+                checked: Config.options.lyricsService.enableGenius
+                onCheckedChanged: {
+                    Config.options.lyricsService.enableGenius = checked;
+                }
+            }
+            ConfigSwitch {
+                enabled: Config.options.lyricsService.enable
+                buttonIcon: "library_books"
+                text: Translation.tr("Enable lrclib lyrics service")
+                checked: Config.options.lyricsService.enableLrclib
+                onCheckedChanged: {
+                    Config.options.lyricsService.enableLrclib = checked;
+                }
+            }
+        }
     }
 
     ContentSection {

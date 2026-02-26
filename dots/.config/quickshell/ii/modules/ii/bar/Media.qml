@@ -103,21 +103,27 @@ Item {
     Loader {
         id: lyricsItemLoader 
         active: lyricsEnabled
-        anchors.fill: parent
+
+        width: parent.width - mediaCircProg.implicitSize * 2
+        height: parent.height
         
+        anchors.left: parent.left
+        anchors.leftMargin: mediaCircProg.implicitSize * 1.5
+
         sourceComponent: Item {
             id: lyricsItem
             visible: lyricsEnabled
-            anchors.fill: parent
+            
+            anchors.centerIn: parent
 
             Loader {
                 active: lyricsStyle == "static"
+                anchors.fill: parent
                 anchors.centerIn: parent
-                sourceComponent: StyledText {
+                sourceComponent: LyricsStatic {
+                    anchors.fill: parent
                     anchors.centerIn: parent
-                    font.pixelSize: Appearance.font.pixelSize.smallie
-                    text: LyricsService.syncedLines[LyricsService.currentIndex].text
-                    animateChange: true
+                    horizontalAlignment: Text.AlignHCenter
                 }
             }
 

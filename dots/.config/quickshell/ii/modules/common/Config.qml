@@ -587,6 +587,8 @@ Singleton {
 
             property JsonObject lyricsService: JsonObject {
                 property bool enable: true
+                property bool enableGenius: true
+                property bool enableLrclib: true
             }
 
             property JsonObject tray: JsonObject {

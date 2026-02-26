@@ -31,6 +31,10 @@ Item {
 
     readonly property real animProgress: Math.abs(scrollOffset) / rowHeight
 
+    Component.onCompleted: {
+        LyricsService.initiliazeLyrics()
+    }
+
     onTargetCurrentIndexChanged: {
         if (targetCurrentIndex !== lastIndex) {
             isMovingForward = targetCurrentIndex > lastIndex;

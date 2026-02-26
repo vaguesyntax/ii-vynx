@@ -19,39 +19,61 @@ Singleton {
     id: root
 
     readonly property bool lyricsEnabled: Config.options.lyricsService.enable
+    readonly property bool geniusEnabled: Config.options.lyricsService.enableGenius
+    readonly property bool lrclibEnabled: Config.options.lyricsService.enableLrclib
+    
+    property bool isInitialized: false
     readonly property MprisPlayer activePlayer: MprisController.activePlayer
+    readonly property string currentTrackId: root.activePlayer?.trackTitle ?? ""
 
-    readonly property bool hasSyncedLines: lrclib.lines.length > 0
+    readonly property bool effectiveLrclibEnabled: lyricsEnabled && lrclibEnabled && isInitialized && (root.activePlayer?.trackTitle?.length > 0) && (root.activePlayer?.trackArtist?.length > 0)
+    readonly property bool effectiveGeniusEnabled: lyricsEnabled && geniusEnabled && isInitialized
 
     readonly property alias syncedLines: lrclib.lines
     readonly property alias currentIndex: lrclib.currentIndex
-    readonly property string plainLyrics: genius.lyricsString
-    readonly property bool hasSynced: lrclib.lines.length > 0
     readonly property string statusText: lrclib.displayText
+    readonly property bool hasSyncedLines: lrclib.lines.length > 0
 
-    LrclibLyrics {
-        id: lrclib
-        enabled: (root.activePlayer?.trackTitle?.length > 0) && (root.activePlayer?.trackArtist?.length > 0) && lyricsEnabled
-        title: root.activePlayer?.trackTitle ?? ""
-        artist: root.activePlayer?.trackArtist ?? ""
-        duration: root.activePlayer?.length ?? 0
-        position: root.activePlayer?.position ?? 0
+    readonly property alias geniusHasLyrics: genius.hasString
+    readonly property string plainLyrics: genius.lyricsString
+
+
+    // Function to initialize the lyrics service, to prevent unnecessary API calls when no lyrics UI is being use
+    // Its being called in LyricsStatic, LyricsScroller and LyricsFlickable files
+    function initiliazeLyrics() {
+        root.isInitialized = true
     }
 
-    readonly property alias geniusLyrics: genius.lyricsString
-    readonly property alias geniusHasLyrics: genius.hasString
+    function filterLyricLines(lyrics) { // for clearing the metadata in genius lyrics
+        return lyrics
+            .split("\n")
+            .filter(line => {
+                const trimmed = line.trim()
+                return !(trimmed.startsWith("[") && trimmed.endsWith("]"))
+            })
+            .slice(1)
+            .join("\n")
+    }
 
     Component.onCompleted: geniusFirstFetchDelay.restart()
-
     Timer {
         id: geniusFirstFetchDelay
         running: false
         interval: 1000
         onTriggered: {
-            if (root.activePlayer) {
+            if (root.activePlayer && effectiveGeniusEnabled) {
                 genius.fetchLyrics(root.activePlayer.trackArtist, root.activePlayer.trackTitle)
             }
         }
+    }
+
+    LrclibLyrics {
+        id: lrclib
+        enabled: effectiveLrclibEnabled
+        title: root.activePlayer?.trackTitle ?? ""
+        artist: root.activePlayer?.trackArtist ?? ""
+        duration: root.activePlayer?.length ?? 0
+        position: root.activePlayer?.position ?? 0
     }
 
     GeniusLyrics {
@@ -59,7 +81,7 @@ Singleton {
         readonly property string trackTitle: root.activePlayer?.trackTitle
         onTrackTitleChanged: {
             if (root.activePlayer) {
-                if (!lyricsEnabled) return;
+                if (!effectiveGeniusEnabled) return;
                 genius.hasString = false
                 genius.fetchLyrics(root.activePlayer.trackArtist, root.activePlayer.trackTitle)
             }
@@ -67,22 +89,16 @@ Singleton {
         property string lyricsString: ""
         property bool hasString: false
         onLyricsUpdated: (lyrics) => {
-            if (!lyricsEnabled) return;
-            // console.log("Got Genius lyrics:", lyrics)
-            let lines = lyrics.split("\n")
-            let filtered = lines.filter(line => {
-                let trimmed = line.trim()
-                return !(trimmed.startsWith("[") && trimmed.endsWith("]"))
-            })
+            if (!effectiveGeniusEnabled) return
             genius.hasString = true
-            lyricsString = filtered.slice(1).join("\n")
+            genius.lyricsString = filterLyricLines(lyrics)
         }
     }
 
-    readonly property string currentTrackId: root.activePlayer?.trackTitle ?? ""
+    
     
     onCurrentTrackIdChanged: {
-        if (!lyricsEnabled) return;
+        if (!effectiveGeniusEnabled) return;
         if (currentTrackId !== "" && root.activePlayer?.trackArtist) {
             genius.fetchLyrics(root.activePlayer.trackArtist, root.activePlayer.trackTitle)
         } else {

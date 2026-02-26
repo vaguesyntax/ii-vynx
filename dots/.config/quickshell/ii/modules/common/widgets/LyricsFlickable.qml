@@ -11,10 +11,13 @@ Item {
     id: root
 
     property var player: MprisController.activePlayer
-    property string geniusLyricsString: LyricsService.geniusHasLyrics ? LyricsService.geniusLyrics : ""
+    property string geniusLyricsString: LyricsService.geniusHasLyrics ? LyricsService.plainLyrics : ""
 
     property bool hasSyncedLines: LyricsService.syncedLines.length > 0
 
+    Component.onCompleted: {
+        LyricsService.initiliazeLyrics()
+    }
 
     Timer {
         running: root.player?.playbackState == MprisPlaybackState.Playing && hasSyncedLines > 0
