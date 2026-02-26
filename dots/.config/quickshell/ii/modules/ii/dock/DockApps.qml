@@ -348,9 +348,10 @@ Item {
 
         implicitWidth: root.isVertical
             ? root.maxWindowPreviewWidth
-                + root.windowControlsHeight   // la barra titolo in verticale è orizzontale
+                + root.windowControlsHeight
                 + popupBackground.padding * 2
                 + popupBackground.margins * 2
+                - 25
             : QsWindow.window?.width ?? 0
 
         implicitHeight: root.isVertical
@@ -359,6 +360,7 @@ Item {
                 + root.windowControlsHeight
                 + popupBackground.padding * 2
                 + popupBackground.margins * 2
+                + 5
 
         MouseArea {
             id: popupMouseArea
@@ -371,32 +373,47 @@ Item {
                 visible: popupBackground.visible
             }
 
-            Rectangle {
-                id: popupBackground
-                property real margins: 5
-                anchors.centerIn: parent
-                property real padding: 6
-                opacity: previewPopup.visible ? 1 : 0
-                scale:   previewPopup.visible ? 1 : 0.98
-                visible: opacity > 0
-                clip: true
-                color: Appearance.m3colors.m3surfaceContainer
-                radius: Appearance.rounding.normal
-                implicitHeight: previewRowLayout.implicitHeight + padding * 2
-                implicitWidth:  previewRowLayout.implicitWidth  + padding * 2
+        Rectangle {
+            id: popupBackground
+            property real margins: 5
+            property real padding: 6
 
-                Behavior on opacity {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
+            x: {
+                switch (GlobalStates.dockEffectivePosition) {
+                    case "left":   return margins
+                    case "right":  return parent.width - width - margins
+                    default:       return (parent.width - width) / 2  // top/bottom: centrato
                 }
-                Behavior on scale {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
+            }
+            y: {
+                switch (GlobalStates.dockEffectivePosition) {
+                    case "top":    return margins
+                    case "bottom": return parent.height - height - margins
+                    default:       return (parent.height - height) / 2  // left/right: centrato
                 }
-                Behavior on implicitWidth {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(layout)
-                }
-                Behavior on implicitHeight {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(layout)
-                }
+            }
+
+            opacity: previewPopup.visible ? 1 : 0
+            scale:   previewPopup.visible ? 1 : 0.98
+            visible: opacity > 0
+            clip: true
+            color: Appearance.m3colors.m3surfaceContainer
+            radius: Appearance.rounding.normal
+            implicitHeight: previewRowLayout.implicitHeight + padding * 2
+            implicitWidth:  previewRowLayout.implicitWidth  + padding * 2
+
+            Behavior on opacity {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
+            }
+            Behavior on scale {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
+            }
+            Behavior on implicitWidth {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
+            }
+            Behavior on implicitHeight {
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
+            }
                                 
                 GridLayout {
                     id: previewRowLayout
