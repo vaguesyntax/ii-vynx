@@ -38,6 +38,8 @@ Item {
     property bool _dragActive: false
     property var liveOrder: []
 
+    property bool dockReveal: false
+
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
 
@@ -65,6 +67,17 @@ Item {
     }
     onLastHoveredButtonChanged: {
         if (root.lastHoveredButton) previewPopup.anchor.updateAnchor()
+    }
+
+    onDockRevealChanged: {
+        if (!dockReveal) {
+            showTimer.stop()
+            hideTimer.stop()
+            previewPopup.visible = false
+            root.buttonHovered = false
+        } else {
+            showTimer.stop()
+        }
     }
 
     Component.onCompleted: updateModel()
@@ -272,7 +285,9 @@ Item {
     PopupWindow {
         id: previewPopup
         property var appTopLevel: root.lastHoveredButton?.appToplevel
-        readonly property bool wantVisible: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length ?? 0) > 0
+
+        readonly property bool wantVisible: (popupMouseArea.containsMouse || root.buttonHovered)
+                                            && (appTopLevel?.toplevels?.length ?? 0) > 0
 
         visible: false
         color: "transparent"
@@ -280,9 +295,20 @@ Item {
         onWantVisibleChanged: {
             if (wantVisible) {
                 hideTimer.stop()
-                previewPopup.visible = true
+                showTimer.restart()
             } else {
+                showTimer.stop()
                 hideTimer.restart()
+            }
+        }
+
+        Timer {
+            id: showTimer
+            interval: 100
+            running: false
+            onTriggered: {
+                if (previewPopup.wantVisible)
+                    previewPopup.visible = true
             }
         }
 
