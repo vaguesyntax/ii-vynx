@@ -290,7 +290,7 @@ Item {
                                             && (appTopLevel?.toplevels?.length ?? 0) > 0
 
         visible: false
-        color: "transparent"
+        color: "red"
 
         onWantVisibleChanged: {
             if (wantVisible) {
@@ -324,7 +324,7 @@ Item {
 
         anchor {
             item: root.lastHoveredButton
-            adjustment: PopupAdjustment.None
+            adjustment: PopupAdjustment.Slide
 
             property var edgeMap: ({
                 "bottom": Edges.Top,
@@ -346,8 +346,19 @@ Item {
             }
         }
 
-        implicitWidth:  popupBackground.implicitWidth  + popupBackground.margins * 2
-        implicitHeight: popupBackground.implicitHeight + popupBackground.margins * 2
+        implicitWidth: root.isVertical
+            ? root.maxWindowPreviewWidth
+                + root.windowControlsHeight   // la barra titolo in verticale è orizzontale
+                + popupBackground.padding * 2
+                + popupBackground.margins * 2
+            : QsWindow.window?.width ?? 0
+
+        implicitHeight: root.isVertical
+            ? QsWindow.window?.height ?? 0
+            : root.maxWindowPreviewHeight
+                + root.windowControlsHeight
+                + popupBackground.padding * 2
+                + popupBackground.margins * 2
 
         MouseArea {
             id: popupMouseArea
@@ -380,10 +391,16 @@ Item {
                 Behavior on scale {
                     animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
                 }
-
+                Behavior on implicitWidth {
+                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(layout)
+                }
+                Behavior on implicitHeight {
+                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(layout)
+                }
+                                
                 GridLayout {
                     id: previewRowLayout
-                    anchors.centerIn: parent
+                    anchors.fill: parent
                     flow: root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                     columnSpacing: 6; rowSpacing: 6
 
