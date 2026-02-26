@@ -78,9 +78,6 @@ Item {
             if (root.lastHoveredButton) previewPopup.anchor.updateAnchor()
         }
     }
-    onLastHoveredButtonChanged: {
-        if (root.lastHoveredButton) previewPopup.anchor.updateAnchor()
-    }
 
     Component.onCompleted: updateModel()
 
@@ -297,17 +294,14 @@ Item {
 
             rect {
                 x: GlobalStates.dockEffectivePosition === "left"  ? (root.QsWindow.window?.width ?? 0) :  0
-                y: GlobalStates.dockEffectivePosition === "bottom" ? 0 :
-                GlobalStates.dockEffectivePosition === "top"    ? (root.QsWindow.window?.height ?? 0) : 0
-                width: 1
-                height: 1
+                y: GlobalStates.dockEffectivePosition === "bottom" ? 0 : GlobalStates.dockEffectivePosition === "top" ? (root.QsWindow.window?.height ?? 0) : 0
             }
 
             gravity: {
                 if (GlobalStates.dockEffectivePosition === "left")   return Edges.Right | Edges.Bottom
                 if (GlobalStates.dockEffectivePosition === "right")  return Edges.Left  | Edges.Bottom
                 if (GlobalStates.dockEffectivePosition === "top")    return Edges.Bottom | Edges.Right
-                return Edges.Top | Edges.Right // bottom (default)
+                return Edges.Top | Edges.Right
             }
 
             edges: Edges.Top | Edges.Left
@@ -358,7 +352,6 @@ Item {
                         : parent.height - implicitHeight - margins)
 
                 opacity: previewPopup.show ? 1 : 0
-                scale:   previewPopup.show ? 1 : 0.98
                 visible: opacity > 0
                 clip: true
                 color: Appearance.m3colors.m3surfaceContainer
@@ -369,9 +362,13 @@ Item {
                 Behavior on opacity {
                     animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
                 }
-                Behavior on scale {
+                Behavior on implicitWidth {
                     animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
                 }
+                Behavior on implicitHeight {
+                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
+                }
+                
                 GridLayout {
                     id: previewRowLayout
                     anchors {
