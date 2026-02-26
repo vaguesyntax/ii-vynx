@@ -186,8 +186,8 @@ Scope {
                     DockApps {
                         id: dockApps
                         anchors.centerIn: parent
+                        // Pass properties to DockApps
                         isPinned: root.pinned
-                        dockReveal: dockRoot.reveal
                         onTogglePinRequested: {
                             root.pinned = !root.pinned
                         }

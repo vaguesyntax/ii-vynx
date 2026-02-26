@@ -38,10 +38,23 @@ Item {
     property bool _dragActive: false
     property var liveOrder: []
 
-    property bool dockReveal: false
-
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
+
+    property real hoveredButtonCenterX: {
+        if (!root.lastHoveredButton) return 0
+        const mapped = root.lastHoveredButton.mapToItem(null,
+            root.lastHoveredButton.width / 2,
+            root.lastHoveredButton.height / 2)
+        return mapped.x
+    }
+    property real hoveredButtonCenterY: {
+        if (!root.lastHoveredButton) return 0
+        const mapped = root.lastHoveredButton.mapToItem(null,
+            root.lastHoveredButton.width / 2,
+            root.lastHoveredButton.height / 2)
+        return mapped.y
+    }
 
     // --- Model Update ---
     function updateModel() {
@@ -67,17 +80,6 @@ Item {
     }
     onLastHoveredButtonChanged: {
         if (root.lastHoveredButton) previewPopup.anchor.updateAnchor()
-    }
-
-    onDockRevealChanged: {
-        if (!dockReveal) {
-            showTimer.stop()
-            hideTimer.stop()
-            previewPopup.visible = false
-            root.buttonHovered = false
-        } else {
-            showTimer.stop()
-        }
     }
 
     Component.onCompleted: updateModel()
@@ -285,65 +287,30 @@ Item {
     PopupWindow {
         id: previewPopup
         property var appTopLevel: root.lastHoveredButton?.appToplevel
-
-        readonly property bool wantVisible: (popupMouseArea.containsMouse || root.buttonHovered)
-                                            && (appTopLevel?.toplevels?.length ?? 0) > 0
-
-        visible: false
+        property bool show: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length > 0)
+        visible: show
         color: "red"
 
-        onWantVisibleChanged: {
-            if (wantVisible) {
-                hideTimer.stop()
-                showTimer.restart()
-            } else {
-                showTimer.stop()
-                hideTimer.restart()
-            }
-        }
-
-        Timer {
-            id: showTimer
-            interval: 100
-            running: false
-            onTriggered: {
-                if (previewPopup.wantVisible)
-                    previewPopup.visible = true
-            }
-        }
-
-        Timer {
-            id: hideTimer
-            interval: 200
-            running: false
-            onTriggered: {
-                if (!previewPopup.wantVisible)
-                    previewPopup.visible = false
-            }
-        }
-
         anchor {
-            item: root.lastHoveredButton
-            adjustment: PopupAdjustment.Slide
+            window: root.QsWindow.window
+            adjustment: PopupAdjustment.None
 
-            property var edgeMap: ({
-                "bottom": Edges.Top,
-                "top":    Edges.Bottom,
-                "left":   Edges.Right,
-                "right":  Edges.Left
-            })
-
-            gravity: edgeMap[GlobalStates.dockEffectivePosition] ?? Edges.Top
-            edges:   edgeMap[GlobalStates.dockEffectivePosition] ?? Edges.Top
-
-            property int popupMargins: 20
-
-            margins {
-                top:    GlobalStates.dockEffectivePosition === "bottom" ? -popupMargins : 0
-                bottom: GlobalStates.dockEffectivePosition === "top"    ? -popupMargins : 0
-                left:   GlobalStates.dockEffectivePosition === "right"  ? -popupMargins : 0
-                right:  GlobalStates.dockEffectivePosition === "left"   ? -popupMargins : 0
+            rect {
+                x: GlobalStates.dockEffectivePosition === "left"  ? (root.QsWindow.window?.width ?? 0) :  0
+                y: GlobalStates.dockEffectivePosition === "bottom" ? 0 :
+                GlobalStates.dockEffectivePosition === "top"    ? (root.QsWindow.window?.height ?? 0) : 0
+                width: 1
+                height: 1
             }
+
+            gravity: {
+                if (GlobalStates.dockEffectivePosition === "left")   return Edges.Right | Edges.Bottom
+                if (GlobalStates.dockEffectivePosition === "right")  return Edges.Left  | Edges.Bottom
+                if (GlobalStates.dockEffectivePosition === "top")    return Edges.Bottom | Edges.Right
+                return Edges.Top | Edges.Right // bottom (default)
+            }
+
+            edges: Edges.Top | Edges.Left
         }
 
         implicitWidth: root.isVertical
@@ -373,51 +340,46 @@ Item {
                 visible: popupBackground.visible
             }
 
-        Rectangle {
-            id: popupBackground
-            property real margins: 5
-            property real padding: 6
+            Rectangle {
+                id: popupBackground
+                property real margins: 5
+                property real padding: 6
 
-            x: {
-                switch (GlobalStates.dockEffectivePosition) {
-                    case "left":   return margins
-                    case "right":  return parent.width - width - margins
-                    default:       return (parent.width - width) / 2  // top/bottom: centrato
+                x: root.isVertical
+                    ? (GlobalStates.dockEffectivePosition === "left"
+                        ? margins
+                        : parent.width - implicitWidth - margins)
+                    : root.hoveredButtonCenterX - implicitWidth / 2
+
+                y: root.isVertical
+                    ? root.hoveredButtonCenterY - implicitHeight / 2
+                    : (GlobalStates.dockEffectivePosition === "top"
+                        ? margins
+                        : parent.height - implicitHeight - margins)
+
+                opacity: previewPopup.show ? 1 : 0
+                scale:   previewPopup.show ? 1 : 0.98
+                visible: opacity > 0
+                clip: true
+                color: Appearance.m3colors.m3surfaceContainer
+                radius: Appearance.rounding.normal
+                implicitHeight: previewRowLayout.implicitHeight + padding * 2
+                implicitWidth:  previewRowLayout.implicitWidth  + padding * 2
+
+                Behavior on opacity {
+                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
                 }
-            }
-            y: {
-                switch (GlobalStates.dockEffectivePosition) {
-                    case "top":    return margins
-                    case "bottom": return parent.height - height - margins
-                    default:       return (parent.height - height) / 2  // left/right: centrato
+                Behavior on scale {
+                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
                 }
-            }
-
-            opacity: previewPopup.visible ? 1 : 0
-            scale:   previewPopup.visible ? 1 : 0.98
-            visible: opacity > 0
-            clip: true
-            color: Appearance.m3colors.m3surfaceContainer
-            radius: Appearance.rounding.normal
-            implicitHeight: previewRowLayout.implicitHeight + padding * 2
-            implicitWidth:  previewRowLayout.implicitWidth  + padding * 2
-
-            Behavior on opacity {
-                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
-            }
-            Behavior on scale {
-                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
-            }
-            Behavior on implicitWidth {
-                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
-            }
-            Behavior on implicitHeight {
-                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
-            }
-                                
                 GridLayout {
                     id: previewRowLayout
-                    anchors.fill: parent
+                    anchors {
+                        top: parent.top
+                        left: parent.left
+                        topMargin: popupBackground.padding
+                        leftMargin: popupBackground.padding
+                    }
                     flow: root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                     columnSpacing: 6; rowSpacing: 6
 
@@ -468,7 +430,7 @@ Item {
                                 ScreencopyView {
                                     id: screencopyView
                                     captureSource: windowButton.modelData
-                                    live: previewPopup.visible
+                                    live: previewPopup.show
                                     paintCursor: true
                                     constraintSize: Qt.size(root.maxWindowPreviewWidth, root.maxWindowPreviewHeight)
 
