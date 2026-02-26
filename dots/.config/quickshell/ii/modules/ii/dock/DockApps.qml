@@ -272,9 +272,29 @@ Item {
     PopupWindow {
         id: previewPopup
         property var appTopLevel: root.lastHoveredButton?.appToplevel
-        property bool show: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length > 0)
-        visible: show
-        color: "red"
+        readonly property bool wantVisible: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length ?? 0) > 0
+
+        visible: false
+        color: "transparent"
+
+        onWantVisibleChanged: {
+            if (wantVisible) {
+                hideTimer.stop()
+                previewPopup.visible = true
+            } else {
+                hideTimer.restart()
+            }
+        }
+
+        Timer {
+            id: hideTimer
+            interval: 200
+            running: false
+            onTriggered: {
+                if (!previewPopup.wantVisible)
+                    previewPopup.visible = false
+            }
+        }
 
         anchor {
             item: root.lastHoveredButton
@@ -319,8 +339,8 @@ Item {
                 property real margins: 5
                 anchors.centerIn: parent
                 property real padding: 6
-                opacity: previewPopup.show ? 1 : 0
-                scale:   previewPopup.show ? 1 : 0.98
+                opacity: previewPopup.visible ? 1 : 0
+                scale:   previewPopup.visible ? 1 : 0.98
                 visible: opacity > 0
                 clip: true
                 color: Appearance.m3colors.m3surfaceContainer
@@ -328,8 +348,16 @@ Item {
                 implicitHeight: previewRowLayout.implicitHeight + padding * 2
                 implicitWidth:  previewRowLayout.implicitWidth  + padding * 2
 
+                Behavior on opacity {
+                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
+                }
+                Behavior on scale {
+                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground)
+                }
+
                 GridLayout {
                     id: previewRowLayout
+                    anchors.centerIn: parent
                     flow: root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                     columnSpacing: 6; rowSpacing: 6
 
@@ -380,7 +408,7 @@ Item {
                                 ScreencopyView {
                                     id: screencopyView
                                     captureSource: windowButton.modelData
-                                    live: previewPopup.show
+                                    live: previewPopup.visible
                                     paintCursor: true
                                     constraintSize: Qt.size(root.maxWindowPreviewWidth, root.maxWindowPreviewHeight)
 

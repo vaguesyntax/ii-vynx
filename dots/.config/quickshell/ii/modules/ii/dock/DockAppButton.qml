@@ -79,7 +79,8 @@ DockButton {
 
         onEntered: {
             if (!appListRoot?._dragActive) {
-                appListRoot.lastHoveredButton = root
+                if (appToplevel && appToplevel.toplevels.length > 0)
+                    appListRoot.lastHoveredButton = root
                 appListRoot.buttonHovered = true
                 if (appToplevel) lastFocused = appToplevel.toplevels.length - 1
             }
