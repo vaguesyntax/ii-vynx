@@ -13,7 +13,7 @@ import qs.modules.common.functions
 
 Item {
     id: root
-
+    property Item anchorItem: null
     // --- Core Properties ---
     property bool isVertical: GlobalStates.dockIsVertical
     property bool isPinned: false
@@ -27,7 +27,7 @@ Item {
     property bool buttonHovered: false
     property bool requestDockShow: previewPopup.visible
 
-    // --- Original UI Constants ---
+    // --- UI Constants ---
     property real maxWindowPreviewHeight: 200
     property real maxWindowPreviewWidth: 300
     property real windowControlsHeight: 30
@@ -55,6 +55,16 @@ Item {
     Connections {
         target: TaskbarApps
         function onAppsChanged() { updateModel() }
+    }
+    
+    Connections {
+        target: GlobalStates
+        function onDockEffectivePositionChanged() {
+            if (root.lastHoveredButton) previewPopup.anchor.updateAnchor()
+        }
+    }
+    onLastHoveredButtonChanged: {
+        if (root.lastHoveredButton) previewPopup.anchor.updateAnchor()
     }
 
     Component.onCompleted: updateModel()
@@ -103,7 +113,7 @@ Item {
         _dragActive = false; draggedAppId = ""; liveOrder = []; dragSource = null
     }
 
-    // Drag Ghost
+    // --- Drag Ghost ---
     Item {
         id: dragGhost
         width: 55
@@ -198,7 +208,7 @@ Item {
             }
         }
 
-        Repeater { // App Icons
+        Repeater {
             model: ScriptModel {
                 objectProp: "uniqueKey"
                 values: {
@@ -218,7 +228,6 @@ Item {
                 appListRoot: root
                 topInset: root.buttonPadding
                 bottomInset: root.buttonPadding
-                // Why adding left and right inset modifies the popups as well
             }
         }
 
@@ -260,36 +269,39 @@ Item {
         }
     }
 
-    // --- Fast Preview Popup ---
+
     PopupWindow {
         id: previewPopup
-        
         property var appTopLevel: root.lastHoveredButton?.appToplevel
-        
-        // Logical show condition
         property bool show: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length > 0)
-        
-        // Visible immediately to allow animations and capture to start
         visible: show
-        color: "transparent"
+        color: "red"
 
-        // Anchoring to the icon button
         anchor {
             item: root.lastHoveredButton
-            adjustment: PopupAdjustment.Slide
+            adjustment: PopupAdjustment.None
             gravity: {
                 switch (GlobalStates.dockEffectivePosition) {
-                    case "bottom": return Edges.Top;    case "top":   return Edges.Bottom
-                    case "left":   return Edges.Right;  case "right": return Edges.Left
-                    default: return Edges.Top
+                    case "bottom": return Edges.Top;
+                    case "top":    return Edges.Bottom;
+                    case "left":   return Edges.Right;
+                    case "right":  return Edges.Left;
+                    default:       return Edges.Top;
                 }
             }
-            edges: gravity
+            edges: {
+                switch (GlobalStates.dockEffectivePosition) {
+                    case "bottom": return Edges.Top;
+                    case "top":    return Edges.Bottom;
+                    case "left":   return Edges.Right;
+                    case "right":  return Edges.Left;
+                    default:       return Edges.Top;
+                }
+            }
         }
 
-        // Keep popup size large enough to avoid clipping during pill transitions
-        implicitWidth:  root.isVertical ? 500 : 1200
-        implicitHeight: root.isVertical ? 1200 : 500
+        implicitWidth:  popupBackground.implicitWidth  + popupBackground.margins * 2
+        implicitHeight: popupBackground.implicitHeight + popupBackground.margins * 2
 
         MouseArea {
             id: popupMouseArea
@@ -304,38 +316,20 @@ Item {
 
             Rectangle {
                 id: popupBackground
-                
-                // Centering logic relative to the anchored icon
-                anchors.horizontalCenter: root.isVertical ? undefined : parent.horizontalCenter
-                anchors.verticalCenter:   root.isVertical ? parent.verticalCenter : undefined
-                
-                // Secondary axis positioning based on dock position
-                anchors.bottom: (GlobalStates.dockEffectivePosition === "bottom" && !root.isVertical) ? parent.bottom : undefined
-                anchors.top:    (GlobalStates.dockEffectivePosition === "top"    && !root.isVertical) ? parent.top : undefined
-                anchors.left:   (GlobalStates.dockEffectivePosition === "left"   &&  root.isVertical) ? parent.left : undefined
-                anchors.right:  (GlobalStates.dockEffectivePosition === "right"  &&  root.isVertical) ? parent.right : undefined
-                anchors.margins: 5
-
+                property real margins: 5
+                anchors.centerIn: parent
                 property real padding: 6
                 opacity: previewPopup.show ? 1 : 0
-                scale: previewPopup.show ? 1 : 0.98
+                scale:   previewPopup.show ? 1 : 0.98
                 visible: opacity > 0
                 clip: true
                 color: Appearance.m3colors.m3surfaceContainer
                 radius: Appearance.rounding.normal
-
                 implicitHeight: previewRowLayout.implicitHeight + padding * 2
-                implicitWidth:  previewRowLayout.implicitWidth + padding * 2
-
-                // Smooth transitions for a premium feel
-                Behavior on opacity { NumberAnimation { duration: 120 } }
-                Behavior on scale   { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
-                Behavior on implicitWidth  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground) }
-                Behavior on implicitHeight { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(popupBackground) }
+                implicitWidth:  previewRowLayout.implicitWidth  + padding * 2
 
                 GridLayout {
                     id: previewRowLayout
-                    anchors.centerIn: parent
                     flow: root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
                     columnSpacing: 6; rowSpacing: 6
 
@@ -349,7 +343,6 @@ Item {
                             middleClickAction: () => modelData?.close()
 
                             contentItem: ColumnLayout {
-                                // Dynamic sizing based on window content
                                 implicitWidth:  screencopyView.implicitWidth
                                 implicitHeight: screencopyView.implicitHeight
 
@@ -390,11 +383,11 @@ Item {
                                     live: previewPopup.show
                                     paintCursor: true
                                     constraintSize: Qt.size(root.maxWindowPreviewWidth, root.maxWindowPreviewHeight)
-                                    
+
                                     layer.enabled: true
                                     layer.effect: OpacityMask {
                                         maskSource: Rectangle {
-                                            width: screencopyView.width
+                                            width:  screencopyView.width
                                             height: screencopyView.height
                                             radius: Appearance.rounding.small
                                         }
