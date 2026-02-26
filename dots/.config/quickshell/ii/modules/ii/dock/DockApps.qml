@@ -56,7 +56,7 @@ Item {
         target: TaskbarApps
         function onAppsChanged() { updateModel() }
     }
-    
+
     Connections {
         target: GlobalStates
         function onDockEffectivePositionChanged() {
@@ -269,7 +269,6 @@ Item {
         }
     }
 
-
     PopupWindow {
         id: previewPopup
         property var appTopLevel: root.lastHoveredButton?.appToplevel
@@ -280,23 +279,24 @@ Item {
         anchor {
             item: root.lastHoveredButton
             adjustment: PopupAdjustment.None
-            gravity: {
-                switch (GlobalStates.dockEffectivePosition) {
-                    case "bottom": return Edges.Top;
-                    case "top":    return Edges.Bottom;
-                    case "left":   return Edges.Right;
-                    case "right":  return Edges.Left;
-                    default:       return Edges.Top;
-                }
-            }
-            edges: {
-                switch (GlobalStates.dockEffectivePosition) {
-                    case "bottom": return Edges.Top;
-                    case "top":    return Edges.Bottom;
-                    case "left":   return Edges.Right;
-                    case "right":  return Edges.Left;
-                    default:       return Edges.Top;
-                }
+
+            property var edgeMap: ({
+                "bottom": Edges.Top,
+                "top":    Edges.Bottom,
+                "left":   Edges.Right,
+                "right":  Edges.Left
+            })
+
+            gravity: edgeMap[GlobalStates.dockEffectivePosition] ?? Edges.Top
+            edges:   edgeMap[GlobalStates.dockEffectivePosition] ?? Edges.Top
+
+            property int popupMargins: 20
+
+            margins {
+                top:    GlobalStates.dockEffectivePosition === "bottom" ? -popupMargins : 0
+                bottom: GlobalStates.dockEffectivePosition === "top"    ? -popupMargins : 0
+                left:   GlobalStates.dockEffectivePosition === "right"  ? -popupMargins : 0
+                right:  GlobalStates.dockEffectivePosition === "left"   ? -popupMargins : 0
             }
         }
 
