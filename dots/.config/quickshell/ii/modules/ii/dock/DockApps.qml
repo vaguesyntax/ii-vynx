@@ -284,7 +284,7 @@ Item {
     PopupWindow {
         id: previewPopup
         property var appTopLevel: root.lastHoveredButton?.appToplevel
-        property bool shouldShow: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length > 0)
+        property bool shouldShow: (backgroundHover.hovered || root.buttonHovered || popupBackground.isResizing) && (appTopLevel?.toplevels?.length > 0)
         property bool show: false
 
         onShouldShowChanged: {
@@ -302,8 +302,8 @@ Item {
             }
         }
 
-        visible: show
-        color: "red"
+        visible: show || popupBackground.opacity > 0
+        color: "transparent"
 
         anchor {
             window: root.QsWindow.window
@@ -340,10 +340,6 @@ Item {
                 + popupBackground.margins * 2
                 + 5
 
-        MouseArea {
-            id: popupMouseArea
-            anchors.fill: parent
-            hoverEnabled: true
 
             StyledRectangularShadow {
                 target: popupBackground
@@ -355,6 +351,21 @@ Item {
                 id: popupBackground
                 property real margins: 5
                 property real padding: 6
+
+                property bool isResizing: false
+
+                onImplicitWidthChanged:  resizeTimer.restart()
+                onImplicitHeightChanged: resizeTimer.restart()
+
+                Timer {
+                    id: resizeTimer
+                    interval: 300
+                    onTriggered: popupBackground.isResizing = false
+                    function restart() {
+                        popupBackground.isResizing = true
+                        start()
+                        }   
+                }
 
                 x: root.isVertical
                     ? (GlobalStates.dockEffectivePosition === "left"
@@ -368,8 +379,8 @@ Item {
                         ? margins
                         : parent.height - implicitHeight - margins)
 
-                opacity: previewPopup.show ? 1 : 0
-                visible: opacity > 0
+                opacity: previewPopup.show ? 1 : 0  
+                visible: true         
                 clip: true
                 color: Appearance.m3colors.m3surfaceContainer
                 radius: Appearance.rounding.normal
@@ -384,6 +395,10 @@ Item {
                 }
                 Behavior on implicitHeight {
                     animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
+                }
+                
+                HoverHandler { 
+                id: backgroundHover
                 }
                 
                 GridLayout {
@@ -464,4 +479,4 @@ Item {
             }
         }
     }
-}
+
