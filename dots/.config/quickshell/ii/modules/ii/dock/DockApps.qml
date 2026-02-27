@@ -288,12 +288,15 @@ Item {
         property bool show: false
 
         onShouldShowChanged: {
-            updateTimer.restart()
+            if (shouldShow)
+                show = true 
+            else
+                hideTimer.restart() 
         }
 
         Timer {
-            id: updateTimer
-            interval: 100
+            id: hideTimer
+            interval: 150
             onTriggered: {
                 previewPopup.show = previewPopup.shouldShow
             }
