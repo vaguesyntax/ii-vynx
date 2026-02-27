@@ -359,13 +359,13 @@ Item {
 
                 Timer {
                     id: resizeTimer
-                    interval: 300
+                    interval: 500
                     onTriggered: popupBackground.isResizing = false
                     function restart() {
                         popupBackground.isResizing = true
                         start()
                         }   
-                }
+                    }
 
                 x: root.isVertical
                     ? (GlobalStates.dockEffectivePosition === "left"
@@ -388,12 +388,6 @@ Item {
                 implicitWidth:  previewRowLayout.implicitWidth  + padding * 2
 
                 Behavior on opacity {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
-                }
-                Behavior on implicitWidth {
-                    animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
-                }
-                Behavior on implicitHeight {
                     animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
                 }
                 
@@ -459,7 +453,7 @@ Item {
                                 ScreencopyView {
                                     id: screencopyView
                                     captureSource: windowButton.modelData
-                                    live: previewPopup.show
+                                    live: true
                                     paintCursor: true
                                     constraintSize: Qt.size(root.maxWindowPreviewWidth, root.maxWindowPreviewHeight)
 
