@@ -17,6 +17,7 @@ Item {
     // --- Core Properties ---
     property bool isVertical: GlobalStates.dockIsVertical
     property bool isPinned: false
+    property bool popupIsResizing: false
     signal togglePinRequested()
 
     property real buttonPadding: 5
@@ -284,7 +285,7 @@ Item {
     PopupWindow {
         id: previewPopup
         property var appTopLevel: root.lastHoveredButton?.appToplevel
-        property bool shouldShow: (backgroundHover.hovered || root.buttonHovered || popupBackground.isResizing) && (appTopLevel?.toplevels?.length > 0)
+        property bool shouldShow: (backgroundHover.hovered || root.buttonHovered || root.popupIsResizing) && (appTopLevel?.toplevels?.length > 0)
         property bool show: false
 
         onShouldShowChanged: {
@@ -354,18 +355,14 @@ Item {
 
                 property bool isResizing: false
 
-                onImplicitWidthChanged:  resizeTimer.restart()
-                onImplicitHeightChanged: resizeTimer.restart()
+                onImplicitWidthChanged:  { root.popupIsResizing = true; resizeTimer.restart() }
+                onImplicitHeightChanged: { root.popupIsResizing = true; resizeTimer.restart() }
 
                 Timer {
                     id: resizeTimer
                     interval: 500
-                    onTriggered: popupBackground.isResizing = false
-                    function restart() {
-                        popupBackground.isResizing = true
-                        start()
-                        }   
-                    }
+                    onTriggered: root.popupIsResizing = false
+                }
 
                 x: root.isVertical
                     ? (GlobalStates.dockEffectivePosition === "left"

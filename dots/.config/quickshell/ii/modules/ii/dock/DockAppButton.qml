@@ -77,11 +77,16 @@ DockButton {
         property bool dragStarted: false
         property bool wasDragging: false
 
-            onEntered: {
+        onEntered: {
+            if (appToplevel?.toplevels?.length > 0) {
                 appListRoot.lastHoveredButton = root
                 appListRoot.buttonHovered = true
-                lastFocused = appToplevel.toplevels.length - 1
+            } else {
+                appListRoot.buttonHovered = false
+                appListRoot.popupIsResizing = false 
             }
+            lastFocused = appToplevel.toplevels.length - 1
+        }
         onExited: {
             if (appListRoot?.lastHoveredButton === root)
                 appListRoot.buttonHovered = false
