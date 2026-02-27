@@ -284,7 +284,21 @@ Item {
     PopupWindow {
         id: previewPopup
         property var appTopLevel: root.lastHoveredButton?.appToplevel
-        property bool show: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length > 0)
+        property bool shouldShow: (popupMouseArea.containsMouse || root.buttonHovered) && (appTopLevel?.toplevels?.length > 0)
+        property bool show: false
+
+        onShouldShowChanged: {
+            updateTimer.restart()
+        }
+
+        Timer {
+            id: updateTimer
+            interval: 100
+            onTriggered: {
+                previewPopup.show = previewPopup.shouldShow
+            }
+        }
+
         visible: show
         color: "red"
 
