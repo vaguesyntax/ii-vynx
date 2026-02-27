@@ -87,7 +87,7 @@ Loader {
         Rectangle {
             id: menuContent
             anchors.centerIn: parent
-            color: Appearance.colors.colLayer0
+            color: Appearance.m3colors.m3surfaceContainer // or Appearance.colors.colLayer0 idk which is better
             border.width: 1
             border.color: Appearance.colors.colLayer0Border
             radius: Appearance.rounding.normal
@@ -201,7 +201,7 @@ Loader {
                     }
                 }
 
-                Item { implicitHeight: 4 }
+                Item { implicitHeight: 5 }
             }
         }
     }

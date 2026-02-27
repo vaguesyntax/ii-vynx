@@ -138,6 +138,8 @@ DockButton {
     middleClickAction: () => root.desktopEntry?.execute()
 
     altAction: () => {
+        appListRoot.buttonHovered = false       
+        appListRoot.lastHoveredButton = null     
         dockContextMenu.open()
     }
 
