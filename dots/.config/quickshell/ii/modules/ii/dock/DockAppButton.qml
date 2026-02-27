@@ -83,7 +83,7 @@ DockButton {
                 appListRoot.buttonHovered = true
             } else {
                 appListRoot.buttonHovered = false
-                appListRoot.popupIsResizing = false 
+                appListRoot.popupIsResizing = false
             }
             lastFocused = appToplevel.toplevels.length - 1
         }
@@ -138,8 +138,22 @@ DockButton {
     middleClickAction: () => root.desktopEntry?.execute()
 
     altAction: () => {
-        if (appToplevel)
-            TaskbarApps.togglePin(appToplevel.appId)
+        dockContextMenu.open()
+    }
+
+    DockContextMenu {
+        id: dockContextMenu
+        appToplevel: root.appToplevel
+        desktopEntry: root.desktopEntry
+        anchorItem: root
+    }
+
+    Connections {
+        target: dockContextMenu
+        function onActiveChanged() {
+            if (appListRoot)
+                appListRoot.anyContextMenuOpen = dockContextMenu.active
+        }
     }
 
     contentItem: Loader {

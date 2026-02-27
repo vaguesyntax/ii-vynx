@@ -26,7 +26,6 @@ Item {
     // --- Hover State ---
     property Item lastHoveredButton
     property bool buttonHovered: false
-    property bool requestDockShow: previewPopup.visible
 
     // --- UI Constants ---
     property real maxWindowPreviewHeight: 200
@@ -38,6 +37,9 @@ Item {
     property var dragSource: null
     property bool _dragActive: false
     property var liveOrder: []
+
+    property bool anyContextMenuOpen: false
+    property bool requestDockShow: previewPopup.visible || anyContextMenuOpen
 
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
