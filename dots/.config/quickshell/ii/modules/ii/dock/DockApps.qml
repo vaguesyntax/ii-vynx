@@ -530,7 +530,11 @@ Item {
                             id: windowButton
                             required property var modelData
                             padding: 0
-                            onClicked: { modelData?.activate(); root.buttonHovered = false }
+                            onClicked: { 
+                                modelData?.activate()
+                                root.buttonHovered = false
+                                root.lastHoveredButton = null
+                            }
                             middleClickAction: () => modelData?.close()
 
                             contentItem: ColumnLayout {
