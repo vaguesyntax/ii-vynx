@@ -49,13 +49,9 @@ Scope {
             WlrLayershell.namespace: "quickshell:dock"
             WlrLayershell.layer: WlrLayer.Overlay
             color: "transparent" 
-            // Item to fix space not avaiable after a workspace switch
-            Item { 
-                id: fullScreenDragArea
-                anchors.fill: parent
-            }
+
             mask: Region { 
-                item: dockApps.dragActive ? fullScreenDragArea : dockMouseArea 
+                item: dockMouseArea 
             }
 
             Timer {
@@ -69,6 +65,16 @@ Scope {
                 function onDockEffectivePositionChanged() {
                     dockRoot.positionChanging = true
                     positionChangeTimer.restart()
+                }
+            }
+
+            HyprlandFocusGrab {
+                id: dragFocusGrab
+                active: dockApps.dragActive
+                windows: [dockRoot]
+                onCleared: {
+                    if (dockApps.dragActive)
+                        dockApps.endDrag()
                 }
             }
 
