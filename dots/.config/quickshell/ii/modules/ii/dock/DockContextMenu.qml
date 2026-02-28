@@ -34,7 +34,7 @@ Loader {
     sourceComponent: PopupWindow {
         id: popupWindow
         visible: true
-        color: "transparent"
+        color: "red"
 
         property real dockMargin: 25
         property real shadowMargin: 20
@@ -50,22 +50,22 @@ Loader {
                 const mapped = item.mapToItem(null, item.width / 2, item.height / 2)
                 if (pos === "bottom") {
                     anchor.rect.x = mapped.x - popupWindow.implicitWidth / 2
-                    anchor.rect.y = mapped.y - popupWindow.implicitHeight - dockMargin
+                    anchor.rect.y = mapped.y - popupWindow.implicitHeight - popupWindow.dockMargin
                 } else if (pos === "top") {
                     anchor.rect.x = mapped.x - popupWindow.implicitWidth / 2
-                    anchor.rect.y = mapped.y + dockMargin
+                    anchor.rect.y = mapped.y + popupWindow.dockMargin
                 } else if (pos === "left") {
-                    anchor.rect.x = mapped.x + dockMargin
+                    anchor.rect.x = mapped.x + popupWindow.dockMargin
                     anchor.rect.y = mapped.y - popupWindow.implicitHeight / 2
                 } else {
-                    anchor.rect.x = mapped.x - popupWindow.implicitWidth - dockMargin
+                    anchor.rect.x = mapped.x - popupWindow.implicitWidth - popupWindow.dockMargin
                     anchor.rect.y = mapped.y - popupWindow.implicitHeight / 2
                 }
             }
         }
 
-        implicitWidth:  menuContent.implicitWidth  + shadowMargin * 2
-        implicitHeight: menuContent.implicitHeight + shadowMargin * 2
+        implicitWidth:  menuContent.implicitWidth  + popupWindow.shadowMargin * 2
+        implicitHeight: menuContent.implicitHeight + popupWindow.shadowMargin * 2
 
         HyprlandFocusGrab {
             id: focusGrab
@@ -86,13 +86,14 @@ Loader {
 
         Rectangle {
             id: menuContent
+            property real menuMargin: 8
             anchors.centerIn: parent
             color: Appearance.m3colors.m3surfaceContainer // or Appearance.colors.colLayer0 idk which is better
             // border.width: 1
             // border.color: Appearance.colors.colLayer0Border
             radius: Appearance.rounding.normal
-            implicitWidth:  menuColumn.implicitWidth  + 8
-            implicitHeight: menuColumn.implicitHeight + 8
+            implicitWidth:  menuColumn.implicitWidth + (appName.Layout.leftMargin * 2) + (menuMargin * 2) 
+            implicitHeight: menuColumn.implicitHeight  + menuMargin * 2
 
             opacity: 0
             Component.onCompleted: opacity = 1
@@ -102,27 +103,29 @@ Loader {
 
         ColumnLayout {
             id: menuColumn
-            anchors {
-                top: parent.top
-                left: parent.left
-                right: parent.right
-                margins: 6
-            }
+            anchors.fill: parent
+            anchors.leftMargin: menuContent.menuMargin
+            anchors.rightMargin: menuContent.menuMargin
+            anchors.topMargin: menuContent.menuMargin
+            anchors.bottomMargin: menuContent.menuMargin
             spacing: 0
             
                             // --- App name header ---
             Item {
+                id: appName
                 Layout.fillWidth: true
-                implicitHeight: appNameRow.implicitHeight + 15
-                implicitWidth:  appNameRow.implicitWidth  + 32
+                implicitHeight: appNameRow.implicitHeight 
+                implicitWidth:  appNameRow.implicitWidth
+                Layout.bottomMargin: menuContent.menuMargin
+                Layout.leftMargin: 2 
+                Layout.rightMargin: 2
                 RowLayout {
                     id: appNameRow
                     anchors {
                         left: parent.left
                         verticalCenter: parent.verticalCenter
-                        leftMargin: 8
                     }
-                    spacing: 8
+                    spacing: 6
                     IconImage {
                         Layout.alignment: Qt.AlignLeft
                         implicitSize: 22
@@ -141,18 +144,25 @@ Loader {
 
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.bottomMargin: 6
+                    Layout.bottomMargin: menuContent.menuMargin 
                     implicitHeight: 1
                     color: Appearance.colors.colLayer0Border
                 }
 
-                // --- Desktop Entry Actions ---
                 Repeater {
                     model: root.desktopEntry?.actions ?? []
                     delegate: DockMenuButton {
                         required property var modelData
+                        required property int index
                         Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignLeft
+
+                        readonly property var shapePool: [
+                            "Flower", "Gem", "SoftBurst", "Clover4Leaf",
+                            "Heart", "Puffy", "Diamond", "Pentagon",
+                            "Cookie6Sided", "SoftBoom", "Bun", "PuffyDiamond"
+                        ]
+
+                        shapeString: shapePool[index % shapePool.length]
                         labelText: modelData.name ?? ""
                         onTriggered: { modelData.execute(); root.active = false }
                     }
@@ -161,10 +171,10 @@ Loader {
                 Rectangle {
                     visible: (root.desktopEntry?.actions?.length ?? 0) > 0
                     Layout.fillWidth: true
+                    Layout.topMargin: menuContent.menuMargin
+                    Layout.bottomMargin: menuContent.menuMargin
                     implicitHeight: 1
                     color: Appearance.colors.colLayer0Border
-                    Layout.topMargin: 6
-                    Layout.bottomMargin: 6
                 }
 
                 // --- Launch ---
@@ -178,6 +188,8 @@ Loader {
                 // --- Pin / Unpin ---
                 DockMenuButton {
                     Layout.fillWidth: true
+                                    Layout.leftMargin: 2
+
                     symbolName: root.appToplevel?.pinned ? "keep_off" : "keep"
                     labelText: root.appToplevel?.pinned ? qsTr("Unpin") : qsTr("Pin")
                     onTriggered: {
@@ -200,8 +212,6 @@ Loader {
                         root.active = false
                     }
                 }
-
-                Item { implicitHeight: 5 }
             }
         }
     }
