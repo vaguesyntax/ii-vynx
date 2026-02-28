@@ -46,26 +46,18 @@ Scope {
             implicitHeight: isVertical ? 0 : dockThickness
 
             exclusiveZone: root.pinned ? (Config.options?.dock.height ?? 70) + Appearance.sizes.hyprlandGapsOut : 0
-            // exclusiveZone: root.pinned ? dockThickness : 0
-WlrLayershell.namespace: "quickshell:dock"
+            WlrLayershell.namespace: "quickshell:dock"
             WlrLayershell.layer: WlrLayer.Overlay
-            color: "transparent"
-
-            // --- NUOVO ITEM INVISIBILE ---
-            // Questo elemento occupa fisicamente tutto lo spazio laterale della finestra
-            Item {
+            color: "transparent" 
+            // Item to fix space not avaiable after a workspace switch
+            Item { 
                 id: fullScreenDragArea
                 anchors.fill: parent
             }
-
-            // --- MASCHERA CORRETTA ---
-            // Usa l'area stretta del dock di default.
-            // Passa a tutto lo schermo (fullScreenDragArea) SOLO durante il drag.
             mask: Region { 
                 item: dockApps.dragActive ? fullScreenDragArea : dockMouseArea 
             }
 
-            // Briefly hide during position change to avoid Hyprland animating the layer window moving
             Timer {
                 id: positionChangeTimer
                 interval: 150
