@@ -552,18 +552,19 @@ Item {
                                             color: Appearance.m3colors.m3onSurface
                                         }
                                     }
-                                    MouseArea {
-                                        width: root.windowControlsHeight
-                                        height: root.windowControlsHeight
-                                        onClicked: windowButton.modelData?.close()
-                                        cursorShape: Qt.PointingHandCursor
-                                        
-                                        MaterialSymbol {
+                                    RippleButton {
+                                        id: closeButton
+                                        colBackground: ColorUtils.transparentize(Appearance.colors.colSurfaceContainer)
+                                        implicitWidth: root.windowControlsHeight
+                                        implicitHeight: root.windowControlsHeight
+                                        buttonRadius: Appearance.rounding.full
+                                        contentItem: MaterialSymbol {
                                             anchors.centerIn: parent
                                             text: "close"
                                             iconSize: Appearance.font.pixelSize.normal
                                             color: Appearance.m3colors.m3onSurface
                                         }
+                                        onClicked: windowButton.modelData?.close()
                                     }
                                 }
 
