@@ -99,8 +99,10 @@ DockButton {
             wasDragging = false
         }
 
-        onPositionChanged: (mouse) => {
-            if (!pressed || !root.appToplevel?.pinned) return
+onPositionChanged: (mouse) => {
+            // MODIFICA: Permettiamo il drag a tutte le app, tranne al separatore
+            if (!pressed || root.isSeparator || !root.appToplevel) return
+            
             if (!dragStarted) {
                 const dist = Math.abs(mouse.x - pressedX) + Math.abs(mouse.y - pressedY)
                 if (dist < 10) return

@@ -35,8 +35,9 @@ Item {
     // --- Drag State ---
     property string draggedAppId: ""
     property var dragSource: null
-    property bool _dragActive: false
+    property bool dragActive: false
     property var liveOrder: []
+    property bool willUnpin: false 
 
     property bool anyContextMenuOpen: false
     property bool requestDockShow: previewPopup.visible || anyContextMenuOpen
@@ -84,93 +85,193 @@ Item {
 
     Component.onCompleted: updateModel()
 
-    // --- Drag Functions ---
     function startDrag(appId, sourceItem) {
-        draggedAppId = appId
-        dragSource = sourceItem
-        liveOrder = Config.options.dock.pinnedApps.slice()
-        const pos = sourceItem.mapToItem(root, 0, 0)
-        dragGhost.x = pos.x
-        dragGhost.y = pos.y
-        _dragActive = true
-    }
+            draggedAppId = appId
+            dragSource = sourceItem
+            liveOrder = Config.options.dock.pinnedApps.slice()
+
+            willUnpin = false
+            const pos = sourceItem.mapToItem(root, 0, 0)
+            dragGhost.x = pos.x
+            dragGhost.y = pos.y
+            dragActive = true
+            
+            root.buttonHovered = false
+            if (typeof previewPopup !== "undefined") previewPopup.show = false
+        }
 
     function moveDragGhost(x, y) {
-        dragGhost.x = x - dragGhost.width / 2
-        dragGhost.y = y - dragGhost.height / 2
-        const cx = dragGhost.x + dragGhost.width / 2
-        const cy = dragGhost.y + dragGhost.height / 2
+        const halfWidth = dragGhost.width / 2;
+        const halfHeight = dragGhost.height / 2;
 
-        let hoveredAppId = ""
-        for (let i = 0; i < layout.children.length; i++) {
-            const child = layout.children[i]
-            if (!child.appToplevel || child.appToplevel.appId === root.draggedAppId) continue
-            const p = child.mapToItem(root, 0, 0)
-            if (cx >= p.x && cx <= p.x + child.width && cy >= p.y && cy <= p.y + child.height) {
-                hoveredAppId = child.appToplevel.appId
-                break
+        let minCenterX, minCenterY, maxCenterX, maxCenterY;
+
+        if (GlobalStates.dockEffectivePosition === "bottom") {
+            minCenterX = -20;
+            maxCenterX = root.width + 15;
+            minCenterY = 10;
+            maxCenterY = root.height - 15;
+        } else if (GlobalStates.dockEffectivePosition === "top") {
+            minCenterX = -20;
+            maxCenterX = root.width + 15;
+            minCenterY = 15;
+            maxCenterY = root.height - 10;
+        } else if (GlobalStates.dockEffectivePosition === "left") {
+            minCenterX = 15;
+            maxCenterX = root.width - 10;
+            minCenterY = -20;
+            maxCenterY = root.height + 15;
+        } else if (GlobalStates.dockEffectivePosition === "right") {
+            minCenterX = 10;
+            maxCenterX = root.width - 15;
+            minCenterY = -20;
+            maxCenterY = root.height + 15;
+        }
+
+        let clampedCenterX = Math.max(minCenterX, Math.min(x, maxCenterX));
+        let clampedCenterY = Math.max(minCenterY, Math.min(y, maxCenterY));
+            dragGhost.x = clampedCenterX - halfWidth;
+            dragGhost.y = clampedCenterY - halfHeight;
+
+            const cx = clampedCenterX;
+            const cy = clampedCenterY;
+
+            let isOutsideDock = (cx < -40 || cx > root.width + 40 || cy < -40 || cy > root.height + 40);
+            
+            let pinnedZoneEnd = 0;
+            let foundSeparator = false;
+            
+            for (let i = 0; i < layout.children.length; i++) {
+                let child = layout.children[i];
+                if (child.appToplevel && child.appToplevel.appId === "SEPARATOR") {
+                    let p = child.mapToItem(root, 0, 0);
+                    pinnedZoneEnd = root.isVertical ? p.y : p.x;
+                    foundSeparator = true;
+                    break;
+                }
+            }
+            
+            if (!foundSeparator) {
+                if (Config.options.dock.pinnedApps.length > 0) {
+                    pinnedZoneEnd = root.isVertical ? root.height : root.width;
+                } else {
+                    pinnedZoneEnd = 60;
+                }
+            }
+            let isPastSeparator = root.isVertical ? (cy > pinnedZoneEnd) : (cx > pinnedZoneEnd);
+            root.willUnpin = isOutsideDock || isPastSeparator;
+            if (!root.willUnpin) {
+                
+                if (!liveOrder.includes(root.draggedAppId)) {
+                    liveOrder.push(root.draggedAppId);
+                    liveOrder = liveOrder.slice();
+                }
+                let hoveredAppId = "";
+                for (let i = 0; i < layout.children.length; i++) {
+                    const child = layout.children[i];
+                    if (!child.appToplevel || child.appToplevel.appId === root.draggedAppId || child.appToplevel.appId === "SEPARATOR") continue;
+                    
+                    if (root.liveOrder.includes(child.appToplevel.appId)) {
+                        let p = child.mapToItem(root, 0, 0);
+                        if (cx >= p.x && cx <= p.x + child.width && cy >= p.y && cy <= p.y + child.height) {
+                            hoveredAppId = child.appToplevel.appId;
+                            break;
+                        }
+                    }
+                }
+                
+                if (hoveredAppId !== "") {
+                    const newOrder = liveOrder.filter(id => id !== root.draggedAppId);
+                    const targetIdx = newOrder.indexOf(hoveredAppId);
+                    if (targetIdx !== -1) {
+                        const oldIdx = liveOrder.indexOf(root.draggedAppId);
+                        const hoverIdx = liveOrder.indexOf(hoveredAppId);
+                        
+                        if (oldIdx === -1) {
+                            newOrder.splice(targetIdx, 0, root.draggedAppId);
+                        } else {
+                            newOrder.splice(oldIdx < hoverIdx ? targetIdx + 1 : targetIdx, 0, root.draggedAppId);
+                        }
+                        liveOrder = newOrder;
+                    }
+                }
+            } else {
+                let isOriginallyPinned = Config.options.dock.pinnedApps.includes(root.draggedAppId);
+                if (!isOriginallyPinned && liveOrder.includes(root.draggedAppId)) {
+                    liveOrder = liveOrder.filter(id => id !== root.draggedAppId);
+                }
             }
         }
-        if (hoveredAppId !== "" && hoveredAppId !== root.draggedAppId) {
-            const newOrder = liveOrder.filter(id => id !== root.draggedAppId)
-            const targetIdx = newOrder.indexOf(hoveredAppId)
-            if (targetIdx !== -1) {
-                const oldIdx = liveOrder.indexOf(root.draggedAppId)
-                const hoverIdx = liveOrder.indexOf(hoveredAppId)
-                newOrder.splice(oldIdx < hoverIdx ? targetIdx + 1 : targetIdx, 0, root.draggedAppId)
-                liveOrder = newOrder
-            }
-        }
-    }
 
     function endDrag() {
-        if (liveOrder.length > 0) Config.options.dock.pinnedApps = liveOrder
-        _dragActive = false; draggedAppId = ""; liveOrder = []; dragSource = null
+            if (root.willUnpin) {
+                Config.options.dock.pinnedApps = Config.options.dock.pinnedApps.filter(id => id !== draggedAppId)
+            } else {
+                if (liveOrder.length > 0) Config.options.dock.pinnedApps = liveOrder
+            }
+            
+            dragActive = false
+            draggedAppId = ""
+            liveOrder = []
+            dragSource = null
+            willUnpin = false
+            root.buttonHovered = false
+            root.lastHoveredButton = null
+
     }
+        // --- Drag Ghost ---
+        Item {
+            id: dragGhost
+            width: 55
+            height: 55
+            visible: root.dragActive
+            z: 10
 
-    // --- Drag Ghost ---
-    Item {
-        id: dragGhost
-        width: 55
-        height: 55
-        visible: root._dragActive
-        z: 10
+            readonly property bool isOriginallyPinned: Config.options.dock.pinnedApps.indexOf(root.draggedAppId) !== -1
 
-        IconImage {
-            id: ghostIcon
-            anchors.centerIn: parent
-            implicitSize: 45
-            opacity: 0.7
-            source: root.draggedAppId !== "" ? Quickshell.iconPath(AppSearch.guessIcon(root.draggedAppId), "image-missing") : ""
+            Item {
+                id: iconContainer
+                anchors.fill: parent
 
-            transform: Scale {
-                origin.x: ghostIcon.width / 2
-                origin.y: ghostIcon.height / 2
-                xScale: 1.15
-                yScale: 1.15
+                opacity: root.willUnpin ? 0.3 : 0.8
+                Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+
+                IconImage {
+                    id: ghostIcon
+                    anchors.centerIn: parent
+                    implicitSize: 45
+                    source: root.draggedAppId !== "" ? Quickshell.iconPath(AppSearch.guessIcon(root.draggedAppId), "image-missing") : ""
+
+                    transform: Scale {
+                        origin.x: ghostIcon.width / 2
+                        origin.y: ghostIcon.height / 2
+                        xScale: root.willUnpin ? 0.85 : 1.15
+                        yScale: root.willUnpin ? 0.85 : 1.15
+                        Behavior on xScale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
+                        Behavior on yScale { NumberAnimation { duration: 150; easing.type: Easing.OutBack } }
+                    }
+                }
+
+                Loader {
+                    active: Config.options.dock.monochromeIcons
+                    anchors.fill: ghostIcon
+                    sourceComponent: Item {
+                        Desaturate {
+                            id: desaturatedIcon
+                            visible: false
+                            anchors.fill: parent
+                            source: ghostIcon
+                            desaturation: 0.8
+                        }
+                        ColorOverlay {
+                            anchors.fill: desaturatedIcon
+                            source: desaturatedIcon
+                            color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.9)
+                        }
+                    }
+                }
             }
         }
-
-        Loader {
-            active: Config.options.dock.monochromeIcons
-            anchors.fill: ghostIcon
-            sourceComponent: Item {
-                Desaturate {
-                    id: desaturatedIcon
-                    visible: false
-                    anchors.fill: parent
-                    source: ghostIcon
-                    desaturation: 0.8
-                }
-                ColorOverlay {
-                    anchors.fill: desaturatedIcon
-                    source: desaturatedIcon
-                    color: ColorUtils.transparentize(Appearance.colors.colPrimary, 0.9)
-                }
-            }
-        }
-    }
-
     // --- Main Dock Layout ---
     GridLayout {
         id: layout
@@ -223,19 +324,33 @@ Item {
             }
         }
 
+
         Repeater {
-            model: ScriptModel {
-                objectProp: "uniqueKey"
-                values: {
-                    if (!root._dragActive || root.liveOrder.length === 0) return root.processedApps
-                    const ordered = [];
-                    for (const appId of root.liveOrder) {
-                        const found = root.processedApps.find(a => a.appData.appId === appId)
-                        if (found) ordered.push(found)
-                    }
-                    for (const app of root.processedApps) { if (!app.appData.pinned) ordered.push(app) }
-                    return ordered
+                model: ScriptModel {
+                    objectProp: "uniqueKey"
+            values: {
+                if (!root.dragActive) return root.processedApps
+
+                const ordered = [];
+
+                // 1. Mostra le app pinnate nel loro nuovo ordine
+                for (const appId of root.liveOrder) {
+                    const found = root.processedApps.find(a => a.appData.appId === appId)
+                    if (found) ordered.push(found)
                 }
+                const separator = root.processedApps.find(a => a.appData.appId === "SEPARATOR")
+                if (separator) {
+                    ordered.push(separator)
+                } else if (root.liveOrder.length > 0) {
+                    ordered.push({ uniqueKey: "SEPARATOR_VIRTUAL", appData: { appId: "SEPARATOR", toplevels: [], pinned: false } })
+                }
+                for (const app of root.processedApps) {
+                    if (app.appData.appId !== "SEPARATOR" && !root.liveOrder.includes(app.appData.appId) && !app.appData.pinned) {
+                        ordered.push(app)
+                    }
+                }
+                return ordered
+            }
             }
             delegate: DockAppButton {
                 required property var modelData
@@ -247,7 +362,11 @@ Item {
         }
 
         Item {
-            visible: root.processedApps.length > 0
+            visible: root.processedApps.length > 0 && (!root.dragActive || root.processedApps.some(a => 
+                a.appData.appId !== "SEPARATOR" && 
+                !a.appData.pinned && 
+                a.appData.appId !== root.draggedAppId
+            ))
             Layout.preferredWidth:  root.isVertical ? 50 : 1
             Layout.preferredHeight: root.isVertical ? 1 : 50
 
@@ -287,7 +406,7 @@ Item {
     PopupWindow {
         id: previewPopup
         property var appTopLevel: root.lastHoveredButton?.appToplevel
-        property bool shouldShow: (backgroundHover.hovered || root.buttonHovered || root.popupIsResizing) && (appTopLevel?.toplevels?.length > 0)
+        property bool shouldShow: !root.dragActive && (backgroundHover.hovered || root.buttonHovered || root.popupIsResizing) && (appTopLevel?.toplevels?.length > 0)
         property bool show: false
 
         onShouldShowChanged: {
@@ -472,4 +591,3 @@ Item {
             }
         }
     }
-

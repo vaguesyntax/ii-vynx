@@ -47,13 +47,23 @@ Scope {
 
             exclusiveZone: root.pinned ? (Config.options?.dock.height ?? 70) + Appearance.sizes.hyprlandGapsOut : 0
             // exclusiveZone: root.pinned ? dockThickness : 0
-
-            WlrLayershell.namespace: "quickshell:dock"
+WlrLayershell.namespace: "quickshell:dock"
             WlrLayershell.layer: WlrLayer.Overlay
             color: "transparent"
 
-            // Input mask restricted to the visible pill area only
-            mask: Region { item: dockMouseArea }
+            // --- NUOVO ITEM INVISIBILE ---
+            // Questo elemento occupa fisicamente tutto lo spazio laterale della finestra
+            Item {
+                id: fullScreenDragArea
+                anchors.fill: parent
+            }
+
+            // --- MASCHERA CORRETTA ---
+            // Usa l'area stretta del dock di default.
+            // Passa a tutto lo schermo (fullScreenDragArea) SOLO durante il drag.
+            mask: Region { 
+                item: dockApps.dragActive ? fullScreenDragArea : dockMouseArea 
+            }
 
             // Briefly hide during position change to avoid Hyprland animating the layer window moving
             Timer {
