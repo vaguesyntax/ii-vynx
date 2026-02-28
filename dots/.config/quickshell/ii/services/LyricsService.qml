@@ -55,6 +55,18 @@ Singleton {
             .join("\n")
     }
 
+    function getLineDuration(index) { // for lrclib of to be used in syllable style
+        if (!lrclib.lines || index < 0 || index >= lrclib.lines.length) 
+            return 0;
+        
+        if (index === lrclib.lines.length - 1) {
+            let total = lrclib.duration > 0 ? lrclib.duration : lrclib.lines[index].time + 5;
+            return Math.max(0, total - lrclib.lines[index].time);
+        }
+        
+        return lrclib.lines[index + 1].time - lrclib.lines[index].time;
+    }
+
     Component.onCompleted: geniusFirstFetchDelay.restart()
     Timer {
         id: geniusFirstFetchDelay

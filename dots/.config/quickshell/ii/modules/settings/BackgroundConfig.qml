@@ -125,7 +125,6 @@ ContentPage {
         }
 
         ConfigRow {
-
             ConfigSwitch {
                 Layout.fillWidth: false
                 buttonIcon: "animation"
@@ -160,11 +159,9 @@ ContentPage {
                     extraVisibleCondition: spinBoxMouseArea.containsMouse
                     text: Translation.tr("1: very slow | 10: default | 20: 2x speed...")
                 }
-                
             }
         }
         
-
         ConfigSwitch {
             buttonIcon: "format_color_fill"
             text: Translation.tr("Change shell color to match album art")
@@ -173,6 +170,29 @@ ContentPage {
                 Config.options.background.mediaMode.changeShellColor = checked;
             }
         }
+
+        ContentSubsection {
+            title: Translation.tr("Text highlight style")
+            ConfigSelectionArray {
+                currentValue: Config.options.background.mediaMode.syllable.textHighlightStyle
+                onSelected: newValue => {
+                    Config.options.background.mediaMode.syllable.textHighlightStyle = newValue;
+                }
+                options: [
+                    {   
+                        displayName: Translation.tr("Vertical"),
+                        icon: "vertical_distribute",
+                        value: 0
+                    },
+                    {
+                        displayName: Translation.tr("Horizontal"),
+                        icon: "horizontal_distribute",
+                        value: 1
+                    }
+                ]
+            }
+        }
+        
     }
 
     ContentSection {

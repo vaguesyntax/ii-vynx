@@ -249,12 +249,16 @@ Singleton {
                 property JsonObject mediaMode: JsonObject {
                     property bool enable: false
                     property string backgroundShape: "Square"
+                    property bool enableBackgroundAnimation: true // It **may** cause nausea for someone
+                    property bool changeShellColor: true // Changes the shell color to the album color
                     property JsonObject backgroundAnimation: JsonObject {
                         property bool enable: true
                         property int speedScale: 10 // 1: very slow, 10: default, 20: 2x speed etc.
                     }
-                    property bool enableBackgroundAnimation: true // It **may** cause nausea for someone
-                    property bool changeShellColor: true // Changes the shell color to the album color
+                    property JsonObject syllable: JsonObject {
+                        property int textHighlightStyle: 0 // 0: vertical, 1: horizontal (not perfect bc its not synced in a word level, but a cool animation to have)
+                    }
+                    
                 }
             }
 
