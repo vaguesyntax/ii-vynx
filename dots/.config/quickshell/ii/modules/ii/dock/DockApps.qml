@@ -552,19 +552,18 @@ Item {
                                             color: Appearance.m3colors.m3onSurface
                                         }
                                     }
-                                    GroupButton {
-                                        id: closeButton
-                                        colBackground: ColorUtils.transparentize(Appearance.colors.colSurfaceContainer)
-                                        baseWidth: root.windowControlsHeight
-                                        baseHeight: root.windowControlsHeight
-                                        buttonRadius: Appearance.rounding.full
-                                        contentItem: MaterialSymbol {
+                                    MouseArea {
+                                        width: root.windowControlsHeight
+                                        height: root.windowControlsHeight
+                                        onClicked: windowButton.modelData?.close()
+                                        cursorShape: Qt.PointingHandCursor
+                                        
+                                        MaterialSymbol {
                                             anchors.centerIn: parent
                                             text: "close"
                                             iconSize: Appearance.font.pixelSize.normal
                                             color: Appearance.m3colors.m3onSurface
                                         }
-                                        onClicked: windowButton.modelData?.close()
                                     }
                                 }
 
