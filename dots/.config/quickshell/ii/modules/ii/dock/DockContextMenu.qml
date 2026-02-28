@@ -34,7 +34,7 @@ Loader {
     sourceComponent: PopupWindow {
         id: popupWindow
         visible: true
-        color: "red"
+        color: "transparent"
 
         property real dockMargin: 25
         property real shadowMargin: 20
@@ -93,7 +93,7 @@ Loader {
             // border.color: Appearance.colors.colLayer0Border
             radius: Appearance.rounding.normal
             implicitWidth:  menuColumn.implicitWidth + (appName.Layout.leftMargin * 2) + (menuMargin * 2) 
-            implicitHeight: menuColumn.implicitHeight  + menuMargin * 2
+            implicitHeight: menuColumn.implicitHeight  + appName.Layout.topMargin + menuMargin * 2
 
             opacity: 0
             Component.onCompleted: opacity = 1
@@ -106,7 +106,7 @@ Loader {
             anchors.fill: parent
             anchors.leftMargin: menuContent.menuMargin
             anchors.rightMargin: menuContent.menuMargin
-            anchors.topMargin: menuContent.menuMargin
+            anchors.topMargin: menuContent.menuMargin / 2
             anchors.bottomMargin: menuContent.menuMargin
             spacing: 0
             
@@ -116,6 +116,7 @@ Loader {
                 Layout.fillWidth: true
                 implicitHeight: appNameRow.implicitHeight 
                 implicitWidth:  appNameRow.implicitWidth
+                Layout.topMargin: menuContent.menuMargin
                 Layout.bottomMargin: menuContent.menuMargin
                 Layout.leftMargin: 2 
                 Layout.rightMargin: 2
