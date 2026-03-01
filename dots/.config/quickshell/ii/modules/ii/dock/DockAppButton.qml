@@ -158,11 +158,7 @@ DockButton {
 
             Loader {
                 id: iconImageLoader
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    verticalCenter: parent.verticalCenter
-                }
+                anchors.centerIn: parent
                 active: !root.isSeparator
                 sourceComponent: IconImage {
                     source: {
@@ -211,7 +207,7 @@ DockButton {
                             anchors.horizontalCenter: iconImageLoader.horizontalCenter
                             anchors.verticalCenter: undefined
                         }
-                        PropertyChanges { target: dotsLoader; anchors.topMargin: 2 }
+                        PropertyChanges { target: dotsLoader; anchors.topMargin: (root.buttonSize - root.iconSize) / 4 }
                     },
                     State {
                         name: "top"
@@ -224,7 +220,7 @@ DockButton {
                             anchors.horizontalCenter: iconImageLoader.horizontalCenter
                             anchors.verticalCenter: undefined
                         }
-                        PropertyChanges { target: dotsLoader; anchors.bottomMargin: 2 }
+                        PropertyChanges { target: dotsLoader; anchors.bottomMargin: (root.buttonSize - root.iconSize) / 4 }
                     },
                     State {
                         name: "left"
@@ -237,7 +233,7 @@ DockButton {
                             anchors.horizontalCenter: undefined
                             anchors.verticalCenter: iconImageLoader.verticalCenter
                         }
-                        PropertyChanges { target: dotsLoader; anchors.rightMargin: 2 }
+                        PropertyChanges { target: dotsLoader; anchors.rightMargin: (root.buttonSize - root.iconSize) / 4 }
                     },
                     State {
                         name: "right"
@@ -250,7 +246,7 @@ DockButton {
                             anchors.horizontalCenter: undefined
                             anchors.verticalCenter: iconImageLoader.verticalCenter
                         }
-                        PropertyChanges { target: dotsLoader; anchors.leftMargin: 2 }
+                        PropertyChanges { target: dotsLoader; anchors.leftMargin: (root.buttonSize - root.iconSize) / 4 }
                     }
                 ]
             }
