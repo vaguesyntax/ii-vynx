@@ -294,13 +294,6 @@ Item {
             }
         }
 
-        // Unpin drop target (shown while dragging a pinned app)
-        DockUnpinTarget {
-            active:         root.dragActive && root.dragIsOriginallyPinned
-            isVertical:     root.isVertical
-            buttonBaseSize: overviewButton.baseSize
-        }
-
         // Second separator
         Item {
             visible:    root.processedApps.length > 0

@@ -1,6 +1,7 @@
 import qs.services
 import qs.modules.common
 import qs.modules.common.functions
+import qs
 import Qt5Compat.GraphicalEffects
 import QtQuick
 import QtQuick.Layouts
@@ -193,27 +194,110 @@ DockButton {
                 }
             }
 
-            RowLayout {
-                spacing: 3
-                anchors {
-                    top: iconImageLoader.bottom
-                    topMargin: 2
-                    horizontalCenter: parent.horizontalCenter
-                }
-                Repeater {
-                    model: root.appToplevel ? Math.min(root.appToplevel.toplevels.length, 3) : 0
-                    delegate: Rectangle {
-                        required property int index
-                        radius: Appearance.rounding.full
-                        implicitWidth: root.appToplevel.toplevels.length <= 3 ?
-                        root.countDotWidth : root.countDotHeight
-                        implicitHeight: root.countDotHeight
-                        color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
-                        Behavior on color {
-                            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root)
+            Loader {
+                id: dotsLoader
+                visible: root.appToplevel && root.appToplevel.toplevels.length > 0
+                sourceComponent: root.isVertical ? columnDots : rowDots
+
+                state: GlobalStates.dockEffectivePosition
+
+                states: [
+                    State {
+                        name: "bottom"
+                        AnchorChanges {
+                            target: dotsLoader
+                            anchors.top: iconImageLoader.bottom
+                            anchors.bottom: undefined
+                            anchors.left: undefined
+                            anchors.right: undefined
+                            anchors.horizontalCenter: iconImageLoader.horizontalCenter
+                            anchors.verticalCenter: undefined
                         }
-                        Behavior on implicitWidth {
-                            animation: Appearance.animation.elementMove.numberAnimation.createObject(root)
+                        PropertyChanges { target: dotsLoader; anchors.topMargin: 2 }
+                    },
+                    State {
+                        name: "top"
+                        AnchorChanges {
+                            target: dotsLoader
+                            anchors.bottom: iconImageLoader.top
+                            anchors.top: undefined
+                            anchors.left: undefined
+                            anchors.right: undefined
+                            anchors.horizontalCenter: iconImageLoader.horizontalCenter
+                            anchors.verticalCenter: undefined
+                        }
+                        PropertyChanges { target: dotsLoader; anchors.bottomMargin: 2 }
+                    },
+                    State {
+                        name: "left"
+                        AnchorChanges {
+                            target: dotsLoader
+                            anchors.right: iconImageLoader.left
+                            anchors.left: undefined
+                            anchors.top: undefined
+                            anchors.bottom: undefined
+                            anchors.horizontalCenter: undefined
+                            anchors.verticalCenter: iconImageLoader.verticalCenter
+                        }
+                        PropertyChanges { target: dotsLoader; anchors.rightMargin: 2 }
+                    },
+                    State {
+                        name: "right"
+                        AnchorChanges {
+                            target: dotsLoader
+                            anchors.left: iconImageLoader.right
+                            anchors.right: undefined
+                            anchors.top: undefined
+                            anchors.bottom: undefined
+                            anchors.horizontalCenter: undefined
+                            anchors.verticalCenter: iconImageLoader.verticalCenter
+                        }
+                        PropertyChanges { target: dotsLoader; anchors.leftMargin: 2 }
+                    }
+                ]
+            }
+
+            Component {
+                id: rowDots
+                RowLayout {
+                    spacing: 3
+                    Repeater {
+                        model: root.appToplevel ? Math.min(root.appToplevel.toplevels.length, 3) : 0
+                        delegate: Rectangle {
+                            required property int index
+                            radius: Appearance.rounding.full
+                            implicitWidth:  root.appToplevel.toplevels.length <= 3 ? root.countDotWidth : root.countDotHeight
+                            implicitHeight: root.countDotHeight
+                            color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
+                            Behavior on color {
+                                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root)
+                            }
+                            Behavior on implicitWidth {
+                                animation: Appearance.animation.elementMove.numberAnimation.createObject(root)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Component {
+                id: columnDots
+                ColumnLayout {
+                    spacing: 3
+                    Repeater {
+                        model: root.appToplevel ? Math.min(root.appToplevel.toplevels.length, 3) : 0
+                        delegate: Rectangle {
+                            required property int index
+                            radius: Appearance.rounding.full
+                            implicitWidth:  root.countDotHeight
+                            implicitHeight: root.appToplevel.toplevels.length <= 3 ? root.countDotWidth : root.countDotHeight
+                            color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
+                            Behavior on color {
+                                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root)
+                            }
+                            Behavior on implicitHeight {
+                                animation: Appearance.animation.elementMove.numberAnimation.createObject(root)
+                            }
                         }
                     }
                 }
