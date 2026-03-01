@@ -259,6 +259,7 @@ Item {
             isVertical: root.isVertical
             onClicked:  root.togglePinRequested()
         }
+        
         // Separator — pinned / running apps
         Item {
             visible:    root.processedApps.length > 0
@@ -315,6 +316,8 @@ Item {
                 text:     "apps"
                 iconSize: overviewButton.baseSize / 2
                 color:    Appearance.colors.colOnLayer0
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
             }
         }
     }
