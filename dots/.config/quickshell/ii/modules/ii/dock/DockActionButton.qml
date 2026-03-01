@@ -21,7 +21,7 @@ GroupButton {
     baseWidth:  buttonSize
     baseHeight: buttonSize
 
-    property real buttonInset: dockHeight * 0.1
+    property real buttonInset: 0
     rightInset:  buttonInset
     leftInset:   buttonInset
     topInset:    buttonInset

@@ -13,7 +13,7 @@ DockButton {
     property var appToplevel
     property var appListRoot
     property int lastFocused: -1
-    property real iconSize: (Config.options?.dock.height ?? 60) * 0.67
+    property real iconSize: (Config.options?.dock.height ?? 60) * 0.85
     property real countDotWidth:  (Config.options?.dock.height ?? 60) * 0.17
     property real countDotHeight: (Config.options?.dock.height ?? 60) * 0.07
 
@@ -200,53 +200,53 @@ DockButton {
                         name: "bottom"
                         AnchorChanges {
                             target: dotsLoader
-                            anchors.top: iconImageLoader.bottom
+                            anchors.top: parent.bottom
                             anchors.bottom: undefined
                             anchors.left: undefined
                             anchors.right: undefined
                             anchors.horizontalCenter: iconImageLoader.horizontalCenter
                             anchors.verticalCenter: undefined
                         }
-                        PropertyChanges { target: dotsLoader; anchors.topMargin: (root.buttonSize - root.iconSize) / 4 }
+                        PropertyChanges { target: dotsLoader; anchors.topMargin: appListRoot.dockPadding / 2 - (root.countDotHeight + root.countDotWidth) / 4 }
                     },
                     State {
                         name: "top"
                         AnchorChanges {
                             target: dotsLoader
-                            anchors.bottom: iconImageLoader.top
+                            anchors.bottom: parent.top
                             anchors.top: undefined
                             anchors.left: undefined
                             anchors.right: undefined
                             anchors.horizontalCenter: iconImageLoader.horizontalCenter
                             anchors.verticalCenter: undefined
                         }
-                        PropertyChanges { target: dotsLoader; anchors.bottomMargin: (root.buttonSize - root.iconSize) / 4 }
+                        PropertyChanges { target: dotsLoader; anchors.bottomMargin: appListRoot.dockPadding / 2 - (root.countDotHeight + root.countDotWidth) / 4 }
                     },
                     State {
                         name: "left"
                         AnchorChanges {
                             target: dotsLoader
-                            anchors.right: iconImageLoader.left
+                            anchors.right: parent.left
                             anchors.left: undefined
                             anchors.top: undefined
                             anchors.bottom: undefined
                             anchors.horizontalCenter: undefined
                             anchors.verticalCenter: iconImageLoader.verticalCenter
                         }
-                        PropertyChanges { target: dotsLoader; anchors.rightMargin: (root.buttonSize - root.iconSize) / 4 }
+                        PropertyChanges { target: dotsLoader; anchors.rightMargin: appListRoot.dockPadding / 2 - root.countDotHeight / 2 }
                     },
                     State {
                         name: "right"
                         AnchorChanges {
                             target: dotsLoader
-                            anchors.left: iconImageLoader.right
+                            anchors.left: parent.right
                             anchors.right: undefined
                             anchors.top: undefined
                             anchors.bottom: undefined
                             anchors.horizontalCenter: undefined
                             anchors.verticalCenter: iconImageLoader.verticalCenter
                         }
-                        PropertyChanges { target: dotsLoader; anchors.leftMargin: (root.buttonSize - root.iconSize) / 4 }
+                        PropertyChanges { target: dotsLoader; anchors.leftMargin: appListRoot.dockPadding / 2 - root.countDotHeight / 2 }
                     }
                 ]
             }

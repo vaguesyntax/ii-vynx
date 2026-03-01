@@ -28,8 +28,10 @@ Scope {
 
             property bool positionChanging: false
             readonly property bool isVertical: GlobalStates.dockIsVertical
-            readonly property real dockThickness: (Config.options?.dock.height ?? 60) 
-                + Appearance.sizes.hyprlandGapsOut * 2
+            readonly property real dockThickness: isVertical 
+                ? dockApps.implicitWidth  + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
+                : dockApps.implicitHeight + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
+                
             property bool reveal: root.pinned 
                             || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) 
                             || (dockApps.requestDockShow)
@@ -42,11 +44,8 @@ Scope {
                 right:  GlobalStates.dockEffectivePosition !== "left"
             }
 
-            implicitWidth:  isVertical ? dockThickness : 0
-            implicitHeight: isVertical ? 0 : dockThickness
-
-            Behavior on implicitWidth  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockRoot) }
-            Behavior on implicitHeight { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockRoot) }
+            implicitWidth:  isVertical ? dockApps.implicitWidth + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2 : 0
+            implicitHeight: isVertical ? 0 : dockApps.implicitHeight + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
 
             exclusiveZone: root.pinned ? dockThickness : 0
             WlrLayershell.namespace: "quickshell:dock"

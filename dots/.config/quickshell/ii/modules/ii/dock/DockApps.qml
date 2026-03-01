@@ -14,7 +14,7 @@ Item {
 
     property bool isPinned: false
     signal togglePinRequested()
-    readonly property real dockPadding: (Config.options?.dock.height ?? 60) * 0.10
+    readonly property real dockPadding: (Config.options?.dock.height ?? 60) * 0.2
 
     readonly property bool isVertical:       GlobalStates.dockIsVertical
     readonly property bool requestDockShow:  previewPopup.visible || anyContextMenuOpen
