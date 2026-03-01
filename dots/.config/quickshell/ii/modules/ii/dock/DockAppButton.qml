@@ -38,18 +38,12 @@ DockButton {
 
     Layout.preferredWidth:  isSeparator ? (isVertical ? root.baseSize : 1) : root.baseSize
     Layout.preferredHeight: isSeparator ? (isVertical ? 1 : root.baseSize) : root.baseSize
-    Layout.minimumWidth:    Layout.preferredWidth
-    Layout.minimumHeight:   Layout.preferredHeight
-    Layout.maximumWidth:    Layout.preferredWidth
-    Layout.maximumHeight:   Layout.preferredHeight
 
-    implicitWidth:  isDragging ? 0 : root.baseSize
-    implicitHeight: isDragging ? 0 : root.baseSize
-
-    Behavior on implicitWidth  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
-    Behavior on implicitHeight { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
+    Behavior on Layout.preferredWidth  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
+    Behavior on Layout.preferredHeight { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
 
     opacity: isDragging ? 0.0 : 1.0
+    
     Behavior on opacity {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
     }
@@ -212,7 +206,7 @@ DockButton {
                         required property int index
                         radius: Appearance.rounding.full
                         implicitWidth: root.appToplevel.toplevels.length <= 3 ?
-                            root.countDotWidth : root.countDotHeight
+                        root.countDotWidth : root.countDotHeight
                         implicitHeight: root.countDotHeight
                         color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
                         Behavior on color {

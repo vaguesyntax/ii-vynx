@@ -86,8 +86,6 @@ Scope {
                 property real fullyHiddenOffset: dockRoot.dockThickness + 1
                 property real currentOffset: dockRoot.reveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
 
-                // MouseArea is always full dockThickness on the perpendicular axis.
-                // On the parallel axis it is driven by dockApps directly.
                 width:  dockRoot.isVertical ? dockRoot.dockThickness : dockApps.implicitWidth  + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2
                 height: dockRoot.isVertical ? dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2 : dockRoot.dockThickness
 
@@ -194,7 +192,6 @@ Scope {
                     DockApps {
                         id: dockApps
                         anchors.centerIn: parent
-                        // Pass properties to DockApps
                         isPinned: root.pinned
                         onTogglePinRequested: {
                             root.pinned = !root.pinned
