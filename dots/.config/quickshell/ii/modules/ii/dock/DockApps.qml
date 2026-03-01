@@ -268,10 +268,6 @@ Item {
             Layout.alignment: Qt.AlignCenter
             DockSeparator {
                 anchors.fill: parent
-                // anchors.topMargin:    root.isVertical ? 0 : 8
-                // anchors.bottomMargin: root.isVertical ? 0 : 8
-                // anchors.leftMargin:   root.isVertical ? 8 : 0
-                // anchors.rightMargin:  root.isVertical ? 8 : 0
             }
         }
 
@@ -296,10 +292,6 @@ Item {
 
             DockSeparator {
                 anchors.fill: parent
-                // anchors.topMargin:    root.isVertical ? 0 : 8
-                // anchors.bottomMargin: root.isVertical ? 0 : 8
-                // anchors.leftMargin:   root.isVertical ? 8 : 0
-                // anchors.rightMargin:  root.isVertical ? 8 : 0
             }
         }
 

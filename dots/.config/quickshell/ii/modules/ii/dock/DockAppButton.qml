@@ -25,7 +25,7 @@ DockButton {
     property bool isVertical: appListRoot ? appListRoot.isVertical : false
 
     readonly property bool isDragging: appListRoot?.draggedAppId === appToplevel?.appId
-      colBackground: "transparent" 
+      colBackground: "yellow" 
 
     Connections {
         target: DesktopEntries
@@ -38,8 +38,8 @@ DockButton {
 
     enabled: !isSeparator
 
-    Layout.preferredWidth:  isSeparator ? (isVertical ? root.buttonSize : 1) : root.buttonSize
-    Layout.preferredHeight: isSeparator ? (isVertical ? 1 : root.buttonSize) : root.buttonSize
+    Layout.preferredWidth:  isSeparator ? (isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1) : root.buttonSize
+    Layout.preferredHeight: isSeparator ? (isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83) : root.buttonSize
     Layout.alignment: Qt.AlignCenter
     opacity: isDragging ? 0.0 : 1.0
     
@@ -51,10 +51,6 @@ DockButton {
         active: isSeparator
         anchors {
             fill: parent
-            topMargin:    isVertical ? 0 : 8
-            bottomMargin: isVertical ? 0 : 8
-            leftMargin:   isVertical ? 8 : 0
-            rightMargin:  isVertical ? 8 : 0
         }
         sourceComponent: DockSeparator {}
     }
