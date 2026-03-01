@@ -178,6 +178,17 @@ ContentPage {
                 Config.options.dock.monochromeIcons = checked;
             }
         }
+        ConfigSpinBox {
+            icon: "height"
+            text: Translation.tr("Dock height")
+            value: Config.options.dock.height
+            from: 30
+            to: 100
+            stepSize: 1
+            onValueChanged: {
+                Config.options.dock.height = value;
+            }
+        }
         ConfigRow {
             ContentSubsection {
                 title: Translation.tr("Dock position")
