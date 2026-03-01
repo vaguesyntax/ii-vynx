@@ -1,4 +1,3 @@
-// DockContent.qml
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
@@ -19,6 +18,7 @@ Item {
 
     readonly property bool isVertical:       GlobalStates.dockIsVertical
     readonly property bool requestDockShow:  previewPopup.visible || anyContextMenuOpen
+    readonly property real dockPadding: (Config.options?.dock.height ?? 60) * 0.10
 
     // ── Preview popup sizing ──────────────────────────────────────
     readonly property real maxWindowPreviewHeight: 200
@@ -250,8 +250,8 @@ Item {
         flow:         root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
         rows:         root.isVertical ? -1 : 1
         columns:      root.isVertical ?  1 : -1
-        columnSpacing: 0
-        rowSpacing:    0
+        columnSpacing: dockPadding
+        rowSpacing:    dockPadding
 
         // Pin button
         DockPinButton {

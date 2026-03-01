@@ -150,11 +150,9 @@ Scope {
 
                 Rectangle {
                     id: dockVisualBackground
-
-                    anchors.centerIn: parent  // ← sempre centrato nella MouseArea
-
-                    width:  dockApps.implicitWidth  
-                    height: dockApps.implicitHeight 
+                    anchors.centerIn: parent
+                    width:  dockApps.implicitWidth  + dockApps.dockPadding * 2
+                    height: dockApps.implicitHeight + dockApps.dockPadding * 2
 
                     anchors.topMargin:    Appearance.sizes.hyprlandGapsOut
                     anchors.bottomMargin: Appearance.sizes.hyprlandGapsOut
