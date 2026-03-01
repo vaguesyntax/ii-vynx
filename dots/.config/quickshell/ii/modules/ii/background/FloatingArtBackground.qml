@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import qs
 import qs.modules.common
 import qs.modules.common.widgets
 
@@ -11,16 +12,34 @@ Item {
     required property color overlayColor
     required property bool animationEnabled
 
-    onAnimationSpeedScaleChanged: {
+    // Parallax - sidebar
+    property real parallaxStrength: 30
+    // Parallax - workspace
+    required property real workspaceNorm
+    property real workspaceParallaxStrength: 40
+    readonly property bool verticalParallax: (Config.options.background.parallax.autoVertical && wallpaperHeight > wallpaperWidth) || Config.options.background.parallax.vertical
 
+    property real parallaxX: {
+        const sidebar = (GlobalStates.effectiveRightOpen - GlobalStates.effectiveLeftOpen) * parallaxStrength
+        const ws = verticalParallax ? 0 : (workspaceNorm - 0.5) * -2 * workspaceParallaxStrength
+        return sidebar + ws
+    }
+    property real parallaxY: {
+        return verticalParallax ? (workspaceNorm - 0.5) * -2 * workspaceParallaxStrength : 0
+    }
+    
+    // using normal animations feels too flat
+    Behavior on parallaxX {
+        NumberAnimation { duration: 600; easing.type: Easing.OutCubic }
+    }
+    Behavior on parallaxY {
+        NumberAnimation { duration: 600; easing.type: Easing.OutCubic }
     }
 
-    Image {
+    TransitionImage {
         id: img
         anchors.fill: parent
-        source: root.artFilePath
-        fillMode: Image.PreserveAspectCrop
-        cache: false; antialiasing: true; asynchronous: true
+        imageSource: root.artFilePath
 
         layer.enabled: true
         layer.effect: StyledBlurEffect { source: img }
@@ -32,7 +51,8 @@ Item {
                 origin.x: img.width / 2; origin.y: img.height / 2
                 xScale: 1.15; yScale: 1.15
             },
-            Translate { id: floatTranslate }
+            Translate { id: floatTranslate },
+            Translate { id: parallaxTranslate; x: -root.parallaxX; y: root.parallaxY }
         ]
 
         AxisAnimation {
@@ -49,7 +69,6 @@ Item {
             times:  [20000, 14000, 19000, 14500]
         }
     }
-
 
     component AxisAnimation: SequentialAnimation {
         required property string axis

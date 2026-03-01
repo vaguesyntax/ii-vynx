@@ -52,13 +52,6 @@ StyledOverlayWidget {
         }
     }
 
-    Timer {
-        running: root.currentPlayer?.playbackState == MprisPlaybackState.Playing && lyricScroller.hasSyncedLines
-        interval: 250
-        repeat: true
-        onTriggered: root.currentPlayer.positionChanged()
-    }
-
     contentItem: OverlayBackground {
         id: contentItem
         radius: root.contentRadius

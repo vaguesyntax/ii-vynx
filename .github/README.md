@@ -73,20 +73,6 @@ Please refer to [this wiki page about limitations](https://github.com/vaguesynta
 
 
 <div align="center">
-    <h2>• hyprscrolling implementation •</h2>
-</div>
-
-
-A [Niri](https://github.com/YaLTeR/niri) like scrollable tiling layout.
-You have to use my hyprscrolling plugin in order to make shell communicate with plugin.
-
-- Realtime windows position and size communication with plugin
-- You can move windows in **different** workspaces
-- You can swap the places of windows **in the same row** 
-
-Follow the documentation on [my hyprscrolling plugin](https://github.com/vaguesyntax/hyprscrolling) to install and configure it.
-
-<div align="center">
     <h2>• credits •</h2>
 </div>
 

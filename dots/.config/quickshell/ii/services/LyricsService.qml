@@ -37,6 +37,10 @@ Singleton {
     readonly property alias geniusHasLyrics: genius.hasString
     readonly property string plainLyrics: genius.lyricsString
 
+    readonly property bool mediaModeEnabled: Persistent.states.background.mediaMode.enabled
+
+    // We use this flag to change shell color just once, otherwise it will be called 3-4 times depending on the user's monitor count
+    property bool shellColorChanged: false
 
     // Function to initialize the lyrics service, to prevent unnecessary API calls when no lyrics UI is being use
     // Its being called in LyricsStatic, LyricsScroller and LyricsFlickable files
@@ -65,6 +69,19 @@ Singleton {
         }
         
         return lrclib.lines[index + 1].time - lrclib.lines[index].time;
+    }
+
+    function changeDurationToIndex(index) { // for lrclib, called by LyricsSyllable
+        if (!hasSyncedLines) return;
+        root.activePlayer.position = root.syncedLines[index].time
+    }
+    
+    // https://quickshell.org/docs/master/types/Quickshell.Services.Mpris/MprisPlayer/#position
+    Timer {
+        running: root.activePlayer?.playbackState == MprisPlaybackState.Playing && root.hasSyncedLines && root.isInitialized
+        interval: 250
+        repeat: true
+        onTriggered: root.activePlayer.positionChanged()
     }
 
     Component.onCompleted: geniusFirstFetchDelay.restart()
@@ -106,15 +123,25 @@ Singleton {
             genius.lyricsString = filterLyricLines(lyrics)
         }
     }
-
-    
     
     onCurrentTrackIdChanged: {
+
         if (!effectiveGeniusEnabled) return;
         if (currentTrackId !== "" && root.activePlayer?.trackArtist) {
             genius.fetchLyrics(root.activePlayer.trackArtist, root.activePlayer.trackTitle)
         } else {
             genius.lyricsString = ""
         }
+
+        shellColorChanged = false // reseting at each track change
+    }
+
+    // I dont know if this is the correct place for this, but we only call this from MediaMode so it should be fine
+    function changeShellColor(color, force = false) {
+        console.log("[Lyrics Service] Color change requested, is it changed: ", shellColorChanged)
+        if (!mediaModeEnabled || shellColorChanged && !force) return;
+        console.log("[Lyrics Service] Changing the shell color with color:   ", color)
+        Quickshell.execDetached([`${Directories.wallpaperSwitchScriptPath}`, "--noswitch", "--color", color])
+        shellColorChanged = true
     }
 }

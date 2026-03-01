@@ -32,11 +32,8 @@ Item {
         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
     }
 
-    Timer {
-        running: activePlayer?.playbackState == MprisPlaybackState.Playing
-        interval: LyricsService.hasSyncedLines ? 250 : Config.options.resources.updateInterval
-        repeat: true
-        onTriggered: activePlayer.positionChanged()
+    Component.onCompleted: {
+        LyricsService.initiliazeLyrics()
     }
 
     MouseArea {

@@ -144,10 +144,11 @@ Variants {
             }
         }
 
-        property bool mediaModeOpen: Config.options.background.mediaMode.enable && MprisController.activePlayer
+        property bool mediaModeOpen: mediaModeLoader.active && MprisController.activePlayer
         onMediaModeOpenChanged: {
             if (!mediaModeOpen) {
                 Wallpapers.apply(Config.options.background.wallpaperPath)
+                LyricsService.shellColorChanged = false
             }
         }
 
@@ -367,30 +368,31 @@ Variants {
                 }
             }
         }
+
+        Component.onCompleted: {
+            Persistent.states.background.mediaMode.enabled = false // we use this persistent to access this from outside of this script, cannot be toggled
+        }
+
+        GlobalShortcut {
+            name: "mediaModeToggle"
+            description: "Toggles media mode on press"
+
+            onPressed: {
+                if (!monitor.focused && Config.options.background.mediaMode.togglePerMonitor) return
+                mediaModeLoader.active = !mediaModeLoader.active
+                Persistent.states.background.mediaMode.enabled = mediaModeLoader.active
+            }
+        }
         
         Loader {
             id: mediaModeLoader
             anchors.fill: parent
-            active: mediaModeOpen
-            // asynchronous: true, should we use this? idk
+            active: false
+            asynchronous: true
             sourceComponent: MediaMode {}
             opacity: status === Loader.Ready ? 1 : 0
             Behavior on opacity {
-                animation: Appearance.animation.elementMoveFast.opacityAnimation.createObject(this)
-            }
-
-            // IMPORTANT: FIXME: NOTE: TODO: FUCKME: Fix this, this is a really really really bad approach
-            // I couldnt find a better place to put this global shortcut, YOU!, yes YOU, if you are reading this, 
-            // please move this global shortcut to a more appropriate place, like maybe the media widget itself, or the global states, or literally anywhere else but here. This is really bad.
-            // increase this number when you read this text and havent fixed it: 5
-            GlobalShortcut {
-                name: "mediaModeToggle"
-                description: "Toggles media mode on press"
-
-                onPressed: {
-                    if (!monitor.focused) return
-                    Config.options.background.mediaMode.enable = !Config.options.background.mediaMode.enable;
-                }
+                animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
             }
         }
     }

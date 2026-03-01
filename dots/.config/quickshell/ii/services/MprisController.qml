@@ -116,10 +116,6 @@ Singleton {
 		}
 	}
 
-	Component.onCompleted: {
-		console.log("ACTİVE PLAYER DBUS NAME: ", root.activePlayer.desktopEntry)
-	}
-
 	onActivePlayerChanged: {
 		this.updateTrack();
 	}

@@ -247,7 +247,7 @@ Singleton {
                     property real widgetsFactor: 1.2
                 }
                 property JsonObject mediaMode: JsonObject {
-                    property bool enable: false
+                    property bool togglePerMonitor: false
                     property string backgroundShape: "Square"
                     property bool enableBackgroundAnimation: true // It **may** cause nausea for someone
                     property bool changeShellColor: true // Changes the shell color to the album color

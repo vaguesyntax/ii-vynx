@@ -3,12 +3,12 @@ import qs.services
 import QtQuick
 import QtQuick.Controls
 import Qt5Compat.GraphicalEffects 
+import Quickshell.Services.Mpris
 
 // An animated version on LyricsSyllable (i have no idea why it is named as syllable dont judge me)
 
 Item {
     id: root
-    visible: LyricsService.syncedLines.length > 0
     clip: true
 
     readonly property int highlightStyle: Config.options.background.mediaMode.syllable.textHighlightStyle
@@ -16,6 +16,10 @@ Item {
     readonly property bool isPlaying: LyricsService.activePlayer.isPlaying 
     
     property real largeFontSize: Appearance.font.pixelSize.hugeass * 2.0
+
+    Component.onCompleted: {
+        LyricsService.initiliazeLyrics()
+    }
 
     Item {
         id: listMaskSource
@@ -46,13 +50,39 @@ Item {
             id: lyricsList
             anchors.fill: parent 
             model: LyricsService.syncedLines
-            interactive: false
+            interactive: true
             currentIndex: root.currentIndex
+
+            onMovingChanged: {
+                if (!moving) return
+                highlightFollowsCurrentItem = false
+            }
             
-            highlightRangeMode: ListView.StrictlyEnforceRange
-            preferredHighlightBegin: parent.height / 2 - 50
+            highlightFollowsCurrentItem: true
+            highlightRangeMode: highlightFollowsCurrentItem ? ListView.StrictlyEnforceRange : ListView.NoHighlightRange
+            preferredHighlightBegin: parent.height / 2 - 60
             preferredHighlightEnd: parent.height / 2
             highlightMoveDuration: 600
+
+            function scrollToCurrentItem() {
+                if (!lyricsList.currentItem || lyricsList.moving) return
+                let item = lyricsList.currentItem
+                let targetY = item.y - (lyricsList.height / 2 - item.height / 2)
+                
+                contentYAnim.to = targetY
+                contentYAnim.restart()
+            }
+
+            NumberAnimation {
+                id: contentYAnim
+                target: lyricsList
+                property: "contentY"
+                duration: 250
+                easing.type: Easing.InOutQuad
+                onStopped: {
+                    lyricsList.highlightFollowsCurrentItem = true
+                }
+            }
 
             delegate: Item {
                 id: delegateRoot
@@ -60,6 +90,16 @@ Item {
                 height: lyricText.implicitHeight + 40 
 
                 readonly property bool isCurrent: index === lyricsList.currentIndex
+                onIsCurrentChanged: {
+                    if (!isCurrent || lyricsList.highlightFollowsCurrentItem || lyricsList.moving) return
+                    let margin = -200
+                    let visible = delegateRoot.y + delegateRoot.height > lyricsList.contentY - margin &&
+                                delegateRoot.y < lyricsList.contentY + lyricsList.height + margin
+                    if (visible) {
+                        lyricsList.scrollToCurrentItem()
+                    }
+                }
+
                 
                 Item {
                     id: scalerItem
@@ -71,20 +111,22 @@ Item {
                     }
 
                     // Maske için kullanılan görünmez metin
-                    Text {
+                    StyledText {
                         id: lyricText
                         text: modelData.text
                         anchors.centerIn: parent
                         width: parent.width - 40 
                         font.pixelSize: root.largeFontSize
-                        font.weight: isCurrent ? Font.Bold : Font.Normal
+                        font.family: Appearance.font.family.title
+                        font.weight: isCurrent ? Font.Bold : Font.DemiBold
+                        font.styleName: "" // Set empty to prevent conflicts, not meaningless
                         horizontalAlignment: Text.AlignHCenter
                         wrapMode: Text.WordWrap
                         visible: false 
                     }
 
                     // Pasif Arka Plan Metni
-                    Text {
+                    StyledText {
                         id: backgroundText
                         text: lyricText.text
                         anchors.fill: lyricText
@@ -100,6 +142,14 @@ Item {
                             horizontalOffset: 0
                             verticalOffset: 0
                             radius: 20
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                LyricsService.changeDurationToIndex(index)
+                            }
                         }
                     }
 
@@ -121,10 +171,6 @@ Item {
         }
     }
 
-    Component.onCompleted: {
-        LyricsService.initiliazeLyrics()
-    }
-
     component HorizontalHighlight: LinearGradient {
         anchors.fill: parent
         visible: false 
@@ -135,8 +181,7 @@ Item {
             from: -150
             to: lyricsList.width + 150
             duration: isCurrent ? LyricsService.getLineDuration(index) * 1000 : 0
-            paused: !root.isPlaying 
-            running: isCurrent
+            running: isCurrent && root.isPlaying
             easing.type: Easing.Linear
         }
 
@@ -160,8 +205,7 @@ Item {
             from: -20
             to: lyricText.height + 20
             duration: isCurrent ? LyricsService.getLineDuration(index) * 1000 : 0
-            paused: !root.isPlaying
-            running: isCurrent
+            running: isCurrent && root.isPlaying
             easing.type: Easing.Linear
         }
 

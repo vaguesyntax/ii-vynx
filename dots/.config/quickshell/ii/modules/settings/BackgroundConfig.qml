@@ -67,14 +67,11 @@ ContentPage {
 
             ConfigSwitch {
                 Layout.fillWidth: true
-                buttonIcon: "check"
-                text: Translation.tr("Enable")
-                checked: Config.options.background.mediaMode.enable
+                buttonIcon: "monitor"
+                text: Translation.tr("Toggle per monitor")
+                checked: Config.options.background.mediaMode.togglePerMonitor
                 onCheckedChanged: {
-                    Config.options.background.mediaMode.enable = checked;
-                }
-                StyledToolTip {
-                    text: Translation.tr("Using a keybind instead of this toggle is recommended")
+                    Config.options.background.mediaMode.togglePerMonitor = checked;
                 }
             }
 

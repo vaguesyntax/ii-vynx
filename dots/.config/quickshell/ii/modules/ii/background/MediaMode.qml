@@ -20,7 +20,6 @@ Item { // MediaMode instance
     property string artDownloadLocation: Directories.coverArt
     property string artFileName: Qt.md5(artUrl)
     property string artFilePath: `${artDownloadLocation}/${artFileName}`
-    property color artDominantColor: colorQuantizer.colors[0] ?? "#31313131" // 31 means gooning in Turkish btw :)
     property bool downloaded: false
     property string displayedArtFilePath: ""
 
@@ -40,7 +39,6 @@ Item { // MediaMode instance
 
     onArtFilePathChanged: {
         if (!root.artUrl || root.artUrl.length == 0) {
-            root.artDominantColor = Appearance.m3colors.m3secondaryContainer;
             root.displayedArtFilePath = "";
             return;
         }
@@ -70,56 +68,11 @@ Item { // MediaMode instance
 
         // We have to delay the color change if the media changes too quickly...
         onColorsChanged: {
+            // console.log("[Media Mode] Colors changed: ", colorQuantizer.colors)
             if (!Config.options.background.mediaMode.changeShellColor) return;
-            if (!root.canChangeColor) {
-                console.log("[Media Mode] Color change delayed, pending color:", colorQuantizer.colors[0])
-                switchColorDelayTimer.pendingColor = colorQuantizer.colors[0]
-                switchColorDelayTimer.restart()
-                return;
-            }
-            else {
-                switchColorProc.colorString = colorQuantizer.colors[0] 
-                Qt.callLater(() => {
-                    switchColorProc.running = true
-                    root.canChangeColor = false
-                    switchColorDelayTimer.restart()
-                })
-            }
-            
-
+            // console.log("[Media Mode] Requesting to change shell color")
+            LyricsService.changeShellColor(colorQuantizer.colors[0])
         }
-    }
-
-    Timer {
-        id: switchColorDelayTimer
-        interval: 2500
-        property string pendingColor: ""
-        onTriggered: {
-            if (pendingColor == "") root.canChangeColor = true 
-            else {
-                console.log("[Media Mode] Delay timer triggered, pending color:", pendingColor)
-                switchColorProc.colorString = pendingColor
-                Qt.callLater(() => {
-                    switchColorProc.running = true
-                    root.canChangeColor = false
-                    switchColorDelayTimer.restart()
-                })
-                pendingColor = ""
-            }
-            
-        }
-    }
-
-    
-
-    Process {
-        id: switchColorProc
-        property string colorString: ""
-        command: [`${Directories.wallpaperSwitchScriptPath}`, "--noswitch", "--color", switchColorProc.colorString]
-    }
-
-    property QtObject blendedColors: AdaptedMaterialScheme {
-        color: artDominantColor
     }
 
     Loader {
@@ -132,15 +85,25 @@ Item { // MediaMode instance
             Rectangle { // Background
                 id: background
                 anchors.fill: parent
-                color: ColorUtils.applyAlpha(blendedColors.colLayer0, 1)
+                color: ColorUtils.applyAlpha(Appearance.colors.colLayer0, 1)
 
                 FloatingArtBackground {
                     anchors.fill: parent
 
                     animationSpeedScale: Config.options.background.mediaMode.backgroundAnimation.speedScale / 10
                     artFilePath: root.displayedArtFilePath
-                    overlayColor: ColorUtils.transparentize(blendedColors.colLayer0, 0.3)
+                    overlayColor: ColorUtils.transparentize(Appearance.colors.colLayer0, 0.3)
                     animationEnabled: Config.options.background.mediaMode.backgroundAnimation.enable
+
+                    workspaceNorm: {
+                        const chunkSize = Config?.options.bar.workspaces.shown ?? 10
+                        const lower = Math.floor(bgRoot.firstWorkspaceId / chunkSize) * chunkSize
+                        const upper = Math.ceil(bgRoot.lastWorkspaceId / chunkSize) * chunkSize
+                        const range = upper - lower
+                        const id = bgRoot.monitor.activeWorkspace?.id ?? 1
+                        return range > 0 ? (id - lower) / range : 0.5
+                    }
+
                 }
 
                 RowLayout {
@@ -151,6 +114,7 @@ Item { // MediaMode instance
                     MediaModeCoverArt {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
+                        showLoadingIndicator: !root.downloaded
                     }
 
                     Item {
@@ -158,32 +122,39 @@ Item { // MediaMode instance
                         Layout.fillHeight: true
 
                         Item {
+                            id: lyricsItem
                             anchors.fill: parent
                             anchors.leftMargin: -120
                             anchors.rightMargin: 120
                             anchors.topMargin: 40
                             anchors.bottomMargin: 40
 
-                            // Genius lyrics
-                            LyricsFlickable {
-                                anchors.fill: parent
-                                player: root.player
+                            readonly property bool hasSyncedLines: LyricsService.syncedLines.length > 0
+                            readonly property bool geniusEnabled: Config.options.lyricsService.enableGenius
+                            readonly property bool lrclibEnabled: Config.options.lyricsService.enableLrclib
+
+                            Component.onCompleted: {
+                                if (!geniusEnabled && !lrclibEnabled) return
+                                LyricsService.initiliazeLyrics()
                             }
 
-                            // Lrclib (synced) lyrics
-                            LyricsSyllable {
+                            FadeLoader {
+                                shown: !lyricsItem.hasSyncedLines
                                 anchors.fill: parent
-                                anchors.rightMargin: 100
+                                sourceComponent: LyricsFlickable {
+                                    anchors.fill: parent
+                                    player: root.player
+                                }
                             }
-
-                            // Lrclib (synced) lyrics - alternative
-                            /* LyricScroller {
-                                id: lyricScroller
+                            
+                            FadeLoader {
+                                shown: lyricsItem.hasSyncedLines
                                 anchors.fill: parent
-                                defaultLyricsSize: Appearance.font.pixelSize.hugeass * 1.5
-                                textAlign: "left"
-                                changeTextWeight: true
-                            } */
+                                sourceComponent: LyricsSyllable {
+                                    anchors.fill: parent
+                                    anchors.rightMargin: 100
+                                }
+                            }
                         }
                     }
                 }

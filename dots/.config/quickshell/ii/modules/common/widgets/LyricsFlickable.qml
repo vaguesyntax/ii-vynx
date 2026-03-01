@@ -15,12 +15,8 @@ Item {
 
     property bool hasSyncedLines: LyricsService.syncedLines.length > 0
 
-    Component.onCompleted: {
-        LyricsService.initiliazeLyrics()
-    }
-
     Timer {
-        running: root.player?.playbackState == MprisPlaybackState.Playing && hasSyncedLines > 0
+        running: root.player?.playbackState == MprisPlaybackState.Playing && hasSyncedLines
         interval: 250
         repeat: true
         onTriggered: root.player.positionChanged()
@@ -30,7 +26,7 @@ Item {
         anchors.left: parent.left
         anchors.leftMargin: 250
         anchors.verticalCenter: parent.verticalCenter
-        loading: geniusFlickable.opacity == 0 && !hasSyncedLines > 0
+        loading: geniusFlickable.opacity == 0 && !hasSyncedLines
         visible: loading
         implicitSize: 96
     }
@@ -39,7 +35,7 @@ Item {
         id: geniusFlickable
         anchors.fill: parent
         
-        opacity: !hasSyncedLines > 0 && LyricsService.geniusHasLyrics ? 1 : 0
+        opacity: !hasSyncedLines && LyricsService.geniusHasLyrics ? 1 : 0
         Behavior on opacity {
             animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
         }
