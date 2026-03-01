@@ -15,7 +15,7 @@ Item {
 
     Item {
         anchors.fill: parent
-        opacity: willUnpin ? 0.3 : 0.8
+        opacity: willUnpin ? 0.3 : 1
         Behavior on opacity {
             NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
         }
@@ -23,7 +23,7 @@ Item {
         IconImage {
             id: ghostIcon
             anchors.centerIn: parent
-            implicitSize: (Config.options?.dock.height ?? 60) * 0.75
+            implicitSize: (Config.options?.dock.height ?? 60) * 0.95
             source: draggedAppId !== "" ? Quickshell.iconPath(AppSearch.guessIcon(draggedAppId), "image-missing")
                 : ""
         }

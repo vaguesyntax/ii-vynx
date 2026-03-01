@@ -12,7 +12,7 @@ GroupButton {
     property real buttonSize: dockHeight * 0.85
     property bool isVertical: false
     property string symbolName: ""
-    property string symbolSize: root.dockHeight * 0.35
+    property string symbolSize: root.dockHeight * 0.5
     property color activeColor: Appearance.m3colors.m3onPrimary
     property color inactiveColor: Appearance.colors.colOnLayer0
 

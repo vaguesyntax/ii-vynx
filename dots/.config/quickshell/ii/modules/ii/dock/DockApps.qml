@@ -250,7 +250,7 @@ Item {
         rows:         root.isVertical ? -1 : 1
         columns:      root.isVertical ?  1 : -1
         columnSpacing: dockPadding
-        rowSpacing:    dockPadding
+        rowSpacing:    dockPadding 
 
         // Pin button
         DockActionButton {
@@ -306,7 +306,6 @@ Item {
         // Overview button
         DockActionButton {
             symbolName:       "apps"
-            symbolSize: (Config.options?.dock.height ?? 60) * 0.45
             isVertical: root.isVertical
             onClicked:  GlobalStates.overviewOpen = !GlobalStates.overviewOpen
         }
