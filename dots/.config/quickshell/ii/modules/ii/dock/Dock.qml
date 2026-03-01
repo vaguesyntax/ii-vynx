@@ -28,7 +28,7 @@ Scope {
 
             property bool positionChanging: false
             readonly property bool isVertical: GlobalStates.dockIsVertical
-            readonly property real dockThickness: (Config.options?.dock.height ?? 70) + Appearance.sizes.elevationMargin + Appearance.sizes.hyprlandGapsOut
+            readonly property real dockThickness: (Config.options?.dock.height ?? 70) + Appearance.sizes.elevationMargin * 2 + Appearance.sizes.hyprlandGapsOut * 2
 
             property bool reveal: root.pinned 
                             || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) 
@@ -48,7 +48,7 @@ Scope {
             exclusiveZone: root.pinned ? (Config.options?.dock.height ?? 70) + Appearance.sizes.hyprlandGapsOut : 0
             WlrLayershell.namespace: "quickshell:dock"
             WlrLayershell.layer: WlrLayer.Overlay
-            color: "transparent" 
+            color: "red" 
 
             mask: Region { 
                 item: dockMouseArea 
@@ -86,8 +86,11 @@ Scope {
                 property real fullyHiddenOffset: dockRoot.dockThickness + 1
                 property real currentOffset: dockRoot.reveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
 
-                width:  dockRoot.isVertical ? dockRoot.dockThickness : dockApps.implicitWidth  + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2
-                height: dockRoot.isVertical ? dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2 : dockRoot.dockThickness
+                width:  dockRoot.isVertical ? dockRoot.dockThickness 
+                    : dockApps.implicitWidth + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2
+
+                height: dockRoot.isVertical ? dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2
+                    : dockRoot.dockThickness
 
                 state: GlobalStates.dockEffectivePosition
 
@@ -101,13 +104,6 @@ Scope {
                             anchors.horizontalCenter: parent.horizontalCenter
                             anchors.verticalCenter: undefined
                         }
-                        AnchorChanges {
-                            target: dockVisualBackground
-                            anchors.top: dockMouseArea.top; anchors.bottom: undefined
-                            anchors.left: undefined; anchors.right: undefined
-                            anchors.horizontalCenter: dockMouseArea.horizontalCenter
-                            anchors.verticalCenter: undefined
-                        }
                         PropertyChanges { target: dockMouseArea; anchors.topMargin: -currentOffset }
                     },
                     State {
@@ -117,13 +113,6 @@ Scope {
                             anchors.bottom: parent.bottom; anchors.top: undefined
                             anchors.left: undefined; anchors.right: undefined
                             anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.verticalCenter: undefined
-                        }
-                        AnchorChanges {
-                            target: dockVisualBackground
-                            anchors.bottom: dockMouseArea.bottom; anchors.top: undefined
-                            anchors.left: undefined; anchors.right: undefined
-                            anchors.horizontalCenter: dockMouseArea.horizontalCenter
                             anchors.verticalCenter: undefined
                         }
                         PropertyChanges { target: dockMouseArea; anchors.bottomMargin: -currentOffset }
@@ -137,13 +126,6 @@ Scope {
                             anchors.horizontalCenter: undefined
                             anchors.verticalCenter: parent.verticalCenter
                         }
-                        AnchorChanges {
-                            target: dockVisualBackground
-                            anchors.left: dockMouseArea.left; anchors.right: undefined
-                            anchors.top: undefined; anchors.bottom: undefined
-                            anchors.horizontalCenter: undefined
-                            anchors.verticalCenter: dockMouseArea.verticalCenter
-                        }
                         PropertyChanges { target: dockMouseArea; anchors.leftMargin: -currentOffset }
                     },
                     State {
@@ -154,13 +136,6 @@ Scope {
                             anchors.top: undefined; anchors.bottom: undefined
                             anchors.horizontalCenter: undefined
                             anchors.verticalCenter: parent.verticalCenter
-                        }
-                        AnchorChanges {
-                            target: dockVisualBackground
-                            anchors.right: dockMouseArea.right; anchors.left: undefined
-                            anchors.top: undefined; anchors.bottom: undefined
-                            anchors.horizontalCenter: undefined
-                            anchors.verticalCenter: dockMouseArea.verticalCenter
                         }
                         PropertyChanges { target: dockMouseArea; anchors.rightMargin: -currentOffset }
                     }
@@ -175,6 +150,8 @@ Scope {
 
                 Rectangle {
                     id: dockVisualBackground
+
+                    anchors.centerIn: parent  // ← sempre centrato nella MouseArea
 
                     width:  dockApps.implicitWidth  + Appearance.sizes.hyprlandGapsOut * 2
                     height: dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2
@@ -192,6 +169,7 @@ Scope {
                     DockApps {
                         id: dockApps
                         anchors.centerIn: parent
+                        // Pass properties to DockApps
                         isPinned: root.pinned
                         onTogglePinRequested: {
                             root.pinned = !root.pinned

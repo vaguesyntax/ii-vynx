@@ -13,9 +13,9 @@ DockButton {
     property var appToplevel
     property var appListRoot
     property int lastFocused: -1
-    property real iconSize: 35
-    property real countDotWidth: 10
-    property real countDotHeight: 4
+    property real iconSize: (Config.options?.dock.height ?? 60) * 0.58
+    property real countDotWidth:  (Config.options?.dock.height ?? 60) * 0.17
+    property real countDotHeight: (Config.options?.dock.height ?? 60) * 0.07
 
     property bool appIsActive: appToplevel && appToplevel.toplevels.find(t => t.activated === true) !== undefined
     property int _desktopEntriesUpdateTrigger: 0

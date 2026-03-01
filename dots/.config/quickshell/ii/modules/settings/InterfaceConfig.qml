@@ -182,9 +182,9 @@ ContentPage {
             icon: "height"
             text: Translation.tr("Dock height")
             value: Config.options.dock.height
-            from: 30
-            to: 100
-            stepSize: 1
+            from: 40
+            to: 80
+            stepSize: 2
             onValueChanged: {
                 Config.options.dock.height = value;
             }

@@ -13,14 +13,13 @@ import qs.modules.common.functions
 Item {
     id: root
 
-    // ── Public API ────────────────────────────────────────────────
     property bool isPinned: false
     signal togglePinRequested()
-    property real buttonPadding: 5
+    property real buttonPadding: (Config.options?.dock.height ?? 60) * 0.08
 
-    // ── Read-only derived state ───────────────────────────────────
     readonly property bool isVertical:       GlobalStates.dockIsVertical
     readonly property bool requestDockShow:  previewPopup.visible || anyContextMenuOpen
+
     // ── Preview popup sizing ──────────────────────────────────────
     readonly property real maxWindowPreviewHeight: 200
     readonly property real maxWindowPreviewWidth:  300
@@ -231,10 +230,6 @@ Item {
 
     Component.onCompleted: updateModel()
 
-    // ─────────────────────────────────────────────────────────────
-    // UI
-    // ─────────────────────────────────────────────────────────────
-
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
 
@@ -267,8 +262,8 @@ Item {
         // Separator — pinned / running apps
         Item {
             visible:    root.processedApps.length > 0
-            Layout.preferredWidth:  root.isVertical ? 50 : 1
-            Layout.preferredHeight: root.isVertical ? 1 : 50
+            Layout.preferredWidth:  root.isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1
+            Layout.preferredHeight: root.isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83
 
             DockSeparator {
                 anchors.fill: parent
@@ -297,8 +292,8 @@ Item {
         // Second separator
         Item {
             visible:    root.processedApps.length > 0
-            Layout.preferredWidth:  root.isVertical ? 50 : 1
-            Layout.preferredHeight: root.isVertical ? 1 : 50
+            Layout.preferredWidth:  root.isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1
+            Layout.preferredHeight: root.isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83
 
             DockSeparator {
                 anchors.fill: parent
@@ -312,6 +307,8 @@ Item {
         // Overview button
         DockButton {
             id: overviewButton
+            Layout.preferredWidth:  Config.options?.dock.height ?? 60
+            Layout.preferredHeight: Config.options?.dock.height ?? 60
             onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
             contentItem: MaterialSymbol {
                 anchors.centerIn: parent

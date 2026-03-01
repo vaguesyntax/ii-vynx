@@ -7,8 +7,8 @@ import qs.modules.common.widgets
 import qs.services
 
 Item {
-    width: 55
-    height: 55
+    width:  Config.options?.dock.height ?? 60
+    height: Config.options?.dock.height ?? 60
 
     property string draggedAppId: ""
     property bool willUnpin: false
@@ -16,7 +16,6 @@ Item {
     Item {
         anchors.fill: parent
         opacity: willUnpin ? 0.3 : 0.8
-
         Behavior on opacity {
             NumberAnimation { duration: 150; easing.type: Easing.OutQuad }
         }
@@ -24,23 +23,9 @@ Item {
         IconImage {
             id: ghostIcon
             anchors.centerIn: parent
-            implicitSize: 45
-            source: draggedAppId !== ""
-                ? Quickshell.iconPath(AppSearch.guessIcon(draggedAppId), "image-missing")
+            implicitSize: (Config.options?.dock.height ?? 60) * 0.75
+            source: draggedAppId !== "" ? Quickshell.iconPath(AppSearch.guessIcon(draggedAppId), "image-missing")
                 : ""
-
-            transform: Scale {
-                origin.x: ghostIcon.width / 2
-                origin.y: ghostIcon.height / 2
-                xScale: willUnpin ? 0.85 : 1.15
-                yScale: willUnpin ? 0.85 : 1.15
-                Behavior on xScale {
-                    NumberAnimation { duration: 150; easing.type: Easing.OutBack }
-                }
-                Behavior on yScale {
-                    NumberAnimation { duration: 150; easing.type: Easing.OutBack }
-                }
-            }
         }
 
         Loader {
