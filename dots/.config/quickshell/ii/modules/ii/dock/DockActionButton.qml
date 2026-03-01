@@ -11,14 +11,24 @@ GroupButton {
     property real dockHeight: Config.options?.dock.height ?? 60
     property real buttonSize: dockHeight * 0.85
     property bool isVertical: false
+    property string symbolName: ""
+    property string symbolSize: root.dockHeight * 0.35
+    property color activeColor: Appearance.m3colors.m3onPrimary
+    property color inactiveColor: Appearance.colors.colOnLayer0
 
     Layout.alignment: Qt.AlignCenter
 
     baseWidth:  buttonSize
     baseHeight: buttonSize
 
+    property real buttonInset: dockHeight * 0.1
+    rightInset:  buttonInset
+    leftInset:   buttonInset
+    topInset:    buttonInset
+    bottomInset: buttonInset
+
     buttonRadius:        Appearance.rounding.full
-    buttonRadiusPressed: Appearance.rounding.large
+    buttonRadiusPressed: Appearance.rounding.normal
 
     clickedWidth:  isVertical ? buttonSize : buttonSize + dockHeight * 0.20
     clickedHeight: isVertical ? buttonSize + dockHeight * 0.20 : buttonSize
@@ -28,10 +38,8 @@ GroupButton {
     contentItem: MaterialSymbol {
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment:   Text.AlignVCenter
-        text:     "keep"
-        iconSize: root.dockHeight * 0.35
-        color:    root.toggled
-            ? Appearance.m3colors.m3onPrimary
-            : Appearance.colors.colOnLayer0
+        text: root.symbolName
+        iconSize: root.symbolSize
+        color:    root.toggled ? root.activeColor : root.inactiveColor
     }
 }

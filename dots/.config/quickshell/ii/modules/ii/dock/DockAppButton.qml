@@ -13,7 +13,7 @@ DockButton {
     property var appToplevel
     property var appListRoot
     property int lastFocused: -1
-    property real iconSize: (Config.options?.dock.height ?? 60) * 0.58
+    property real iconSize: (Config.options?.dock.height ?? 60) * 0.67
     property real countDotWidth:  (Config.options?.dock.height ?? 60) * 0.17
     property real countDotHeight: (Config.options?.dock.height ?? 60) * 0.07
 
@@ -25,7 +25,7 @@ DockButton {
     property bool isVertical: appListRoot ? appListRoot.isVertical : false
 
     readonly property bool isDragging: appListRoot?.draggedAppId === appToplevel?.appId
-      colBackground: "yellow" 
+      colBackground: "transparent" 
 
     Connections {
         target: DesktopEntries

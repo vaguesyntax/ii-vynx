@@ -253,7 +253,8 @@ Item {
         rowSpacing:    dockPadding
 
         // Pin button
-        DockPinButton {
+        DockActionButton {
+            symbolName:       "keep"
             toggled:    root.isPinned
             isVertical: root.isVertical
             onClicked:  root.togglePinRequested()
@@ -303,21 +304,11 @@ Item {
         }
 
         // Overview button
-        DockButton {
-            id: overviewButton
-            Layout.preferredWidth:  overviewButton.buttonSize
-            Layout.preferredHeight: overviewButton.buttonSize
-            Layout.alignment: Qt.AlignCenter
-            colBackground: "green"
-            onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
-            contentItem: MaterialSymbol {
-                anchors.centerIn: parent
-                text:     "apps"
-                iconSize: overviewButton.baseSize / 2
-                color:    Appearance.colors.colOnLayer0
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
+        DockActionButton {
+            symbolName:       "apps"
+            symbolSize: (Config.options?.dock.height ?? 60) * 0.45
+            isVertical: root.isVertical
+            onClicked:  GlobalStates.overviewOpen = !GlobalStates.overviewOpen
         }
     }
 
