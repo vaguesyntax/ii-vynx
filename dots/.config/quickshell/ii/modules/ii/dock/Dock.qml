@@ -28,8 +28,8 @@ Scope {
 
             property bool positionChanging: false
             readonly property bool isVertical: GlobalStates.dockIsVertical
-            readonly property real dockThickness: (Config.options?.dock.height ?? 70) + Appearance.sizes.elevationMargin * 2 + Appearance.sizes.hyprlandGapsOut * 2
-
+            readonly property real dockThickness: (Config.options?.dock.height ?? 60) 
+                + Appearance.sizes.hyprlandGapsOut * 2
             property bool reveal: root.pinned 
                             || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) 
                             || (dockApps.requestDockShow)
@@ -45,10 +45,13 @@ Scope {
             implicitWidth:  isVertical ? dockThickness : 0
             implicitHeight: isVertical ? 0 : dockThickness
 
-            exclusiveZone: root.pinned ? (Config.options?.dock.height ?? 70) + Appearance.sizes.hyprlandGapsOut : 0
+            Behavior on implicitWidth  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockRoot) }
+            Behavior on implicitHeight { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockRoot) }
+
+            exclusiveZone: root.pinned ? dockThickness : 0
             WlrLayershell.namespace: "quickshell:dock"
             WlrLayershell.layer: WlrLayer.Overlay
-            color: "red" 
+            color: "transparent" 
 
             mask: Region { 
                 item: dockMouseArea 
@@ -87,9 +90,8 @@ Scope {
                 property real currentOffset: dockRoot.reveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
 
                 width:  dockRoot.isVertical ? dockRoot.dockThickness 
-                    : dockApps.implicitWidth + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2
-
-                height: dockRoot.isVertical ? dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2 + Appearance.sizes.elevationMargin * 2
+                    : dockApps.implicitWidth + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2 
+                height: dockRoot.isVertical ? dockApps.implicitHeight + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
                     : dockRoot.dockThickness
 
                 state: GlobalStates.dockEffectivePosition
@@ -146,6 +148,7 @@ Scope {
                 Behavior on anchors.leftMargin   { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
                 Behavior on anchors.rightMargin  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
 
+
                 StyledRectangularShadow { target: dockVisualBackground }
 
                 Rectangle {
@@ -153,11 +156,7 @@ Scope {
                     anchors.centerIn: parent
                     width:  dockApps.implicitWidth  + dockApps.dockPadding * 2
                     height: dockApps.implicitHeight + dockApps.dockPadding * 2
-
-                    anchors.topMargin:    Appearance.sizes.hyprlandGapsOut
-                    anchors.bottomMargin: Appearance.sizes.hyprlandGapsOut
-                    anchors.leftMargin:   Appearance.sizes.hyprlandGapsOut
-                    anchors.rightMargin:  Appearance.sizes.hyprlandGapsOut
+                    
 
                     color: Appearance.colors.colLayer0
                     border.width: 1

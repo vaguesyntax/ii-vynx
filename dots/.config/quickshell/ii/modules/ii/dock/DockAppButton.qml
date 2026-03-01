@@ -38,12 +38,9 @@ DockButton {
 
     enabled: !isSeparator
 
-    Layout.preferredWidth:  isSeparator ? (isVertical ? root.baseSize : 1) : root.baseSize
-    Layout.preferredHeight: isSeparator ? (isVertical ? 1 : root.baseSize) : root.baseSize
-
-    Behavior on Layout.preferredWidth  { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
-    Behavior on Layout.preferredHeight { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root) }
-
+    Layout.preferredWidth:  isSeparator ? (isVertical ? root.buttonSize : 1) : root.buttonSize
+    Layout.preferredHeight: isSeparator ? (isVertical ? 1 : root.buttonSize) : root.buttonSize
+    Layout.alignment: Qt.AlignCenter
     opacity: isDragging ? 0.0 : 1.0
     
     Behavior on opacity {

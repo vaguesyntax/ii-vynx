@@ -14,11 +14,10 @@ Item {
 
     property bool isPinned: false
     signal togglePinRequested()
-    property real buttonPadding: 0
+    readonly property real dockPadding: (Config.options?.dock.height ?? 60) * 0.10
 
     readonly property bool isVertical:       GlobalStates.dockIsVertical
     readonly property bool requestDockShow:  previewPopup.visible || anyContextMenuOpen
-    readonly property real dockPadding: (Config.options?.dock.height ?? 60) * 0.10
 
     // ── Preview popup sizing ──────────────────────────────────────
     readonly property real maxWindowPreviewHeight: 200
@@ -265,7 +264,7 @@ Item {
             visible:    root.processedApps.length > 0
             Layout.preferredWidth:  root.isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1
             Layout.preferredHeight: root.isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83
-
+            Layout.alignment: Qt.AlignCenter
             DockSeparator {
                 anchors.fill: parent
                 // anchors.topMargin:    root.isVertical ? 0 : 8
@@ -285,8 +284,6 @@ Item {
                 required property var modelData
                 appToplevel:  modelData.appData
                 appListRoot:  root
-                topInset:     root.buttonPadding
-                bottomInset:  root.buttonPadding
             }
         }
 
@@ -308,8 +305,10 @@ Item {
         // Overview button
         DockButton {
             id: overviewButton
-            Layout.preferredWidth:  Config.options?.dock.height ?? 60
-            Layout.preferredHeight: Config.options?.dock.height ?? 60
+            Layout.preferredWidth:  overviewButton.buttonSize
+            Layout.preferredHeight: overviewButton.buttonSize
+            Layout.alignment: Qt.AlignCenter
+            colBackground: "green"
             onClicked: GlobalStates.overviewOpen = !GlobalStates.overviewOpen
             contentItem: MaterialSymbol {
                 anchors.centerIn: parent

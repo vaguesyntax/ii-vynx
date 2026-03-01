@@ -9,23 +9,19 @@ GroupButton {
     id: root
 
     property real dockHeight: Config.options?.dock.height ?? 60
+    property real buttonSize: dockHeight * 0.85
     property bool isVertical: false
 
     Layout.alignment: Qt.AlignCenter
 
-    baseWidth:  dockHeight * 0.58
-    baseHeight: dockHeight * 0.58
-
-    topInset:    isVertical ? 0              : (dockHeight - baseHeight) / 2
-    bottomInset: isVertical ? 0              : (dockHeight - baseHeight) / 2
-    leftInset:   isVertical ? (dockHeight - baseWidth) / 2 : 0
-    rightInset:  isVertical ? (dockHeight - baseWidth) / 2 : 0
+    baseWidth:  buttonSize
+    baseHeight: buttonSize
 
     buttonRadius:        Appearance.rounding.full
     buttonRadiusPressed: Appearance.rounding.large
 
-    clickedWidth:  isVertical ? baseWidth                      : baseWidth  + dockHeight * 0.30
-    clickedHeight: isVertical ? baseHeight + dockHeight * 0.30 : baseHeight
+    clickedWidth:  isVertical ? buttonSize : buttonSize + dockHeight * 0.20
+    clickedHeight: isVertical ? buttonSize + dockHeight * 0.20 : buttonSize
 
     bounce: true
 

@@ -4,8 +4,11 @@ import QtQuick
 
 RippleButton {
     property real baseSize: Config.options?.dock.height ?? 60
-    implicitWidth: baseSize
-    implicitHeight: baseSize
+    property real buttonSize: baseSize * 0.85
+    implicitWidth:  buttonSize
+    implicitHeight: buttonSize
     buttonRadius: Appearance.rounding.normal
-    background.implicitHeight: baseSize
+    background.implicitWidth:  buttonSize
+    background.implicitHeight: buttonSize
+    padding:0
 }
