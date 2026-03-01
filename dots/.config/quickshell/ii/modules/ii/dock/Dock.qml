@@ -153,8 +153,8 @@ Scope {
 
                     anchors.centerIn: parent  // ← sempre centrato nella MouseArea
 
-                    width:  dockApps.implicitWidth  + Appearance.sizes.hyprlandGapsOut * 2
-                    height: dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2
+                    width:  dockApps.implicitWidth  
+                    height: dockApps.implicitHeight 
 
                     anchors.topMargin:    Appearance.sizes.hyprlandGapsOut
                     anchors.bottomMargin: Appearance.sizes.hyprlandGapsOut

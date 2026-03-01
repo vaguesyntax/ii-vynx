@@ -15,7 +15,7 @@ Item {
 
     property bool isPinned: false
     signal togglePinRequested()
-    property real buttonPadding: (Config.options?.dock.height ?? 60) * 0.08
+    property real buttonPadding: 0
 
     readonly property bool isVertical:       GlobalStates.dockIsVertical
     readonly property bool requestDockShow:  previewPopup.visible || anyContextMenuOpen
@@ -250,8 +250,8 @@ Item {
         flow:         root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
         rows:         root.isVertical ? -1 : 1
         columns:      root.isVertical ?  1 : -1
-        columnSpacing: 2
-        rowSpacing:    2
+        columnSpacing: 0
+        rowSpacing:    0
 
         // Pin button
         DockPinButton {
@@ -259,7 +259,7 @@ Item {
             isVertical: root.isVertical
             onClicked:  root.togglePinRequested()
         }
-        
+
         // Separator — pinned / running apps
         Item {
             visible:    root.processedApps.length > 0
@@ -268,10 +268,10 @@ Item {
 
             DockSeparator {
                 anchors.fill: parent
-                anchors.topMargin:    root.isVertical ? 0 : 8
-                anchors.bottomMargin: root.isVertical ? 0 : 8
-                anchors.leftMargin:   root.isVertical ? 8 : 0
-                anchors.rightMargin:  root.isVertical ? 8 : 0
+                // anchors.topMargin:    root.isVertical ? 0 : 8
+                // anchors.bottomMargin: root.isVertical ? 0 : 8
+                // anchors.leftMargin:   root.isVertical ? 8 : 0
+                // anchors.rightMargin:  root.isVertical ? 8 : 0
             }
         }
 
@@ -298,10 +298,10 @@ Item {
 
             DockSeparator {
                 anchors.fill: parent
-                anchors.topMargin:    root.isVertical ? 0 : 8
-                anchors.bottomMargin: root.isVertical ? 0 : 8
-                anchors.leftMargin:   root.isVertical ? 8 : 0
-                anchors.rightMargin:  root.isVertical ? 8 : 0
+                // anchors.topMargin:    root.isVertical ? 0 : 8
+                // anchors.bottomMargin: root.isVertical ? 0 : 8
+                // anchors.leftMargin:   root.isVertical ? 8 : 0
+                // anchors.rightMargin:  root.isVertical ? 8 : 0
             }
         }
 

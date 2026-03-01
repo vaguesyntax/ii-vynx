@@ -25,6 +25,7 @@ DockButton {
     property bool isVertical: appListRoot ? appListRoot.isVertical : false
 
     readonly property bool isDragging: appListRoot?.draggedAppId === appToplevel?.appId
+      colBackground: "yellow" 
 
     Connections {
         target: DesktopEntries
