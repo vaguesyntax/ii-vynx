@@ -24,6 +24,8 @@ Rectangle {
     property var sourceListModel
     property int selectedCompIndex
 
+    property bool dragging: false
+
     signal updated(var newList)
     signal sourceUpdated(var newList)
 

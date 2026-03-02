@@ -139,6 +139,7 @@ ContentPage {
                 }
             }
 
+
             ColumnLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
@@ -161,35 +162,71 @@ ContentPage {
                     }
                 }
                 
-                StyledFlickable {
-                    id: flickable
+                
+
+                Item {
+                    id: colorGridItem
+                    z: 1
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-
-                    contentHeight: contentLayout.implicitHeight
-                    contentWidth: width
-                    clip: true
-
+                    readonly property bool mediaModeEnabled: Persistent.states.background.mediaMode.enabled
                     
-                    ColumnLayout {
-                        id: contentLayout
-                        width: flickable.width
-
-                        Repeater {
-                            model: [
-                                { customTheme: false, builtInTheme: false },
-                                { customTheme: false, builtInTheme: true },
-                                { customTheme: true, builtInTheme: false }
-                            ]
-                            
-                            delegate: ColorPreviewGrid {
-                                customTheme: modelData.customTheme
-                                builtInTheme: modelData.builtInTheme
-                            }
+                    Loader {
+                        z: 1
+                        anchors.top: parent.top
+                        anchors.topMargin: 60
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        active: colorGridItem.mediaModeEnabled
+                        sourceComponent: StyledText {
+                            text: Translation.tr("Media mode enabled")
+                            font.pixelSize: Appearance.font.pixelSize.large
                         }
+                    }
+                    
 
+                    Loader {
+                        anchors.fill: parent
+                        active: colorGridItem.mediaModeEnabled
+                        sourceComponent: Rectangle {
+                            anchors.fill: parent
+                            opacity: 0.5
+                            color: Appearance.colors.colSecondaryContainer
+                            radius: Appearance.rounding.small
+                        }
+                    }
+                    
+
+                    StyledFlickable {
+                        id: flickable
+                        anchors.fill: parent
+                        contentHeight: contentLayout.implicitHeight
+                        contentWidth: width
+                        clip: true
+                        enabled: !colorGridItem.mediaModeEnabled
+
+
+                        ColumnLayout {
+                            id: contentLayout
+                            width: flickable.width
+
+                            Repeater {
+                                model: [
+                                    { customTheme: false, builtInTheme: false },
+                                    { customTheme: false, builtInTheme: true },
+                                    { customTheme: true, builtInTheme: false }
+                                ]
+                                
+                                delegate: ColorPreviewGrid {
+                                    customTheme: modelData.customTheme
+                                    builtInTheme: modelData.builtInTheme
+                                }
+                            }
+
+                        }
                     }
                 }
+
+                
             }
         }
 

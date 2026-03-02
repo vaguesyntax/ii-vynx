@@ -215,11 +215,13 @@ Item {
         id: dragArea
 
         property bool held: false
+        cursorShape: root.dragging ? Qt.ClosedHandCursor : Qt.OpenHandCursor
 
         anchors {
             left: parent.left
             top: parent.top
             bottom: parent.bottom
+            margins: -6
         }
         width: 50
 
@@ -230,10 +232,14 @@ Item {
         drag.minimumY: 0
         drag.maximumY: root.listModel.length * 40 + (root.listModel.length - 1) * 4
 
-        onPressAndHold: held = true
+        onPressAndHold: {
+            root.dragging = true
+            held = true
+        }
         onReleased: {
             root.updated(wrapper.getOrderedList())
             held = false
+            root.dragging = false
         }
     }
 

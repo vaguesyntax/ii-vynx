@@ -133,7 +133,7 @@ Item {
                         font: lyricText.font
                         horizontalAlignment: lyricText.horizontalAlignment
                         wrapMode: lyricText.wrapMode
-                        color: "#22ffffff"
+                        color: Appearance.m3colors.darkmode ? "#22ffffff" : "#22000000"
                         opacity: isCurrent ? 1.0 : 0.4
 
                         layer.enabled: isCurrent
