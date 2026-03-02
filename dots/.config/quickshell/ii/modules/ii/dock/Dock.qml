@@ -29,8 +29,8 @@ Scope {
             property bool positionChanging: false
             readonly property bool isVertical: GlobalStates.dockIsVertical
             readonly property real dockThickness: isVertical 
-                ? dockApps.implicitWidth  + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
-                : dockApps.implicitHeight + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
+                ? dockApps.implicitWidth + Appearance.sizes.hyprlandGapsOut * 2
+                : dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2
                 
             property bool reveal: root.pinned 
                             || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) 
@@ -44,8 +44,8 @@ Scope {
                 right:  GlobalStates.dockEffectivePosition !== "left"
             }
 
-            implicitWidth:  isVertical ? dockApps.implicitWidth + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2 : 0
-            implicitHeight: isVertical ? 0 : dockApps.implicitHeight + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
+            implicitWidth:  isVertical ? dockThickness : 0
+            implicitHeight: isVertical ? 0 : dockThickness
 
             exclusiveZone: root.pinned ? dockThickness : 0
             WlrLayershell.namespace: "quickshell:dock"
@@ -89,8 +89,8 @@ Scope {
                 property real currentOffset: dockRoot.reveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
 
                 width:  dockRoot.isVertical ? dockRoot.dockThickness 
-                    : dockApps.implicitWidth + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2 
-                height: dockRoot.isVertical ? dockApps.implicitHeight + dockApps.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
+                    : dockApps.implicitWidth + Appearance.sizes.hyprlandGapsOut * 2 
+                height: dockRoot.isVertical ? dockApps.implicitHeight + Appearance.sizes.hyprlandGapsOut * 2
                     : dockRoot.dockThickness
 
                 state: GlobalStates.dockEffectivePosition
@@ -153,8 +153,8 @@ Scope {
                 Rectangle {
                     id: dockVisualBackground
                     anchors.centerIn: parent
-                    width:  dockApps.implicitWidth  + dockApps.dockPadding * 2
-                    height: dockApps.implicitHeight + dockApps.dockPadding * 2
+                    width:  dockApps.implicitWidth  
+                    height: dockApps.implicitHeight 
                     
 
                     color: Appearance.colors.colLayer0
@@ -165,7 +165,7 @@ Scope {
                     DockApps {
                         id: dockApps
                         anchors.centerIn: parent
-                        // Pass properties to DockApps
+                        panelThickness: dockRoot.dockThickness
                         isPinned: root.pinned
                         onTogglePinRequested: {
                             root.pinned = !root.pinned

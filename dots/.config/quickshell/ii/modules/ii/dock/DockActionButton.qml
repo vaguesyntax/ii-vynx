@@ -16,8 +16,6 @@ GroupButton {
     property color activeColor: Appearance.m3colors.m3onPrimary
     property color inactiveColor: Appearance.colors.colOnLayer0
 
-    Layout.alignment: Qt.AlignCenter
-
     baseWidth:  buttonSize
     baseHeight: buttonSize
 

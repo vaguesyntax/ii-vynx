@@ -23,7 +23,7 @@ Item {
         IconImage {
             id: ghostIcon
             anchors.centerIn: parent
-            implicitSize: (Config.options?.dock.height ?? 60) * 0.95
+            implicitSize: (Config.options?.dock.height ?? 60) * 0.90
             source: draggedAppId !== "" ? Quickshell.iconPath(AppSearch.guessIcon(draggedAppId), "image-missing")
                 : ""
         }

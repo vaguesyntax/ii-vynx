@@ -12,212 +12,285 @@ import qs.modules.common.functions
 Item {
     id: root
 
+    // Whether the dock is currently pinned (always visible).
+    // Bound from the parent Dock.qml scope.
     property bool isPinned: false
+
+    property bool suppressAnimation: false
+
+    // Full thickness of the parent PanelWindow along its minor axis
+    // (height for horizontal docks, width for vertical docks).
+    // Required to correctly clamp the drag ghost within the panel bounds.
+    property real panelThickness: 0
+
+    // Emitted when the user clicks the pin/unpin button.
     signal togglePinRequested()
-    readonly property real dockPadding: (Config.options?.dock.height ?? 60) * 0.2
 
-    readonly property bool isVertical:       GlobalStates.dockIsVertical
-    readonly property bool requestDockShow:  previewPopup.visible || anyContextMenuOpen
+    // Padding around the icon grid, derived from the configured dock height.
+    readonly property real dockPadding: (Config.options?.dock.height ?? 60) * 0.25
 
-    // ── Preview popup sizing ──────────────────────────────────────
+    // True when the dock is positioned on the left or right screen edge.
+    readonly property bool isVertical: GlobalStates.dockIsVertical
+
+    // Keeps the dock window visible while a popup or context menu is open.
+    readonly property bool requestDockShow: previewPopup.visible || anyContextMenuOpen
+
     readonly property real maxWindowPreviewHeight: 200
     readonly property real maxWindowPreviewWidth:  300
+    // Height reserved for the close/minimize controls inside the preview.
     readonly property real windowControlsHeight:   30
 
-    // ── Internal state ────────────────────────────────────────────
+    // Flat list of { uniqueKey, appData } objects mirroring TaskbarApps.apps.
     property var  processedApps:      []
+    // True while any DockAppButton context menu is open.
     property bool anyContextMenuOpen: false
+    // Set to true during animated popup resize to suppress layout jitter.
     property bool popupIsResizing:    false
 
-    // Hover
+    // The DockAppButton currently under the cursor, or null.
     property Item lastHoveredButton
+    // True while the cursor is over a button that has open windows.
     property bool buttonHovered: false
 
-    // Drag
-    property bool   dragActive:    false
-    property string draggedAppId:  ""
-    property var    liveOrder:     []
-    property bool   willUnpin:     false
+    // ── Drag state ────────────────────────────────────────────────
 
-    readonly property bool dragIsOriginallyPinned: Config.options.dock.pinnedApps.indexOf(draggedAppId) !== -1
+    // True while a drag gesture is in progress.
+    property bool   dragActive:   false
+    // appId of the icon being dragged.
+    property string draggedAppId: ""
+    // Index of the dragged item within processedApps (pinned zone only).
+    property int    draggedIndex:    -1
+    // Index of the current drop target within processedApps (pinned zone only).
+    property int    dropTargetIndex: -1
+    // True when the ghost is positioned outside the pinned zone,
+    // indicating the app will be unpinned on release.
+    property bool   willUnpin:    false
 
-    // ── Helpers ───────────────────────────────────────────────────
+    // True if the dragged app was already pinned before the drag started.
+    readonly property bool dragIsOriginallyPinned:
+        Config.options.dock.pinnedApps.includes(draggedAppId)
 
+    // Screen-space center point of the currently hovered button.
+    // Used by DockPreviewPopup to anchor itself.
     readonly property point hoveredButtonCenter: {
-        if (!root.lastHoveredButton) return Qt.point(0, 0)
-        return root.lastHoveredButton.mapToItem(
+        if (!lastHoveredButton) return Qt.point(0, 0)
+        return lastHoveredButton.mapToItem(
             null,
-            root.lastHoveredButton.width  / 2,
-            root.lastHoveredButton.height / 2
+            lastHoveredButton.width  / 2,
+            lastHoveredButton.height / 2
         )
     }
 
     // ── App model ─────────────────────────────────────────────────
 
+    // Rebuilds processedApps from TaskbarApps.apps.
+    // Called on startup and whenever the app list changes.
     function updateModel() {
-        root.processedApps = (TaskbarApps.apps ?? []).map(app => ({
+        processedApps = (TaskbarApps.apps ?? []).map(app => ({
             uniqueKey: app.appId,
             appData:   app
         }))
     }
 
-    function buildDragModel() {
-        const pinned = root.liveOrder
-            .map(id => root.processedApps.find(a => a.appData.appId === id))
-            .filter(Boolean)
-
-        const separator = root.processedApps.find(a => a.appData.appId === "SEPARATOR")
-            ?? { uniqueKey: "SEPARATOR_VIRTUAL", appData: { appId: "SEPARATOR", toplevels: [], pinned: false } }
-        pinned.push(separator)
-
-        const unpinned = root.processedApps.filter(a =>
-            a.appData.appId !== "SEPARATOR" &&
-            !root.liveOrder.includes(a.appData.appId) &&
-            !a.appData.pinned
-        )
-
-        return [...pinned, ...unpinned]
-    }
-
-    // ── Drag logic ────────────────────────────────────────────────
-
-    function startDrag(appId, sourceItem) {
-        root.draggedAppId = appId
-        root.liveOrder    = Config.options.dock.pinnedApps.slice()
-        root.willUnpin    = false
-        root.dragActive   = true
-        root.buttonHovered = false
-        previewPopup.show  = false
+    // Initiates a drag for the given appId.
+    // Records the source index and positions the ghost over the source button.
+    // The model is NOT rebuilt during drag — shifts are handled via transform.
+    function startDrag(appId, sourceItem, index) {
+        // Both pinned and unpinned apps can be dragged
+        draggedAppId    = appId
+        draggedIndex    = index
+        dropTargetIndex = index
+        willUnpin       = false
+        dragActive      = true
+        buttonHovered   = false
+        previewPopup.show = false
 
         const pos = sourceItem.mapToItem(root, 0, 0)
         dragGhost.x = pos.x
         dragGhost.y = pos.y
     }
 
+    // Updates ghost position and drop target on every mouse-move event.
+    // No model mutation happens here — DockAppButton delegates read
+    // draggedIndex/dropTargetIndex and apply a Translate transform themselves.
     function moveDragGhost(x, y) {
-        const clampedCenter = _clampGhostCenter(x, y)
-        dragGhost.x = clampedCenter.x - dragGhost.width  / 2
-        dragGhost.y = clampedCenter.y - dragGhost.height / 2
+        const center = _clampGhostCenter(x, y)
 
-        root.willUnpin = _isOutsideDock(clampedCenter) || _isPastSeparator(clampedCenter)
+        dragGhost.x = center.x - dragGhost.width  / 2
+        dragGhost.y = center.y - dragGhost.height / 2
 
-        if (root.willUnpin) {
-            _removeTransientFromOrder()
+        willUnpin = _isOutsideDock(center) || _isPastSeparator(center)
+
+        if (!willUnpin) {
+            _updateDropTarget(center)
         } else {
-            _ensureDraggedInOrder()
-            _reorderByHover(clampedCenter)
+            dropTargetIndex = draggedIndex
         }
     }
 
-    function endDrag() {
-        if (root.willUnpin) {
-            Config.options.dock.pinnedApps =
-                Config.options.dock.pinnedApps.filter(id => id !== root.draggedAppId)
-        } else if (root.liveOrder.length > 0) {
-            Config.options.dock.pinnedApps = root.liveOrder
-        }
+    // Finalises the drag: commits the new order to Config derived from
+    // draggedIndex/dropTargetIndex, or removes the app if willUnpin is true.
+    // Resets all drag state afterwards.
+function endDrag() {
+    if (!dragActive) return
 
-        root.dragActive        = false
-        root.draggedAppId      = ""
-        root.liveOrder         = []
-        root.willUnpin         = false
-        root.buttonHovered     = false
-        root.lastHoveredButton = null
+    const wasAlreadyPinned = Config.options.dock.pinnedApps.includes(draggedAppId)
+
+    if (willUnpin) {
+        // Remove from pinned
+        Config.options.dock.pinnedApps =
+            Config.options.dock.pinnedApps.filter(id => id !== draggedAppId)
+
+    } else if (!wasAlreadyPinned) {
+        // Pin the app, inserted at dropTargetIndex position
+        const newOrder = Config.options.dock.pinnedApps.slice()
+        const insertAt = Math.min(dropTargetIndex, newOrder.length)
+        newOrder.splice(insertAt, 0, draggedAppId)
+        Config.options.dock.pinnedApps = newOrder
+
+    } else if (draggedIndex !== dropTargetIndex) {
+        // Reorder existing pinned app
+        const fromAppId = processedApps[draggedIndex]?.appData?.appId ?? ""
+        const toAppId   = processedApps[dropTargetIndex]?.appData?.appId ?? ""
+        const newOrder  = Config.options.dock.pinnedApps.slice()
+        const fromIdx   = newOrder.indexOf(fromAppId)
+        const toIdx     = newOrder.indexOf(toAppId)
+        if (fromIdx !== -1 && toIdx !== -1) {
+            const moved = newOrder.splice(fromIdx, 1)[0]
+            newOrder.splice(toIdx, 0, moved)
+            Config.options.dock.pinnedApps = newOrder
+        }
     }
 
-    // Private drag helpers (prefix _ by convention)
-
+    dragActive        = false
+    draggedAppId      = ""
+    draggedIndex      = -1
+    dropTargetIndex   = -1
+    willUnpin         = false
+    buttonHovered     = false
+    lastHoveredButton = null
+}
+    // Returns the ghost center point clamped within _clampBounds().
     function _clampGhostCenter(x, y) {
-        const pos = _dockClampBounds()
+        const b = _clampBounds()
         return Qt.point(
-            Math.max(pos.minX, Math.min(x, pos.maxX)),
-            Math.max(pos.minY, Math.min(y, pos.maxY))
+            Math.max(b.x0, Math.min(x, b.x1)),
+            Math.max(b.y0, Math.min(y, b.y1))
         )
     }
 
-    function _dockClampBounds() {
-        switch (GlobalStates.dockEffectivePosition) {
-            case "top":    return { minX: -20, maxX: root.width + 15, minY:  15, maxY: root.height - 10 }
-            case "left":   return { minX:  15, maxX: root.width - 10, minY: -20, maxY: root.height + 15 }
-            case "right":  return { minX:  10, maxX: root.width - 15, minY: -20, maxY: root.height + 15 }
-            default:       return { minX: -20, maxX: root.width + 15, minY:  10, maxY: root.height - 15 } // bottom
+    // Computes the axis-aligned bounding box for the ghost center point,
+    // expressed in root's local coordinate space.
+    //
+    // For horizontal docks (top / bottom):
+    //   X — free along the dock length with a small overshoot allowance.
+    //   Y — constrained so the ghost never visually exits the panel window.
+    //       Since root is vertically centred inside the panel, the usable
+    //       Y range extends ±offsetY beyond root's own bounds.
+    //       halfH is subtracted/added so the ghost edges, not its centre,
+    //       align with the panel edges.
+    //
+    // For vertical docks (left / right): same logic on the X axis.
+    function _clampBounds() {
+        const halfW     = dragGhost.width  / 2
+        const halfH     = dragGhost.height / 2
+        const overshoot = 20
+        const pos       = GlobalStates.dockEffectivePosition
+
+        if (pos === "bottom" || pos === "top") {
+            const offsetY = (panelThickness - root.height) / 2
+            return {
+                x0: -overshoot,
+                x1: root.width + overshoot,
+                y0: -offsetY + halfH,
+                y1:  offsetY + root.height - halfH
+            }
+        } else {
+            const offsetX = (panelThickness - root.width) / 2
+            return {
+                x0: -offsetX + halfW,
+                x1:  offsetX + root.width - halfW,
+                y0: -overshoot,
+                y1:  root.height + overshoot
+            }
         }
     }
 
+    // Returns true when the ghost center is more than `margin` px outside
+    // the full panel bounds (including the space occupied by padding/gaps).
+    // Triggers unpin when the user drags an icon well away from the dock.
     function _isOutsideDock(center) {
-        const margin = 40
-        return center.x < -margin || center.x > root.width  + margin
-            || center.y < -margin || center.y > root.height + margin
+        const margin  = 40
+        const offsetY = (panelThickness - root.height) / 2
+        const offsetX = (panelThickness - root.width)  / 2
+
+        return isVertical
+            ? (center.x < -(offsetX + margin) || center.x > root.width  + offsetX + margin
+            || center.y < -margin             || center.y > root.height + margin)
+            : (center.x < -margin             || center.x > root.width  + margin
+            || center.y < -(offsetY + margin) || center.y > root.height + offsetY + margin)
     }
 
+    // Returns the position (in root-local coordinates) of the leading edge
+    // of the SEPARATOR item, which marks the boundary between the pinned
+    // and unpinned zones. Falls back to the full dock length when no
+    // separator is found in the layout.
     function _pinnedZoneEnd() {
         for (let i = 0; i < layout.children.length; i++) {
             const child = layout.children[i]
-            if (child.appToplevel?.appId === "SEPARATOR") {
-                const p = child.mapToItem(root, 0, 0)
-                return root.isVertical ? p.y : p.x
-            }
+            if (child.appToplevel?.appId !== "SEPARATOR") continue
+            const p = child.mapToItem(root, 0, 0)
+            return isVertical ? p.y : p.x
         }
         return Config.options.dock.pinnedApps.length > 0
-            ? (root.isVertical ? root.height : root.width)
+            ? (isVertical ? root.height : root.width)
             : 60
     }
 
+    // Returns true when the ghost has crossed into the unpinned zone,
+    // i.e. past the separator along the dock's primary axis.
     function _isPastSeparator(center) {
         const end = _pinnedZoneEnd()
-        return root.isVertical ? center.y > end : center.x > end
+        return isVertical ? center.y > end : center.x > end
     }
 
-    function _ensureDraggedInOrder() {
-        if (!root.liveOrder.includes(root.draggedAppId)) {
-            root.liveOrder = [...root.liveOrder, root.draggedAppId]
-        }
-    }
-
-    function _removeTransientFromOrder() {
-        if (!Config.options.dock.pinnedApps.includes(root.draggedAppId)) {
-            root.liveOrder = root.liveOrder.filter(id => id !== root.draggedAppId)
-        }
-    }
-
-    function _reorderByHover(center) {
-        const hoveredId = _findHoveredAppId(center)
-        if (!hoveredId) return
-
-        const withoutDragged = root.liveOrder.filter(id => id !== root.draggedAppId)
-        const targetIdx      = withoutDragged.indexOf(hoveredId)
-        if (targetIdx === -1) return
-
-        const oldIdx   = root.liveOrder.indexOf(root.draggedAppId)
-        const hoverIdx = root.liveOrder.indexOf(hoveredId)
-        const insertAt = (oldIdx === -1 || oldIdx < hoverIdx) ? targetIdx + 1 : targetIdx
-
-        withoutDragged.splice(insertAt, 0, root.draggedAppId)
-        root.liveOrder = withoutDragged
-    }
-
-    function _findHoveredAppId(center) {
+    // Iterates layout children to find which pinned slot the ghost is over
+    // and updates dropTargetIndex accordingly.
+    // Uses a 30% inset dead zone to avoid flip-flopping at slot boundaries.
+    function _updateDropTarget(center) {
         for (let i = 0; i < layout.children.length; i++) {
             const child = layout.children[i]
-            if (!child.appToplevel) continue
-            const id = child.appToplevel.appId
-            if (id === root.draggedAppId || id === "SEPARATOR") continue
-            if (!root.liveOrder.includes(id)) continue
+            const id    = child.appToplevel?.appId
+            if (!id || id === "SEPARATOR") continue
 
-            const p = child.mapToItem(root, 0, 0)
-            if (center.x >= p.x && center.x <= p.x + child.width &&
-                center.y >= p.y && center.y <= p.y + child.height) {
-                return id
+            const pinnedApps = Config.options.dock.pinnedApps
+            const idx = pinnedApps.indexOf(id)
+            if (idx === -1) continue
+
+            const p        = child.mapToItem(root, 0, 0)
+            const insetX   = child.width  * 0.30
+            const insetY   = child.height * 0.30
+
+            if (center.x >= p.x + insetX && center.x <= p.x + child.width  - insetX &&
+                center.y >= p.y + insetY && center.y <= p.y + child.height - insetY) {
+                if (idx !== dropTargetIndex)
+                    dropTargetIndex = idx
+                return
             }
         }
-        return ""
     }
 
     // ── Connections ───────────────────────────────────────────────
 
     Connections {
         target: TaskbarApps
-        function onAppsChanged() { root.updateModel() }
+        function onAppsChanged() {
+            root.suppressAnimation = true
+            root.draggedIndex = -1
+            root.dropTargetIndex = -1
+            root.updateModel()
+            Qt.callLater(() => { root.suppressAnimation = false })
+        }
     }
 
     Connections {
@@ -232,78 +305,91 @@ Item {
     implicitWidth:  layout.implicitWidth
     implicitHeight: layout.implicitHeight
 
-
     // ── Drag ghost ────────────────────────────────────────────────
+
     DockDragGhost {
         id: dragGhost
-        visible:       root.dragActive
-        draggedAppId:  root.draggedAppId
-        willUnpin:     root.willUnpin
+        visible:      root.dragActive
+        draggedAppId: root.draggedAppId
+        willUnpin:    root.willUnpin
         z: 10
     }
 
-    // ── Main layout ───────────────────────────────────────────────
-    GridLayout {
+    // ── Main layout ────────────────────────────────────────────────
+
+    Flow {
         id: layout
         anchors.centerIn: parent
-        flow:         root.isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
-        rows:         root.isVertical ? -1 : 1
-        columns:      root.isVertical ?  1 : -1
-        columnSpacing: dockPadding
-        rowSpacing:    dockPadding 
 
-        // Pin button
+        flow: root.isVertical ? Flow.TopToBottom : Flow.LeftToRight
+        spacing: dockPadding
+        padding: dockPadding
+
+        add: Transition {
+            NumberAnimation {
+                property: "opacity"
+                from: 0; to: 1
+                duration: 150
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                property: "scale"
+                from: 0.7; to: 1
+                duration: 150
+                easing.type: Easing.OutCubic
+            }
+        }
+
+        // Pin Button
         DockActionButton {
-            symbolName:       "keep"
+            symbolName: "keep"
             toggled:    root.isPinned
             isVertical: root.isVertical
             onClicked:  root.togglePinRequested()
         }
 
-        // Separator — pinned / running apps
+        // Separator 1
         Item {
-            visible:    root.processedApps.length > 0
-            Layout.preferredWidth:  root.isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1
-            Layout.preferredHeight: root.isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83
-            Layout.alignment: Qt.AlignCenter
-            DockSeparator {
-                anchors.fill: parent
-            }
+            visible: root.processedApps.length > 0
+            width:   root.isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1
+            height:  root.isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83
+            DockSeparator { anchors.fill: parent }
         }
 
-        // App buttons
+        // Apps — model never changes during drag; shifts are visual-only via transform.
         Repeater {
+            id: appsRepeater
             model: ScriptModel {
                 objectProp: "uniqueKey"
-                values: root.dragActive ? root.buildDragModel() : root.processedApps
+                values: root.processedApps
             }
             delegate: DockAppButton {
                 required property var modelData
+                required property int index
                 appToplevel:  modelData.appData
                 appListRoot:  root
+                delegateIndex: index
             }
         }
 
-        // Second separator
+        // Separator 2
         Item {
-            visible:    root.processedApps.length > 0
-            Layout.preferredWidth:  root.isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1
-            Layout.preferredHeight: root.isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83
-
-            DockSeparator {
-                anchors.fill: parent
-            }
+            visible: root.processedApps.length > 0
+            width:   root.isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1
+            height:  root.isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83
+            DockSeparator { anchors.fill: parent }
         }
 
         // Overview button
         DockActionButton {
-            symbolName:       "apps"
+            symbolName: "apps"
             isVertical: root.isVertical
             onClicked:  GlobalStates.overviewOpen = !GlobalStates.overviewOpen
         }
     }
 
-    // ── Preview popup ─────────────────────────────────────────────
+    // ── Preview Popup  ───────────────────────────────────────────────
+
     DockPreviewPopup {
         id: previewPopup
         dockRoot:    root
