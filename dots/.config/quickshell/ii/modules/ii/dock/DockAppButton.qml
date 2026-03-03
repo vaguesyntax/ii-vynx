@@ -12,66 +12,57 @@ DockButton {
     id: root
     property var appToplevel
     property var appListRoot
-    // Index of this delegate within the Repeater model.
-    // Used to compute the shift transform during drag.
     property int delegateIndex: -1
     property int lastFocused: -1
     property real iconSize: (Config.options?.dock.height ?? 60) * 0.85
-    property real countDotWidth:  (Config.options?.dock.height ?? 60) * 0.17
+    property real countDotWidth: (Config.options?.dock.height ?? 60) * 0.17
     property real countDotHeight: (Config.options?.dock.height ?? 60) * 0.07
-
     property bool appIsActive: appToplevel && appToplevel.toplevels.find(t => t.activated === true) !== undefined
     property int _desktopEntriesUpdateTrigger: 0
-
     readonly property bool isSeparator: appToplevel && appToplevel.appId === "SEPARATOR"
     property var desktopEntry: appToplevel ? DesktopEntries.heuristicLookup(appToplevel.appId) : null
     property bool isVertical: appListRoot ? appListRoot.isVertical : false
-
     readonly property bool isDragging: appListRoot?.draggedAppId === appToplevel?.appId
+    property real dragAxisOffset: 0
+    z: isDragging ? 100 : 0
 
     // ── Shift transform ───────────────────────────────────────────
-    // How many pixels this delegate should visually shift to make room
-    // for the dragged icon. The model order never changes during drag;
-    // only this visual offset moves, animated via Behavior.
     readonly property real shiftOffset: {
         if (!appListRoot || appListRoot.draggedIndex < 0) return 0
         if (delegateIndex === appListRoot.draggedIndex) return 0
 
-        const draggedAppId  = appListRoot.draggedAppId
-        const draggedPinned = Config.options.dock.pinnedApps.includes(draggedAppId)
-        const myAppId       = appToplevel?.appId ?? ""
-        const myPinned      = Config.options.dock.pinnedApps.includes(myAppId)
-        const dragIdx       = appListRoot.draggedIndex
-        const dropIdx       = appListRoot.dropTargetIndex
-        const myIdx         = delegateIndex
-        const step          = root.buttonSize + (appListRoot.dockPadding ?? 0)
+        const myAppId  = appToplevel?.appId ?? ""
+        const myPinned = Config.options.dock.pinnedApps.includes(myAppId)
+        if (!myPinned) return 0
 
-        if (draggedPinned) {
-            // Reordering within pinned zone — only pinned apps shift, separator stays
-            if (isSeparator) return 0
-            if (!myPinned) return 0
+        const dragIdx = appListRoot.draggedIndex
+        const dropIdx = appListRoot.dropTargetIndex
+        const myIdx   = delegateIndex
+        const step    = root.buttonSize + (appListRoot.dockPadding ?? 0)
+
+        if (appListRoot.dragIsOriginallyPinned) {
             if (dragIdx < dropIdx && myIdx > dragIdx && myIdx <= dropIdx) return -step
-            if (dragIdx > dropIdx && myIdx >= dropIdx && myIdx < dragIdx) return  step
-            return 0
-        } else {
-            // Dragging unpinned into pinned zone —
-            // separator AND unpinned apps shift right to make room
-            if (myPinned) return 0
-            if (myIdx > dropIdx) return step
+            if (dragIdx > dropIdx && myIdx >= dropIdx && myIdx < dragIdx) return step
             return 0
         }
+        if (myIdx >= dropIdx) return step
+        return 0
     }
 
     transform: Translate {
-        x: root.isVertical ? 0 : root.shiftOffset
-        y: root.isVertical ? root.shiftOffset : 0
+        x: root.isVertical
+            ? 0
+            : (root.isDragging ? root.dragAxisOffset : root.shiftOffset)
+        y: root.isVertical
+            ? (root.isDragging ? root.dragAxisOffset : root.shiftOffset)
+            : 0
 
         Behavior on x {
-            enabled: !appListRoot?.suppressAnimation
+            enabled: !root.isDragging && !appListRoot?.suppressAnimation
             NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
         }
         Behavior on y {
-            enabled: !appListRoot?.suppressAnimation
+            enabled: !root.isDragging && !appListRoot?.suppressAnimation
             NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
         }
     }
@@ -86,20 +77,12 @@ DockButton {
     }
 
     enabled: !isSeparator
-
-    width:  isSeparator ? (isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1) : root.buttonSize
+    width: isSeparator ? (isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1) : root.buttonSize
     height: isSeparator ? (isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83) : root.buttonSize
-    opacity: isDragging ? 0.0 : 1.0
-
-    Behavior on opacity {
-        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(root)
-    }
 
     Loader {
         active: isSeparator
-        anchors {
-            fill: parent
-        }
+        anchors.fill: parent
         sourceComponent: DockSeparator {}
     }
 
@@ -107,8 +90,7 @@ DockButton {
         id: mainMouseArea
         anchors.fill: parent
         hoverEnabled: true
-        preventStealing: true
-
+        preventStealing: root.isDragging
         property real pressedX: 0
         property real pressedY: 0
         property bool dragStarted: false
@@ -124,6 +106,7 @@ DockButton {
             }
             lastFocused = appToplevel.toplevels.length - 1
         }
+
         onExited: {
             if (appListRoot?.lastHoveredButton === root)
                 appListRoot.buttonHovered = false
@@ -138,22 +121,31 @@ DockButton {
 
         onPositionChanged: (mouse) => {
             if (!pressed || root.isSeparator || !root.appToplevel) return
+
             if (!dragStarted) {
                 const dist = Math.abs(mouse.x - pressedX) + Math.abs(mouse.y - pressedY)
                 if (dist < 10) return
                 dragStarted = true
                 wasDragging = true
-                // Pass delegateIndex so DockApps can track position by index.
-                appListRoot.startDrag(root.appToplevel.appId, root, root.delegateIndex)
+                appListRoot.startDrag(root.appToplevel.appId, root.delegateIndex)
             }
+
             if (dragStarted) {
                 const pos = mapToItem(appListRoot, mouse.x, mouse.y)
-                appListRoot.moveDragGhost(pos.x, pos.y)
+                root.dragAxisOffset = root.isVertical
+                    ? (pos.y - root.y - root.height / 2)
+                    : (pos.x - root.x - root.width / 2)
+
+                // ← importante: aggiorna dragDelta per il calcolo relativo
+                appListRoot.dragDelta = root.dragAxisOffset
+
+                appListRoot.moveDrag(pos.x, pos.y)
             }
         }
 
         onReleased: {
             if (dragStarted) {
+                root.dragAxisOffset = 0
                 appListRoot.endDrag()
                 dragStarted = false
             }
@@ -237,20 +229,14 @@ DockButton {
                 id: dotsLoader
                 visible: root.appToplevel && root.appToplevel.toplevels.length > 0
                 sourceComponent: root.isVertical ? columnDots : rowDots
-
                 state: GlobalStates.dockEffectivePosition
-
                 states: [
                     State {
                         name: "bottom"
                         AnchorChanges {
                             target: dotsLoader
                             anchors.top: parent.bottom
-                            anchors.bottom: undefined
-                            anchors.left: undefined
-                            anchors.right: undefined
                             anchors.horizontalCenter: iconImageLoader.horizontalCenter
-                            anchors.verticalCenter: undefined
                         }
                         PropertyChanges { target: dotsLoader; anchors.topMargin: appListRoot.dockPadding / 2 - (root.countDotHeight + root.countDotWidth) / 4 }
                     },
@@ -259,11 +245,7 @@ DockButton {
                         AnchorChanges {
                             target: dotsLoader
                             anchors.bottom: parent.top
-                            anchors.top: undefined
-                            anchors.left: undefined
-                            anchors.right: undefined
                             anchors.horizontalCenter: iconImageLoader.horizontalCenter
-                            anchors.verticalCenter: undefined
                         }
                         PropertyChanges { target: dotsLoader; anchors.bottomMargin: appListRoot.dockPadding / 2 - (root.countDotHeight + root.countDotWidth) / 4 }
                     },
@@ -272,10 +254,6 @@ DockButton {
                         AnchorChanges {
                             target: dotsLoader
                             anchors.right: parent.left
-                            anchors.left: undefined
-                            anchors.top: undefined
-                            anchors.bottom: undefined
-                            anchors.horizontalCenter: undefined
                             anchors.verticalCenter: iconImageLoader.verticalCenter
                         }
                         PropertyChanges { target: dotsLoader; anchors.rightMargin: appListRoot.dockPadding / 2 - root.countDotHeight / 2 }
@@ -285,10 +263,6 @@ DockButton {
                         AnchorChanges {
                             target: dotsLoader
                             anchors.left: parent.right
-                            anchors.right: undefined
-                            anchors.top: undefined
-                            anchors.bottom: undefined
-                            anchors.horizontalCenter: undefined
                             anchors.verticalCenter: iconImageLoader.verticalCenter
                         }
                         PropertyChanges { target: dotsLoader; anchors.leftMargin: appListRoot.dockPadding / 2 - root.countDotHeight / 2 }
@@ -305,15 +279,11 @@ DockButton {
                         delegate: Rectangle {
                             required property int index
                             radius: Appearance.rounding.full
-                            implicitWidth:  root.appToplevel.toplevels.length <= 3 ? root.countDotWidth : root.countDotHeight
+                            implicitWidth: root.appToplevel.toplevels.length <= 3 ? root.countDotWidth : root.countDotHeight
                             implicitHeight: root.countDotHeight
                             color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
-                            Behavior on color {
-                                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root)
-                            }
-                            Behavior on implicitWidth {
-                                animation: Appearance.animation.elementMove.numberAnimation.createObject(root)
-                            }
+                            Behavior on color { animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root) }
+                            Behavior on implicitWidth { animation: Appearance.animation.elementMove.numberAnimation.createObject(root) }
                         }
                     }
                 }
@@ -328,15 +298,11 @@ DockButton {
                         delegate: Rectangle {
                             required property int index
                             radius: Appearance.rounding.full
-                            implicitWidth:  root.countDotHeight
+                            implicitWidth: root.countDotHeight
                             implicitHeight: root.appToplevel.toplevels.length <= 3 ? root.countDotWidth : root.countDotHeight
                             color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
-                            Behavior on color {
-                                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root)
-                            }
-                            Behavior on implicitHeight {
-                                animation: Appearance.animation.elementMove.numberAnimation.createObject(root)
-                            }
+                            Behavior on color { animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root) }
+                            Behavior on implicitHeight { animation: Appearance.animation.elementMove.numberAnimation.createObject(root) }
                         }
                     }
                 }
