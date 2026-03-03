@@ -3,5 +3,5 @@ import QtQuick
 
 Rectangle {
     anchors.fill: parent
-    color: Appearance.colors.colOutlineVariant
+    color: "yellow" //Appearance.colors.colOutlineVariant
 }

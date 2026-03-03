@@ -23,39 +23,37 @@ DockButton {
     property var desktopEntry: appToplevel ? DesktopEntries.heuristicLookup(appToplevel.appId) : null
     property bool isVertical: appListRoot ? appListRoot.isVertical : false
     readonly property bool isDragging: appListRoot?.draggedAppId === appToplevel?.appId
-    property real dragAxisOffset: 0
+
+    property real dragAxisOffsetX: 0
+    property real dragAxisOffsetY: 0
+
     z: isDragging ? 100 : 0
 
-    // ── Shift transform ───────────────────────────────────────────
     readonly property real shiftOffset: {
         if (!appListRoot || appListRoot.draggedIndex < 0) return 0
         if (delegateIndex === appListRoot.draggedIndex) return 0
-
-        const myAppId  = appToplevel?.appId ?? ""
-        const myPinned = Config.options.dock.pinnedApps.includes(myAppId)
-        if (!myPinned) return 0
 
         const dragIdx = appListRoot.draggedIndex
         const dropIdx = appListRoot.dropTargetIndex
         const myIdx   = delegateIndex
         const step    = root.buttonSize + (appListRoot.dockPadding ?? 0)
 
-        if (appListRoot.dragIsOriginallyPinned) {
-            if (dragIdx < dropIdx && myIdx > dragIdx && myIdx <= dropIdx) return -step
-            if (dragIdx > dropIdx && myIdx >= dropIdx && myIdx < dragIdx) return step
+        if (dropIdx < 0) return 0
+
+        if (isSeparator) {
+            if (dragIdx < myIdx && dropIdx >= myIdx) return -step
+            if (dragIdx > myIdx && dropIdx <= myIdx) return  step
             return 0
         }
-        if (myIdx >= dropIdx) return step
+
+        if (dragIdx < dropIdx && myIdx > dragIdx && myIdx <= dropIdx) return -step
+        if (dragIdx > dropIdx && myIdx >= dropIdx && myIdx < dragIdx) return  step
         return 0
     }
 
     transform: Translate {
-        x: root.isVertical
-            ? 0
-            : (root.isDragging ? root.dragAxisOffset : root.shiftOffset)
-        y: root.isVertical
-            ? (root.isDragging ? root.dragAxisOffset : root.shiftOffset)
-            : 0
+        x: root.isDragging ? root.dragAxisOffsetX : (root.isVertical ? 0 : root.shiftOffset)
+        y: root.isDragging ? root.dragAxisOffsetY : (root.isVertical ? root.shiftOffset : 0)
 
         Behavior on x {
             enabled: !root.isDragging && !appListRoot?.suppressAnimation
@@ -77,7 +75,7 @@ DockButton {
     }
 
     enabled: !isSeparator
-    width: isSeparator ? (isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1) : root.buttonSize
+    width:  isSeparator ? (isVertical ? (Config.options?.dock.height ?? 60) * 0.83 : 1) : root.buttonSize
     height: isSeparator ? (isVertical ? 1 : (Config.options?.dock.height ?? 60) * 0.83) : root.buttonSize
 
     Loader {
@@ -131,21 +129,17 @@ DockButton {
             }
 
             if (dragStarted) {
-                const pos = mapToItem(appListRoot, mouse.x, mouse.y)
-                root.dragAxisOffset = root.isVertical
-                    ? (pos.y - root.y - root.height / 2)
-                    : (pos.x - root.x - root.width / 2)
-
-                // ← importante: aggiorna dragDelta per il calcolo relativo
-                appListRoot.dragDelta = root.dragAxisOffset
-
-                appListRoot.moveDrag(pos.x, pos.y)
+                const posInList = mapToItem(appListRoot, mouse.x, mouse.y)
+                root.dragAxisOffsetX = posInList.x - (root.x + root.width  / 2)
+                root.dragAxisOffsetY = posInList.y - (root.y + root.height / 2)
+                appListRoot.moveDrag(posInList.x, posInList.y)
             }
         }
 
         onReleased: {
             if (dragStarted) {
-                root.dragAxisOffset = 0
+                root.dragAxisOffsetX = 0
+                root.dragAxisOffsetY = 0
                 appListRoot.endDrag()
                 dragStarted = false
             }
@@ -282,8 +276,8 @@ DockButton {
                             implicitWidth: root.appToplevel.toplevels.length <= 3 ? root.countDotWidth : root.countDotHeight
                             implicitHeight: root.countDotHeight
                             color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
-                            Behavior on color { animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root) }
-                            Behavior on implicitWidth { animation: Appearance.animation.elementMove.numberAnimation.createObject(root) }
+                            Behavior on color { enabled: !appListRoot?.suppressAnimation; animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root) }
+                            Behavior on implicitWidth { enabled: !appListRoot?.suppressAnimation; animation: Appearance.animation.elementMove.numberAnimation.createObject(root) }
                         }
                     }
                 }
@@ -301,8 +295,8 @@ DockButton {
                             implicitWidth: root.countDotHeight
                             implicitHeight: root.appToplevel.toplevels.length <= 3 ? root.countDotWidth : root.countDotHeight
                             color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
-                            Behavior on color { animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root) }
-                            Behavior on implicitHeight { animation: Appearance.animation.elementMove.numberAnimation.createObject(root) }
+                            Behavior on color { enabled: !appListRoot?.suppressAnimation; animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(root) }
+                            Behavior on implicitHeight { enabled: !appListRoot?.suppressAnimation; animation: Appearance.animation.elementMove.numberAnimation.createObject(root) }
                         }
                     }
                 }
