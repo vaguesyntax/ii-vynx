@@ -1,5 +1,5 @@
 #!/usr/bin/env fish
-
+# An empty function with docstrings, available in English -> https://github.com/djOB2EOTWQW1/fish-functions
 #------------------------------------------------#
 # Вставить директории для игр через "\" Пример:  #
 #   "$HOME/.NSFW/Games/HaremHotel" \             #
