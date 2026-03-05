@@ -19,21 +19,16 @@ DockButton {
 
     readonly property bool isSeparator: appToplevel.appId === "SEPARATOR"
     property var desktopEntry: DesktopEntries.heuristicLookup(appToplevel.appId)
-
-    Timer {
-        // Retry looking up the desktop entry if it failed (e.g. database not loaded yet)
-        property int retryCount: 5
-        interval: 1000
-        running: !root.isSeparator && root.desktopEntry === null && retryCount > 0
-        repeat: true
-        onTriggered: {
-            retryCount--;
-            root.desktopEntry = DesktopEntries.heuristicLookup(root.appToplevel.appId);
-        }
-    }
-
     enabled: !isSeparator
     implicitWidth: isSeparator ? 1 : implicitHeight - topInset - bottomInset
+
+    Connections {
+        target: DesktopEntries
+
+        function onApplicationsChanged() {
+            root.desktopEntry = DesktopEntries.heuristicLookup(appToplevel.appId);
+        }
+    }
 
     Loader {
         active: isSeparator
@@ -133,8 +128,8 @@ DockButton {
                     delegate: Rectangle {
                         required property int index
                         radius: Appearance.rounding.full
-                        implicitWidth: (appToplevel.toplevels.length <= 3) ? 
-                            root.countDotWidth : root.countDotHeight // Circles when too many
+                        implicitWidth: (appToplevel.toplevels.length <= 3) ?
+                        root.countDotWidth : root.countDotHeight // Circles when too many
                         implicitHeight: root.countDotHeight
                         color: appIsActive ? Appearance.colors.colPrimary : ColorUtils.transparentize(Appearance.colors.colOnLayer0, 0.4)
                     }
