@@ -165,6 +165,7 @@ Singleton {
             }
 
             property JsonObject background: JsonObject {
+                property bool enable: true // if someone wants to use an external wallpaper manager, note that its not fully tested but it should just disable background.qml from being loaded
                 property JsonObject widgets: JsonObject {
                     property JsonObject clock: JsonObject {
                         property bool enable: true

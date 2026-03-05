@@ -42,7 +42,7 @@ Scope {
     }
 
     PanelLoader { extraCondition: !Config.options.bar.vertical && barExtraCondition; component: Bar {} }
-    PanelLoader { component: Background {} }
+    PanelLoader { extraCondition: Config.options.background.enable; component: Background {} }
     PanelLoader { component: Cheatsheet {} }
     PanelLoader { extraCondition: Config.options.dock.enable; component: Dock {} }
     PanelLoader { component: Lock {} }
