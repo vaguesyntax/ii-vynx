@@ -9,7 +9,6 @@ settings_paths=(
     "${XDG_CONFIG_HOME:-$HOME/.config}/Code - Insiders/User/settings.json"
     "${XDG_CONFIG_HOME:-$HOME/.config}/Cursor/User/settings.json"
     "${XDG_CONFIG_HOME:-$HOME/.config}/Antigravity/User/settings.json"
-    
     # Add more paths as needed for other forks
 )
 

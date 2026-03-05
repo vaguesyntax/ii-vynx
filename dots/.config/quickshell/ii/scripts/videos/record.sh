@@ -12,7 +12,7 @@ CUSTOM_PATH=$(jq -r "$JSON_PATH" "$CONFIG_FILE" 2>/dev/null)
 
 RECORDING_DIR=""
 
-TIMER_PID=""  
+TIMER_PID=""
 SECONDS_ELAPSED=-1
 
 if [[ -n "$CUSTOM_PATH" ]]; then
@@ -26,7 +26,7 @@ start_timer() {
         kill "$TIMER_PID" 2>/dev/null
     fi
 
-    ( 
+    (
         while true; do
             SECONDS_ELAPSED=$((SECONDS_ELAPSED + 1))
             jq ".screenRecord.seconds = $SECONDS_ELAPSED" "$STATE_FILE" > "${STATE_FILE}.tmp" && mv "${STATE_FILE}.tmp" "$STATE_FILE"
@@ -76,7 +76,7 @@ cd "$RECORDING_DIR" || exit
 # parse --region <value> without modifying $@ so other flags like --fullscreen still work
 ARGS=("$@")
 MANUAL_REGION=""
-SOUND_FLAG=0
+SOUND_FLAG=1
 FULLSCREEN_FLAG=0
 for ((i=0;i<${#ARGS[@]};i++)); do
     if [[ "${ARGS[i]}" == "--region" ]]; then
@@ -105,7 +105,7 @@ else
         if [[ $SOUND_FLAG -eq 1 ]]; then
             wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4' --audio="$(getaudiooutput)"
         else
-            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4' 
+            wf-recorder -o "$(getactivemonitor)" --pixel-format yuv420p -f './recording_'"$(getdate)"'.mp4'
         fi
     else
         # If a manual region was provided via --region, use it; otherwise run slurp as before.

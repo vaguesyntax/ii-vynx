@@ -21,7 +21,7 @@ Rectangle {
     property string nsfwPath
 
     property real availableWidth: parent.width
-    property real rowTooShortThreshold: 190
+    property real rowTooShortThreshold: 350
     property real imageSpacing: 5
     property real responsePadding: 5
 

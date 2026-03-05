@@ -31,14 +31,27 @@ Item {
 
     Connections {
         target: Booru
+
         function onTagSuggestion(query, suggestions) {
-            root.suggestionQuery = query;
-            root.suggestionList = suggestions;
+            root.suggestionQuery = query
+            root.suggestionList = suggestions
         }
+
         function onRunningRequestsChanged() {
             if (Booru.runningRequests === 0) {
-                root.pullLoading = false;
+                root.pullLoading = false
             }
+        }
+
+        function onResponseFinished() {
+            if (root.responses.length === 0) return
+
+                var last = root.responses[root.responses.length - 1]
+                if (last && last.provider !== "system") {
+                    Qt.callLater(function() {
+                        booruResponseListView.contentY = booruResponseListView.contentY + root.scrollOnNewResponse
+                    })
+                }
         }
     }
 
@@ -173,21 +186,9 @@ Item {
                 z: 0
                 anchors.fill: parent
                 spacing: 10
-                
+
                 touchpadScrollFactor: Config.options.interactions.scrolling.touchpadScrollFactor * 1.4
                 mouseScrollFactor: Config.options.interactions.scrolling.mouseScrollFactor * 1.4
-
-                property int lastResponseLength: 0
-                Connections {
-                    target: root
-                    function onResponsesChanged() {
-                        if (root.responses.length > booruResponseListView.lastResponseLength) {
-                            if (booruResponseListView.lastResponseLength > 0 && root.responses[booruResponseListView.lastResponseLength].provider != "system")
-                                booruResponseListView.contentY = booruResponseListView.contentY + root.scrollOnNewResponse
-                            booruResponseListView.lastResponseLength = root.responses.length
-                        }
-                    }
-                }
 
                 model: ScriptModel {
                     values: root.responses
@@ -326,7 +327,7 @@ Item {
             radius: Appearance.rounding.normal - root.padding
             color: Appearance.colors.colLayer2
             implicitWidth: tagInputField.implicitWidth
-            implicitHeight: Math.max(inputFieldRowLayout.implicitHeight + inputFieldRowLayout.anchors.topMargin 
+            implicitHeight: Math.max(inputFieldRowLayout.implicitHeight + inputFieldRowLayout.anchors.topMargin
                 + commandButtonsRow.implicitHeight + commandButtonsRow.anchors.bottomMargin + columnSpacing, 45)
             clip: true
 
@@ -485,7 +486,7 @@ Item {
                     {
                         name: "clear",
                         sendDirectly: true,
-                    }, 
+                    },
                 ]
 
                 ApiInputBoxIndicator { // Tool indicator

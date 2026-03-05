@@ -7,6 +7,9 @@ Item {
     id: root
     required property string iconName
     required property double percentage
+
+     property string valueOverride: ""
+
     property int warningThreshold: 100
     property bool shown: true
     clip: true
@@ -14,6 +17,14 @@ Item {
     implicitWidth: resourceRowLayout.x < 0 ? 0 : resourceRowLayout.implicitWidth
     implicitHeight: Appearance.sizes.barHeight
     property bool warning: percentage * 100 >= warningThreshold
+
+        readonly property string displayText: (valueOverride && valueOverride.length > 0)
+                                         ? valueOverride
+                                         : `${Math.round(percentage * 100).toString()}`
+
+       readonly property string displayTextMax: (valueOverride && valueOverride.length > 0)
+                                            ? "100°C"
+                                            : "100"
 
     RowLayout {
         id: resourceRowLayout
@@ -37,7 +48,7 @@ Item {
                 anchors.centerIn: parent
                 width: resourceCircProg.implicitSize
                 height: resourceCircProg.implicitSize
-                
+
                 MaterialSymbol {
                     anchors.centerIn: parent
                     font.weight: Font.DemiBold
@@ -51,13 +62,14 @@ Item {
 
         Item {
             Layout.alignment: Qt.AlignVCenter
-            implicitWidth: fullPercentageTextMetrics.width
+            implicitWidth: fullTextMetrics.width
             implicitHeight: percentageText.implicitHeight
 
             TextMetrics {
-                id: fullPercentageTextMetrics
-                text: "100"
+                id: fullTextMetrics
+                text: root.displayTextMax
                 font.pixelSize: Appearance.font.pixelSize.small
+                font.family: (Appearance.font && Appearance.font.name ? Appearance.font.name : "")
             }
 
             StyledText {
@@ -65,7 +77,7 @@ Item {
                 anchors.centerIn: parent
                 color: Appearance.colors.colOnLayer1
                 font.pixelSize: Appearance.font.pixelSize.small
-                text: `${Math.round(percentage * 100).toString()}`
+                text: root.displayText
             }
         }
 
@@ -90,3 +102,4 @@ Item {
         }
     }
 }
+

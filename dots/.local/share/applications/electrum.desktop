@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Electrum
+Comment=Lightweight Bitcoin Wallet
+Exec=/home/msi/Applications/electrum-4.7.0-x86_64.appimage
+Icon=/home/msi/.local/share/applications/electrum.png
+Terminal=false
+Type=Application
+Categories=Network;Finance;
+StartupWMClass=electrum

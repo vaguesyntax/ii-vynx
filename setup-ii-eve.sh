@@ -45,7 +45,7 @@ for arg in "$@"; do
             echo "  --no-pull          Skip git pull operation"
             echo "  --no-backup        Skip backup of existing config"
             echo "  --force-install    Skip illogical-impulse check"
-            echo "  --full-install     Install original dots first, then ii-vynx"
+            echo "  --full-install     Install original dots first, then ii-Eve"
             echo "  --no-confirm       Skip all confirmations and checks"
             echo "  -v, --verbose      Enable verbose output"
             exit 1
@@ -94,7 +94,7 @@ ${NC}"
     if [ $? -eq 0 ]; then
         echo ""
         echo -e "${GREEN}✓ Setup completed successfully!${NC}"
-        echo -e "${BLUE}Continuing with ii-vynx installation...${NC}"
+        echo -e "${BLUE}Continuing with ii-Eve installation...${NC}"
         echo ""
     else
         echo -e "${RED}✗ Setup failed! Try installing the dots manually.${NC}"
@@ -104,13 +104,13 @@ ${NC}"
 
 echo ""
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}          ii-vynx setup     ${NC}"
+echo -e "${CYAN}          ii-Eve setup     ${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
 if [ "$NO_CONFIRM" = false ]; then
-    echo -e "${NC}Welcome to the ii-vynx setup script!${NC}"
-    echo -e "${NC}This script will install ii-vynx on your system.${NC}"
+    echo -e "${NC}Welcome to the ii-Eve setup script!${NC}"
+    echo -e "${NC}This script will install ii-Eve on your system.${NC}"
     echo ""
 fi
 
@@ -274,8 +274,8 @@ if [ $? -eq 0 ]; then
     echo -e "${BLUE}Press SUPER+CTRL+R if your shell does not starts.${NC}"
     echo ""
     log_verbose "Script completed successfully"
-    echo -e "${BLUE}Please star this project on GitHub: ${NC}https://github.com/vaguesyntax/ii-vynx"
-    echo -e "${BLUE}And report any issues: ${NC}https://github.com/vaguesyntax/ii-vynx/issues"
+    echo -e "${BLUE}Please star this project on GitHub: ${NC}https://github.com/djOB2EOTWQW1/ii-Eve"
+    echo -e "${BLUE}And report any issues: ${NC}https://github.com/djOB2EOTWQW1/ii-Eve/issues"
     echo ""
 else
     echo -e "${RED}✗ An error occurred while starting Quickshell!${NC}"

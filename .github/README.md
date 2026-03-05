@@ -1,7 +1,10 @@
 <div align="center">
-     <h1>  [ ii-vynx hyprland dots ] </h1>
+     <h1>  [ ii-Eve hyprland dots ] </h1>
 </div>
 
+<div align="center"> 
+
+![](https://img.shields.io/github/last-commit/djOB2EOTWQW1/ii-Eve?&style=for-the-badge&color=8ad7eb&logo=git&logoColor=D9E0EE&labelColor=1E202B)
 
 
 <div align="center"> 
@@ -24,12 +27,11 @@
     <h2>• warning •</h2>
 </div>
 
-These dots are not mine! You can access original dots from : https://github.com/end-4/dots-hyprland. 
+These dots are not mine! You can access original dots from: https://github.com/end-4/dots-hyprland. 
 
-This repo contains my PRs and tweaks to original dots. (mostly up to date with original dots). This is my current daily driver.
-However there can (and will) be bugs **so don't expect stability here**. Use these dots if you know what you are doing.
+The original fork can be taken here: https://github.com/vaguesyntax/ii-vynx
 
-Before saying “these dots are bloated,” keep in mind that there’s a toggle for everything.
+Before you say anything — better don't. This setup is just for me. I don’t care about complaints :d
 
 <div align="center">
     <h2>• installation •</h2>
@@ -39,18 +41,18 @@ Before saying “these dots are bloated,” keep in mind that there’s a toggle
 1. Clone this repository like this:
 
 ```
-git clone https://github.com/vaguesyntax/ii-vynx.git --recurse-submodules
+git clone https://github.com/djOB2EOTWQW1/ii-Eve.git --recurse-submodules
 ```
 
 2. Run the setup script and follow the instructions:
 
 ```
-./setup-ii-vynx.sh
+./setup-ii-eve.sh
 ```
 
 Tip: You can see all flags you can use with `--help`:
 ```
-./setup-ii-vynx.sh --help
+./setup-ii-eve.sh --help
 ```
 
 <div align="center">
@@ -60,17 +62,8 @@ Tip: You can see all flags you can use with `--help`:
 Run the setup script:
 
 ```
-./setup-ii-vynx.sh
+./setup-ii-eve.sh
 ```
-
-<div align="center">
-    <h2>• documentation •</h2>
-</div>
-
-Please refer to [this repository's wiki](https://github.com/vaguesyntax/ii-vynx/wiki) for detailed component descriptions and further information.
-
-Please refer to [this wiki page about limitations](https://github.com/vaguesyntax/ii-vynx/wiki/Known-Issues-and-Limitations) to see current bugs, the details of known issues about this repo and limitations of hyprscrolling plugin implementation.
-
 
 <div align="center">
     <h2>• credits •</h2>
@@ -84,9 +77,7 @@ Please refer to [this wiki page about limitations](https://github.com/vaguesynta
 
 **[Hyprland](https://hypr.land/):** Loves-to-crash wayland compositor
 
-
-**Since you scrolled all the way down here, can I get your star? ⭐**
-
+**[vaguesyntax](https://github.com/vaguesyntax):** Thx you for the fork you made
 
 
 

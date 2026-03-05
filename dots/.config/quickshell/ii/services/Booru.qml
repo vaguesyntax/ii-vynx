@@ -18,6 +18,7 @@ Singleton {
 
     property string failMessage: Translation.tr("That didn't work. Tips:\n- Check your tags and NSFW settings\n- If you don't have a tag in mind, type a page number")
     property var responses: []
+    property int maxResponses: 3
     property int runningRequests: 0
     property var defaultUserAgent: Config.options?.networking?.userAgent || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
     property var providerList: Object.keys(providers).filter(provider => provider !== "system" && providers[provider].api)
@@ -155,7 +156,7 @@ Singleton {
         "gelbooru": {
             "name": "Gelbooru",
             "url": "https://gelbooru.com",
-            "api": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1",
+            "api": "https://gelbooru.com/index.php?page=dapi&s=post&q=index&json=1&api_key=&user_id=",
             "description": Translation.tr("The hentai one | Great quantity, a lot of NSFW, quality varies wildly"),
             "mapFunc": (response) => {
                 response = response.post
@@ -177,7 +178,7 @@ Singleton {
                     }
                 })
             },
-            "tagSearchTemplate": "https://gelbooru.com/index.php?page=dapi&s=tag&q=index&json=1&orderby=count&limit=10&name_pattern={{query}}%",
+            "tagSearchTemplate": "https://gelbooru.com/index.php?page=dapi&s=tag&q=index&json=1&orderby=count&limit=10&name_pattern={{query}}%&api_key=&user_id=",
             "tagMapFunc": (response) => {
                 return response.tag.map(item => {
                     return {
@@ -297,14 +298,24 @@ Singleton {
         responses = []
     }
 
+    function addResponse(newResponse) {
+        responses = [...responses, newResponse]
+
+        if (responses.length > maxResponses) {
+            responses = responses.slice(responses.length - maxResponses)
+        }
+
+        responseFinished()
+    }
+
     function addSystemMessage(message) {
-        responses = [...responses, root.booruResponseDataComponent.createObject(null, {
+        root.addResponse(root.booruResponseDataComponent.createObject(null, {
             "provider": "system",
             "tags": [],
             "page": -1,
             "images": [],
             "message": `${message}`
-        })]
+        }))
     }
 
     function constructRequestUrl(tags, nsfw=true, limit=20, page=1) {
@@ -393,16 +404,15 @@ Singleton {
                     newResponse.message = root.failMessage
                 } finally {
                     root.runningRequests--;
-                    root.responses = [...root.responses, newResponse]
+                    root.addResponse(newResponse)
                 }
             }
             else if (xhr.readyState === XMLHttpRequest.DONE) {
                 console.log("[Booru] Request failed with status: " + xhr.status)
                 newResponse.message = root.failMessage
                 root.runningRequests--;
-                root.responses = [...root.responses, newResponse]
+                root.addResponse(newResponse)
             }
-            root.responseFinished()
         }
 
         try {
