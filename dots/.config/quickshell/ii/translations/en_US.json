@@ -611,6 +611,7 @@
   "Affects global time format and background/other clocks.": "Affects global time format and background/other clocks.",
   "Affects only the bar clock widget.": "Affects only the bar clock widget.",
   "Affects only the standalone Date widget in bar layout.": "Affects only the standalone Date widget in bar layout.",
+  "Enable or disable scroll-to-adjust for brightness and volume on bar sides and screen corners": "Enable or disable scroll-to-adjust for brightness and volume on bar sides and screen corners",
   "Layout of the standalone Date widget in bar layout.": "Layout of the standalone Date widget in bar layout.",
   "Orientation": "Orientation",
   "Horizontal": "Horizontal",

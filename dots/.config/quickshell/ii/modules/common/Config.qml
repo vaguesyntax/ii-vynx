@@ -455,6 +455,10 @@ Singleton {
                     property int mouseScrollFactor: 120
                     property int touchpadScrollFactor: 450
                 }
+                property JsonObject valueScroll: JsonObject {
+                    // Scroll-based brightness/volume changes on bar sides and corners.
+                    property bool enable: true
+                }
                 property JsonObject deadPixelWorkaround: JsonObject { // Hyprland leaves out 1 pixel on the right for interactions
                     property bool enable: false
                 }

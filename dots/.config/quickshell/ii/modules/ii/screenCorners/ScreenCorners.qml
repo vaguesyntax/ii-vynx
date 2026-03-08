@@ -95,7 +95,7 @@ Scope {
                         screenCorners.actionForCorner[cornerPanelWindow.corner]();
                     }
                     onScrollDown: {
-                        if (!Config.options.sidebar.cornerOpen.valueScroll)
+                        if (!Config.options.interactions.valueScroll.enable || !Config.options.sidebar.cornerOpen.valueScroll)
                             return;
                         if (cornerWidget.isLeft)
                             cornerPanelWindow.brightnessMonitor.setBrightness(cornerPanelWindow.brightnessMonitor.brightness - 0.05);
@@ -106,7 +106,7 @@ Scope {
                         }
                     }
                     onScrollUp: {
-                        if (!Config.options.sidebar.cornerOpen.valueScroll)
+                        if (!Config.options.interactions.valueScroll.enable || !Config.options.sidebar.cornerOpen.valueScroll)
                             return;
                         if (cornerWidget.isLeft)
                             cornerPanelWindow.brightnessMonitor.setBrightness(cornerPanelWindow.brightnessMonitor.brightness + 0.05);
@@ -117,7 +117,7 @@ Scope {
                         }
                     }
                     onMovedAway: {
-                        if (!Config.options.sidebar.cornerOpen.valueScroll)
+                        if (!Config.options.interactions.valueScroll.enable || !Config.options.sidebar.cornerOpen.valueScroll)
                             return;
                         if (cornerWidget.isLeft)
                             GlobalStates.osdBrightnessOpen = false;

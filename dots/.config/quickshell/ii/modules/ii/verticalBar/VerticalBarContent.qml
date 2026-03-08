@@ -90,9 +90,18 @@ Item { // Bar content region
         height: (root.height - middleSection.height) / 2
         width: Appearance.sizes.verticalBarWidth
 
-        onScrollDown: root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness - 0.05)
-        onScrollUp: root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness + 0.05)
-        onMovedAway: GlobalStates.osdBrightnessOpen = false
+        onScrollDown: {
+            if (!Config.options.interactions.valueScroll.enable) return;
+            root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness - 0.05)
+        }
+        onScrollUp: {
+            if (!Config.options.interactions.valueScroll.enable) return;
+            root.brightnessMonitor.setBrightness(root.brightnessMonitor.brightness + 0.05)
+        }
+        onMovedAway: {
+            if (!Config.options.interactions.valueScroll.enable) return;
+            GlobalStates.osdBrightnessOpen = false
+        }
         onPressed: event => {
             if (event.button === Qt.LeftButton && Config.options.bar.sideClickOpensSidebar)
                 GlobalStates.sidebarLeftOpen = !GlobalStates.sidebarLeftOpen;
@@ -234,9 +243,18 @@ Item { // Bar content region
         }
         implicitWidth: Appearance.sizes.baseVerticalBarWidth
         
-        onScrollDown: Audio.decrementVolume();
-        onScrollUp: Audio.incrementVolume();
-        onMovedAway: GlobalStates.osdVolumeOpen = false;
+        onScrollDown: {
+            if (!Config.options.interactions.valueScroll.enable) return;
+            Audio.decrementVolume();
+        }
+        onScrollUp: {
+            if (!Config.options.interactions.valueScroll.enable) return;
+            Audio.incrementVolume();
+        }
+        onMovedAway: {
+            if (!Config.options.interactions.valueScroll.enable) return;
+            GlobalStates.osdVolumeOpen = false;
+        }
         onPressed: event => {
             if (event.button === Qt.LeftButton && Config.options.bar.sideClickOpensSidebar) {
                 GlobalStates.sidebarRightOpen = !GlobalStates.sidebarRightOpen;

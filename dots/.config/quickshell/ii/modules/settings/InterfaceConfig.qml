@@ -681,6 +681,24 @@ ContentPage {
         }
 
         ContentSubsection {
+            title: Translation.tr("Value scroll")
+            tooltip: Translation.tr("Enable or disable scroll-to-adjust for brightness and volume on bar sides and screen corners")
+
+            ConfigSwitch {
+                buttonIcon: "check"
+                text: Translation.tr("Enable")
+                checked: Config.options.interactions.valueScroll.enable
+                onCheckedChanged: {
+                    Config.options.interactions.valueScroll.enable = checked;
+                }
+
+                StyledToolTip {
+                    text: Translation.tr("Enable or disable scroll-to-adjust for brightness and volume on bar sides and screen corners")
+                }
+            }
+        }
+
+        ContentSubsection {
             title: Translation.tr("Corner open")
             tooltip: Translation.tr("Allows you to open sidebars by clicking or hovering screen corners regardless of bar position")
             ConfigRow {

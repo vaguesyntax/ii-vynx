@@ -740,6 +740,7 @@
   "Affects global time format and background/other clocks.": "Afeta o formato global de hora e relógios do background/outros.",
   "Affects only the bar clock widget.": "Afeta apenas o widget de relógio da barra.",
   "Affects only the standalone Date widget in bar layout.": "Afeta apenas o widget de Data separado no layout da barra.",
+  "Enable or disable scroll-to-adjust for brightness and volume on bar sides and screen corners": "Ativa ou desativa o ajuste por rolagem de brilho e volume nas laterais da barra e nos cantos da tela",
   "Layout of the standalone Date widget in bar layout.": "Disposição do widget de Data separado no layout da barra.",
   "Orientation": "Orientação",
   "Horizontal": "Horizontal",
