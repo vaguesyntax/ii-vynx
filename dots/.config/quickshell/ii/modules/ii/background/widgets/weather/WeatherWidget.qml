@@ -22,7 +22,7 @@ AbstractBackgroundWidget {
     MaterialShape {
         id: backgroundShape
         anchors.fill: parent
-        shape: MaterialShape.Shape.Pill
+        shapeString: Config.options.background.widgets.weather.backgroundShape
         color: Appearance.colors.colPrimaryContainer
         implicitSize: 200
 

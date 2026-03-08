@@ -234,6 +234,7 @@ Singleton {
                         property string placementStrategy: "free" // "free", "leastBusy", "mostBusy"
                         property real x: 400
                         property real y: 100
+                        property string backgroundShape: "Pill"  // Options: MaterialShape.Shape enum values as string
                     }
                 }
                 property string wallpaperPath: ""

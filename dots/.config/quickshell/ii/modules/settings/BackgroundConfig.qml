@@ -838,6 +838,20 @@ ContentPage {
                     Config.options.background.widgets.weather.enable = checked;
                 }
             }
+
+            RippleButtonWithShape {
+                shapeString: Config.options.background.widgets.weather.backgroundShape
+                implicitWidth: 60
+                extraIcon: "edit"
+
+                onClicked: {
+                    weatherBackgroundShapeLoader.active = !weatherBackgroundShapeLoader.active;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Edit the material shape")
+                }
+            }
+
             Item {
                 Layout.fillWidth: true
             }
@@ -865,6 +879,35 @@ ContentPage {
                         value: "mostBusy"
                     },
                 ]
+            }
+        }
+
+        Loader {
+            id: weatherBackgroundShapeLoader
+            active: false
+            visible: active
+            Layout.fillWidth: true
+            sourceComponent: ContentSubsection {
+                title: Translation.tr("Background shape")
+
+                ConfigSelectionArray {
+                    currentValue: Config.options.background.widgets.weather.backgroundShape
+                    onSelected: newValue => {
+                        Config.options.background.widgets.weather.backgroundShape = newValue;
+                    }
+                    options: ([
+                        "Circle", "Square", "Slanted", "Arch", "Arrow", "SemiCircle", "Oval", "Pill", "Triangle",
+                        "Diamond", "ClamShell", "Pentagon", "Gem", "Sunny", "VerySunny", "Cookie4Sided", "Cookie6Sided",
+                        "Cookie7Sided", "Cookie9Sided", "Cookie12Sided", "Ghostish", "Clover4Leaf", "Clover8Leaf", "Burst",
+                        "SoftBurst", "Flower", "Puffy", "PuffyDiamond", "PixelCircle", "Bun", "Heart"
+                    ]).map(icon => {
+                        return {
+                            displayName: "",
+                            shape: icon,
+                            value: icon
+                        }
+                    })
+                }
             }
         }
     }
