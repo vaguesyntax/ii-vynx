@@ -661,5 +661,13 @@ ContentPage {
                 Config.options.bar.tooltips.clickToShow = checked;
             }
         }
+        ConfigSwitch {
+            buttonIcon: "opacity"
+            text: Translation.tr("Hover Opacity")
+            checked: Config.options.bar.tooltips.hoverOpacityOffset === -1
+            onCheckedChanged: {
+                Config.options.bar.tooltips.hoverOpacityOffset = checked ? -1 : 1;
+            }
+        }
     }
 }
