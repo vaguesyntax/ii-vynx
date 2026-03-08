@@ -1,5 +1,6 @@
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Layouts
@@ -78,12 +79,19 @@ Item {
 
     readonly property int barGroupStyle: Config.options.bar.barGroupStyle
     readonly property int barBackgroundStyle: Config.options.bar.barBackgroundStyle
-    property color colBackground: barGroupStyle == 0 ? Appearance.colors.colLayer1 :
-                                   (barGroupStyle == 1 && barBackgroundStyle == 1) ? Appearance.colors.colLayer1 :
-                                   (barGroupStyle == 1) ? Appearance.m3colors.m3surfaceContainerLow :
-                                   "transparent";
-    
-    property color colBackgroundHighlight: Appearance.colors.colPrimary
+    readonly property bool blurEnabled: Config.options.bar.blur.enable
+    readonly property real blurOpacity: Math.max(0, Math.min(1, Config.options.bar.blur.opacity / 100))
+    readonly property color baseBackground: barGroupStyle == 0 ? Appearance.colors.colLayer1 :
+                                           (barGroupStyle == 1 && barBackgroundStyle == 1) ? Appearance.colors.colLayer1 :
+                                           (barGroupStyle == 1) ? Appearance.m3colors.m3surfaceContainerLow :
+                                           "transparent";
+
+    function applyBlurOpacity(color) {
+        return blurEnabled ? ColorUtils.transparentize(color, 1 - blurOpacity) : color;
+    }
+
+    property color colBackground: applyBlurOpacity(baseBackground)
+    property color colBackgroundHighlight: applyBlurOpacity(Appearance.colors.colPrimary)
 
     BarGroup {
         id: wrapper

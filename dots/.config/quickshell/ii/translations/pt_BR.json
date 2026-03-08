@@ -746,5 +746,9 @@
   "Horizontal": "Horizontal",
   "Open sidebars by clicking bar sides": "Abrir barras laterais clicando nas laterais da barra",
   "When enabled, clicking empty left/right areas of the bar toggles sidebars": "Quando ativado, clicar nas areas vazias esquerda/direita da barra alterna as barras laterais",
-  "Hover Opacity": "Opacidade do hover"
+  "Hover Opacity": "Opacidade do hover",
+  "Bar blur": "Desfoque da barra (blur)",
+  "Opacity": "Opacidade",
+  "Blur effect": "Efeito de desfoque (blur)",
+  "Uses compositor blur through bar, sidebars and popups": "Usa o desfoque do compositor na barra, barras laterais e popups"
 }

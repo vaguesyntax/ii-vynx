@@ -11,6 +11,11 @@ LazyLoader {
     property Item hoverTarget
     default property Item contentItem
     property real popupBackgroundMargin: 0
+    readonly property bool blurEnabled: Config.options.bar.blur.enable
+    readonly property real blurOpacity: Math.max(0, Math.min(1, Config.options.bar.blur.opacity / 100))
+    readonly property color popupBackgroundColor: blurEnabled
+        ? ColorUtils.transparentize(Appearance.m3colors.m3surfaceContainer, 1 - blurOpacity)
+        : Appearance.m3colors.m3surfaceContainer
     
     active: hoverTarget && hoverTarget.containsMouse
     
@@ -75,6 +80,7 @@ LazyLoader {
         Rectangle {
             id: popupBackground
             readonly property real margin: 10
+            antialiasing: true
             
             anchors {
                 fill: parent
@@ -86,10 +92,10 @@ LazyLoader {
             
             implicitWidth: root.contentItem.implicitWidth + margin * 2
             implicitHeight: root.contentItem.implicitHeight + margin * 2
-            color: Appearance.m3colors.m3surfaceContainer
+            color: root.popupBackgroundColor
             radius: Appearance.rounding.small
             children: [root.contentItem]
-            border.width: 1
+            border.width: root.blurEnabled ? 0 : 1
             border.color: Appearance.colors.colLayer0Border
         }
     }

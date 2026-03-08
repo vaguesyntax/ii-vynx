@@ -1,5 +1,6 @@
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Controls
@@ -10,6 +11,11 @@ PopupWindow {
     id: root
     required property QsMenuHandle trayItemMenuHandle
     property real popupBackgroundMargin: 0
+    readonly property bool blurEnabled: Config.options.bar.blur.enable
+    readonly property real blurOpacity: Math.max(0, Math.min(1, Config.options.bar.blur.opacity / 100))
+    readonly property color popupBackgroundColor: blurEnabled
+        ? ColorUtils.transparentize(Appearance.colors.colLayer0, 1 - blurOpacity)
+        : Appearance.colors.colLayer0
 
     signal menuClosed
     signal menuOpened(qsWindow: var) // Correct type is QsWindow, but QML does not like that
@@ -60,6 +66,7 @@ PopupWindow {
         Rectangle {
             id: popupBackground
             readonly property real padding: 4
+            antialiasing: true
             anchors {
                 left: parent.left
                 right: parent.right
@@ -69,9 +76,9 @@ PopupWindow {
                 margins: root.padding
             }
 
-            color: Appearance.colors.colLayer0
+            color: root.popupBackgroundColor
             radius: Appearance.rounding.windowRounding
-            border.width: 1
+            border.width: root.blurEnabled ? 0 : 1
             border.color: Appearance.colors.colLayer0Border
             clip: true
 

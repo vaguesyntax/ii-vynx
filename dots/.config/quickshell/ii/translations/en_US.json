@@ -617,5 +617,9 @@
   "Horizontal": "Horizontal",
   "Open sidebars by clicking bar sides": "Open sidebars by clicking bar sides",
   "When enabled, clicking empty left/right areas of the bar toggles sidebars": "When enabled, clicking empty left/right areas of the bar toggles sidebars",
-  "Hover Opacity": "Hover Opacity"
+  "Hover Opacity": "Hover Opacity",
+  "Bar blur": "Bar blur",
+  "Opacity": "Opacity",
+  "Blur effect": "Blur effect",
+  "Uses compositor blur through bar, sidebars and popups": "Uses compositor blur through bar, sidebars and popups"
 }

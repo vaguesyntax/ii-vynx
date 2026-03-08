@@ -38,6 +38,11 @@ Scope {
                 property int monitorIndex: barLoader.monitorIndex
                 property bool hasActiveWindows: false
                 property bool showBarBackground: barRoot.hasActiveWindows && Config.options.bar.barBackgroundStyle === 2 || Config.options.bar.barBackgroundStyle === 1
+                readonly property bool blurEnabled: Config.options.bar.blur.enable
+                readonly property real blurOpacity: Math.max(0, Math.min(1, Config.options.bar.blur.opacity / 100))
+                readonly property color barBackgroundColor: blurEnabled
+                    ? ColorUtils.transparentize(Appearance.colors.colLayer0, 1 - blurOpacity)
+                    : Appearance.colors.colLayer0
 
                 Connections {
                     enabled: Config.options.bar.barBackgroundStyle === 2
@@ -189,7 +194,7 @@ Scope {
                                 }
 
                                 implicitSize: Appearance.rounding.screenRounding
-                                color: showBarBackground ? Appearance.colors.colLayer0 : "transparent"
+                                color: showBarBackground ? barRoot.barBackgroundColor : "transparent"
 
                                 corner: RoundCorner.CornerEnum.TopLeft
                                 states: State {
@@ -208,7 +213,7 @@ Scope {
                                     right: Config.options.bar.bottom ? parent.right : undefined
                                 }
                                 implicitSize: Appearance.rounding.screenRounding
-                                color: showBarBackground ? Appearance.colors.colLayer0 : "transparent"
+                                color: showBarBackground ? barRoot.barBackgroundColor : "transparent"
 
                                 corner: RoundCorner.CornerEnum.BottomLeft
                                 states: State {

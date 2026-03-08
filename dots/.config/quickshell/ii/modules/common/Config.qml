@@ -289,6 +289,11 @@ Singleton {
                 property int barGroupStyle: 0 // 0: Pills | 1: Island (opaque) | 2: Transparent (or maybe line-separated in the future)
                 property string topLeftIcon: "spark" // Options: "distro" or any icon name in ~/.config/quickshell/ii/assets/icons
                 property int barBackgroundStyle: 1 // 0: Transparent | 1: Visible | 2: Adaptive
+                property JsonObject blur: JsonObject {
+                    property bool enable: false
+                    // Bar background alpha (in %), lower values make compositor blur more visible.
+                    property int opacity: 76
+                }
                 property bool verbose: true
                 property bool vertical: false
                 // Allow opening sidebars by clicking the empty left/right areas of the bar.

@@ -264,6 +264,34 @@ ContentPage {
                 ]
             }
         }
+
+        ContentSubsection {
+            title: Translation.tr("Bar blur")
+            tooltip: Translation.tr("Uses compositor blur through bar, sidebars and popups")
+            Layout.fillWidth: true
+
+            ConfigSwitch {
+                buttonIcon: "blur_on"
+                text: Translation.tr("Blur effect")
+                checked: Config.options.bar.blur.enable
+                onCheckedChanged: {
+                    Config.options.bar.blur.enable = checked;
+                }
+            }
+
+            ConfigSpinBox {
+                enabled: Config.options.bar.blur.enable
+                icon: "opacity"
+                text: Translation.tr("Opacity")
+                from: 30
+                to: 100
+                stepSize: 1
+                value: Config.options.bar.blur.opacity
+                onValueChanged: {
+                    Config.options.bar.blur.opacity = value;
+                }
+            }
+        }
     }
     
     ContentSection {

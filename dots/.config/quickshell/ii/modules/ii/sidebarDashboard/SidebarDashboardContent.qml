@@ -1,6 +1,7 @@
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Controls
@@ -28,6 +29,11 @@ Item {
     property bool showNightLightDialog: false
     property bool showWifiDialog: false
     property bool editMode: false
+    readonly property bool blurEnabled: Config.options.bar.blur.enable
+    readonly property real blurOpacity: Math.max(0, Math.min(1, Config.options.bar.blur.opacity / 100))
+    readonly property color sidebarBackgroundColor: blurEnabled
+        ? ColorUtils.transparentize(Appearance.colors.colLayer0, 1 - blurOpacity)
+        : Appearance.colors.colLayer0
 
     Connections {
         target: GlobalStates
@@ -49,12 +55,13 @@ Item {
     }
     Rectangle {
         id: sidebarRightBackground
+        antialiasing: true
 
         anchors.fill: parent
         implicitHeight: parent.height - Appearance.sizes.hyprlandGapsOut * 2
         implicitWidth: sidebarWidth - Appearance.sizes.hyprlandGapsOut * 2
-        color: Appearance.colors.colLayer0
-        border.width: 1
+        color: root.sidebarBackgroundColor
+        border.width: root.blurEnabled ? 0 : 1
         border.color: Appearance.colors.colLayer0Border
         radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
 

@@ -23,6 +23,11 @@ Scope {
     readonly property real widgetHeight: Appearance.sizes.mediaControlsHeight
     property real popupRounding: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
     property list<real> visualizerPoints: []
+    readonly property bool blurEnabled: Config.options.bar.blur.enable
+    readonly property real blurOpacity: Math.max(0, Math.min(1, Config.options.bar.blur.opacity / 100))
+    readonly property color popupBackgroundColor: blurEnabled
+        ? ColorUtils.transparentize(Appearance.colors.colLayer0, 1 - blurOpacity)
+        : Appearance.colors.colLayer0
 
     function filterDuplicatePlayers(players) {
         let filtered = [];
@@ -196,7 +201,8 @@ Scope {
                     Rectangle {
                         id: placeholderBackground
                         anchors.centerIn: parent
-                        color: Appearance.colors.colLayer0
+                        antialiasing: true
+                        color: root.popupBackgroundColor
                         radius: root.popupRounding
                         property real padding: 20
                         implicitWidth: placeholderLayout.implicitWidth + padding * 2

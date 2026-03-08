@@ -16,6 +16,7 @@ Item {
 
     Rectangle {
         id: background
+        antialiasing: true
         anchors {
             fill: parent
             topMargin: root.vertical ? 0 : 4

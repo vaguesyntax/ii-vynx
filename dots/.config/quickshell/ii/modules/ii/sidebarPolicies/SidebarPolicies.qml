@@ -1,6 +1,7 @@
 import qs
 import qs.services
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.common.widgets
 import QtQuick
 import Quickshell.Io
@@ -19,6 +20,11 @@ Scope { // Scope
         const pos = Config.options.sidebar.position;
         return pos === "default" || pos === "left"; 
     }
+    readonly property bool blurEnabled: Config.options.bar.blur.enable
+    readonly property real blurOpacity: Math.max(0, Math.min(1, Config.options.bar.blur.opacity / 100))
+    readonly property color sidebarBackgroundColor: blurEnabled
+        ? ColorUtils.transparentize(Appearance.colors.colLayer0, 1 - blurOpacity)
+        : Appearance.colors.colLayer0
 
     function toggleDetach() {
         root.detach = !root.detach;
@@ -149,8 +155,9 @@ Scope { // Scope
 
             Rectangle {
                 id: sidebarLeftBackground
-                color: Appearance.colors.colLayer0
-                border.width: 1
+                antialiasing: true
+                color: root.sidebarBackgroundColor
+                border.width: root.blurEnabled ? 0 : 1
                 border.color: Appearance.colors.colLayer0Border
                 radius: Appearance.rounding.screenRounding - Appearance.sizes.hyprlandGapsOut + 1
                 
@@ -228,7 +235,8 @@ Scope { // Scope
             Rectangle {
                 id: detachedSidebarBackground
                 anchors.fill: parent
-                color: Appearance.colors.colLayer0
+                antialiasing: true
+                color: root.sidebarBackgroundColor
 
                 Keys.onPressed: (event) => {
                     if (event.modifiers === Qt.ControlModifier) {
