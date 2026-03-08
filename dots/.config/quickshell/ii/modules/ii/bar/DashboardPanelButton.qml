@@ -16,7 +16,6 @@ RippleButton { // Right sidebar button
     implicitHeight: indicatorsRowLayout.implicitHeight + 5 * 2
 
     buttonRadius: Appearance.rounding.full
-    colBackground: Appearance.colors.colLayer1Hover
     colBackgroundHover: Appearance.colors.colLayer1Hover
     colRipple: Appearance.colors.colLayer1Active
     colBackgroundToggled: Appearance.colors.colSecondaryContainer
