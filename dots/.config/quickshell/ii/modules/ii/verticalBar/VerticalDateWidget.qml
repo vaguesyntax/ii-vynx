@@ -4,18 +4,23 @@ import qs.services
 import QtQuick
 import QtQuick.Shapes
 import QtQuick.Layouts
-import qs.modules.ii.bar as Bar
 
-Item { // Full hitbox
+Item {
     id: root
 
-    implicitHeight: content.implicitHeight
-    implicitWidth: Appearance.sizes.verticalBarWidth
-    property var dayOfMonth: DateTime.shortDate.split(/[-\/]/)[0]  // What if 🍔murica🦅? good question
-    property var monthOfYear: DateTime.shortDate.split(/[-\/]/)[1]
+    readonly property bool verticalStyle: Config.options?.bar?.date?.vertical ?? true
+    readonly property string dateFormat: Config.options?.bar?.date?.format ?? "dd/MM"
+    readonly property bool monthFirst: dateFormat.trim().startsWith("MM")
+    readonly property string dayOfMonth: Qt.locale().toString(DateTime.clock.date, "dd")
+    readonly property string monthOfYear: Qt.locale().toString(DateTime.clock.date, "MM")
+    readonly property string formattedDate: Qt.locale().toString(DateTime.clock.date, dateFormat)
 
-    Item { // Boundaries for date numbers
-        id: content
+    implicitHeight: verticalStyle ? verticalContent.implicitHeight : Appearance.sizes.barHeight
+    implicitWidth: verticalStyle ? Appearance.sizes.verticalBarWidth : horizontalContent.implicitWidth + horizontalContent.spacing * 8
+
+    Item {
+        id: verticalContent
+        visible: root.verticalStyle
         anchors.centerIn: parent
         implicitWidth: 24
         implicitHeight: 30
@@ -30,35 +35,46 @@ Item { // Full hitbox
                 strokeWidth: 1.2
                 strokeColor: Appearance.colors.colSubtext
                 fillColor: "transparent"
-                startX: content.width - diagonalLine.padding
+                startX: verticalContent.width - diagonalLine.padding
                 startY: diagonalLine.padding
                 PathLine {
                     x: diagonalLine.padding
-                    y: content.height - diagonalLine.padding
+                    y: verticalContent.height - diagonalLine.padding
                 }
             }
         }
 
         StyledText {
-            id: dayText
             anchors {
                 top: parent.top
                 left: parent.left
             }
             font.pixelSize: 13
             color: Appearance.colors.colOnLayer1
-            text: dayOfMonth
+            text: root.monthFirst ? root.monthOfYear : root.dayOfMonth
         }
 
         StyledText {
-            id: monthText
             anchors {
                 bottom: parent.bottom
                 right: parent.right
             }
             font.pixelSize: 13
             color: Appearance.colors.colOnLayer1
-            text: monthOfYear
+            text: root.monthFirst ? root.dayOfMonth : root.monthOfYear
+        }
+    }
+
+    RowLayout {
+        id: horizontalContent
+        visible: !root.verticalStyle
+        anchors.centerIn: parent
+        spacing: 4
+
+        StyledText {
+            font.pixelSize: Appearance.font.pixelSize.normal
+            color: Appearance.colors.colOnLayer1
+            text: root.formattedDate
         }
     }
 }

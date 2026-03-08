@@ -1,4 +1,5 @@
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.common.widgets
 import qs.services
 import QtQuick
@@ -7,6 +8,10 @@ import QtQuick.Layouts
 Item {
     id: root
     property bool showDate: Config.options.bar.verbose
+    property bool showSeconds: Config.options?.bar?.clock?.secondPrecision ?? false
+    property string baseTimeFormat: Config.options?.time?.format ?? "hh:mm"
+    property string timeFormat: TimeUtils.getTimeFormat(baseTimeFormat, showSeconds)
+    property string formattedTime: Qt.locale().toString(DateTime.clock.date, timeFormat)
     implicitWidth: rowLayout.implicitWidth + rowLayout.spacing * 10
     implicitHeight: Appearance.sizes.barHeight
 
@@ -18,7 +23,7 @@ Item {
         StyledText {
             font.pixelSize: Appearance.font.pixelSize.large
             color: Appearance.colors.colOnLayer1
-            text: DateTime.time
+            text: root.formattedTime
         }
 
         StyledText {

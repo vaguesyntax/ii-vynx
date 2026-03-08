@@ -268,6 +268,10 @@ Singleton {
                 property JsonObject activeWindow: JsonObject {
                     property bool fixedSize: false
                 }
+                property JsonObject clock: JsonObject {
+                    // Controls only the bar clock widget.
+                    property bool secondPrecision: false
+                }
                 
                 property JsonObject autoHide: JsonObject {
                     property bool enable: false
@@ -336,6 +340,11 @@ Singleton {
                     property bool useNerdFont: false
                     property int activeIndicatorOpacity: 100 // 0-100
                     property bool dynamicWorkspaces: false
+                }
+                property JsonObject date: JsonObject {
+                    // Standalone "date" component in bar layout.
+                    property string format: "dd/MM"
+                    property bool vertical: true
                 }
                 property JsonObject weather: JsonObject {
                     property bool enable: false

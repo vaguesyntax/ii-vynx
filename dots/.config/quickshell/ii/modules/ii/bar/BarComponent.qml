@@ -37,7 +37,7 @@ Item {
         "utility_buttons": [utilityButtonsComp, utilityButtonsComp],
         "system_tray": [systemTrayComp, systemTrayComp],
         "active_window": [activeWindowComp, activeWindowComp],
-        "date": [dateCompVert, dateCompVert],
+        "date": [dateComp, dateComp],
         "record_indicator": [recordIndicatorComp, recordIndicatorComp],
         "screen_share_indicator": [screenshareIndicatorComp, screenshareIndicatorComp],
         "timer": [timerComp, timerCompVert],
@@ -132,7 +132,7 @@ Item {
 
     Component { id: systemTrayComp; SysTray { vertical: rootItem.vertical } }
 
-    Component { id: dateCompVert; Vertical.VerticalDateWidget {} }
+    Component { id: dateComp; Vertical.VerticalDateWidget {} }
 
     Component { id: workspaceComp; Workspaces { vertical: rootItem.vertical } }
 

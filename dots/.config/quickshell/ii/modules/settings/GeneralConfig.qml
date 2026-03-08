@@ -12,6 +12,20 @@ ContentPage {
     readonly property int index: 1
     property bool register: parent.register ?? false
     forceWidth: true  
+
+    function baseTimeFormat(format) {
+        return (format ?? "hh:mm").replace(":ss", "");
+    }
+
+    function withSecondPrecision(format, enabled) {
+        const baseFormat = page.baseTimeFormat(format);
+        if (!enabled) return baseFormat;
+
+        let withSeconds = baseFormat.replace(/mm(\s+[aApP]{1,2})/, "mm:ss$1");
+        if (!withSeconds.includes("ss"))
+            withSeconds = baseFormat.replace(/mm/, "mm:ss");
+        return withSeconds;
+    }
   
     Process {  
         id: translationProc  
@@ -348,9 +362,10 @@ ContentPage {
             checked: Config.options.time.secondPrecision  
             onCheckedChanged: {  
                 Config.options.time.secondPrecision = checked;  
+                Config.options.time.format = page.withSecondPrecision(Config.options.time.format, checked);
             }  
             StyledToolTip {  
-                text: Translation.tr("Enable if you want clocks to show seconds accurately")  
+                text: Translation.tr("Affects global time format and background/other clocks.")  
             }  
         }  
   
@@ -359,7 +374,7 @@ ContentPage {
             tooltip: ""  
   
             ConfigSelectionArray {  
-                currentValue: Config.options.time.format  
+                currentValue: page.baseTimeFormat(Config.options.time.format)
                 onSelected: newValue => {  
                     if (newValue === "hh:mm") {  
                         Quickshell.execDetached(["bash", "-c", `sed -i 's/\\TIME12\\b/TIME/' '${FileUtils.trimFileProtocol(Directories.config)}/hypr/hyprlock.conf'`]);  
@@ -367,7 +382,7 @@ ContentPage {
                         Quickshell.execDetached(["bash", "-c", `sed -i 's/\\TIME\\b/TIME12/' '${FileUtils.trimFileProtocol(Directories.config)}/hypr/hyprlock.conf'`]);  
                     }  
   
-                    Config.options.time.format = newValue;  
+                    Config.options.time.format = page.withSecondPrecision(newValue, Config.options.time.secondPrecision);  
                 }  
                 options: [  
                     {  
@@ -393,7 +408,7 @@ ContentPage {
 
         ContentSubsection {
             title: Translation.tr("Format")
-            tooltip: Translation.tr("Changes the date format in the bar")
+            tooltip: Translation.tr("Changes global date format.")
 
             ConfigSelectionArray {
                 currentValue: Config.options.time.dateFormat

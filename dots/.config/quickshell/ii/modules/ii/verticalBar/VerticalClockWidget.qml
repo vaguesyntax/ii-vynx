@@ -1,4 +1,5 @@
 import qs.modules.common
+import qs.modules.common.functions
 import qs.modules.common.widgets
 import qs.services
 import QtQuick
@@ -7,6 +8,10 @@ import qs.modules.ii.bar as Bar
 
 Item {
     id: root
+    property bool showSeconds: Config.options?.bar?.clock?.secondPrecision ?? false
+    property string baseTimeFormat: Config.options?.time?.format ?? "hh:mm"
+    property string timeFormat: TimeUtils.getTimeFormat(baseTimeFormat, showSeconds)
+    property string formattedTime: Qt.locale().toString(DateTime.clock.date, timeFormat)
     implicitHeight: clockColumn.implicitHeight + 10
     implicitWidth: Appearance.sizes.verticalBarWidth
 
@@ -16,7 +21,7 @@ Item {
         spacing: 0
 
         Repeater {
-            model: DateTime.time.split(/[: ]/)
+            model: root.formattedTime.split(/[: ]/)
             delegate: StyledText {
                 required property string modelData
                 Layout.alignment: Qt.AlignHCenter

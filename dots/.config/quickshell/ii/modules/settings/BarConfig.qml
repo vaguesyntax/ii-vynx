@@ -15,6 +15,8 @@ ContentPage {
     property var componentMap: ({
         "active_window": activeWindow,
         "music_player": musicPlayer,
+        "clock": timeSection,
+        "date": dateSection,
         "utility_buttons": utilityButtons,
         "system_tray": systemTray,
         "workspaces": workspaces,
@@ -25,7 +27,6 @@ ContentPage {
         const item = componentMap[stringId]
         page.contentY = item.y
     }
-
 
     ContentSection {
         icon: "mobile_layout"
@@ -413,6 +414,82 @@ ContentPage {
             checked: Config.options.tray.monochromeIcons
             onCheckedChanged: {
                 Config.options.tray.monochromeIcons = checked;
+            }
+        }
+    }
+
+    ContentSection {
+        id: timeSection
+        icon: "schedule"
+        title: Translation.tr("Time")
+
+        ConfigSwitch {
+            buttonIcon: "date_range"
+            text: Translation.tr("Show date")
+            checked: Config.options.bar.verbose
+            onCheckedChanged: {
+                Config.options.bar.verbose = checked;
+            }
+        }
+        ConfigSwitch {
+            buttonIcon: "pace"
+            text: Translation.tr("Second precision")
+            checked: Config.options.bar.clock.secondPrecision
+            onCheckedChanged: {
+                Config.options.bar.clock.secondPrecision = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Affects only the bar clock widget.")
+            }
+        }
+    }
+
+    ContentSection {
+        id: dateSection
+        icon: "calendar_month"
+        title: Translation.tr("Date")
+
+        ContentSubsection {
+            title: Translation.tr("Format")
+            tooltip: Translation.tr("Affects only the standalone Date widget in bar layout.")
+
+            ConfigSelectionArray {
+                currentValue: Config.options.bar.date.format
+                onSelected: newValue => {
+                    Config.options.bar.date.format = newValue;
+                }
+                options: [
+                    {
+                        displayName: Translation.tr("Date First dd/MM"),
+                        value: "dd/MM"
+                    },
+                    {
+                        displayName: Translation.tr("Month First MM/dd"),
+                        value: "MM/dd"
+                    }
+                ]
+            }
+        }
+
+        ContentSubsection {
+            title: Translation.tr("Orientation")
+            tooltip: Translation.tr("Layout of the standalone Date widget in bar layout.")
+
+            ConfigSelectionArray {
+                currentValue: Config.options.bar.date.vertical
+                onSelected: newValue => {
+                    Config.options.bar.date.vertical = newValue;
+                }
+                options: [
+                    {
+                        displayName: Translation.tr("Vertical"),
+                        value: true
+                    },
+                    {
+                        displayName: Translation.tr("Horizontal"),
+                        value: false
+                    }
+                ]
             }
         }
     }

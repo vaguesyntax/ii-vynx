@@ -13,7 +13,7 @@ Singleton {
     property var clock: SystemClock {
         id: clock
         precision: {
-            if (Config.options.time.secondPrecision || GlobalStates.screenLocked)
+            if (Config.options.time.secondPrecision || Config.options.bar.clock.secondPrecision || GlobalStates.screenLocked)
                 return SystemClock.Seconds;
             return SystemClock.Minutes;
         }
