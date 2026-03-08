@@ -37,7 +37,7 @@ Singleton {
     readonly property alias geniusHasLyrics: genius.hasString
     readonly property string plainLyrics: genius.lyricsString
 
-    readonly property bool mediaModeEnabled: Persistent.states.background.mediaMode.enabled
+    property int mediaModeOpenCount: 0 // we increase this number when we enable the media mode and decrease it when we close it, we cant use a boolean because it doesnot work on multiple monitor toggle
 
     // We use this flag to change shell color just once, otherwise it will be called 3-4 times depending on the user's monitor count
     property bool shellColorChanged: false
@@ -138,9 +138,10 @@ Singleton {
 
     // I dont know if this is the correct place for this, but we only call this from MediaMode so it should be fine
     function changeShellColor(color, force = false) {
-        console.log("[Lyrics Service] Color change requested, is it changed: ", shellColorChanged)
-        if (!mediaModeEnabled || shellColorChanged && !force) return;
-        console.log("[Lyrics Service] Changing the shell color with color:   ", color)
+        // console.log("[Lyrics Service] Color change requested, is it changed: ", shellColorChanged)
+        // console.log("[Lyrics Service] Is media mode open :  ", mediaModeOpenCount > 0)
+        if (!mediaModeOpenCount > 0 || shellColorChanged && !force) return;
+        // console.log("[Lyrics Service] Changing the shell color with color:   ", color)
         Quickshell.execDetached([`${Directories.wallpaperSwitchScriptPath}`, "--noswitch", "--color", color])
         shellColorChanged = true
     }

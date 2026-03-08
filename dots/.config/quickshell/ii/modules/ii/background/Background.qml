@@ -371,10 +371,6 @@ Variants {
             }
         }
 
-        Component.onCompleted: {
-            Persistent.states.background.mediaMode.enabled = false // we use this persistent to access this from outside of this script, cannot be toggled
-        }
-
         GlobalShortcut {
             name: "mediaModeToggle"
             description: "Toggles media mode on press"
@@ -382,7 +378,7 @@ Variants {
             onPressed: {
                 if (!monitor.focused && Config.options.background.mediaMode.togglePerMonitor) return
                 mediaModeLoader.active = !mediaModeLoader.active
-                Persistent.states.background.mediaMode.enabled = mediaModeLoader.active
+                LyricsService.mediaModeOpenCount += mediaModeLoader.active ? 1 : -1
             }
         }
         

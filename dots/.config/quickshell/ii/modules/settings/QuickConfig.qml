@@ -169,41 +169,13 @@ ContentPage {
                     z: 1
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    readonly property bool mediaModeEnabled: Persistent.states.background.mediaMode.enabled
                     
-                    Loader {
-                        z: 1
-                        anchors.top: parent.top
-                        anchors.topMargin: 60
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        active: colorGridItem.mediaModeEnabled
-                        sourceComponent: StyledText {
-                            text: Translation.tr("Media mode enabled")
-                            font.pixelSize: Appearance.font.pixelSize.large
-                        }
-                    }
-                    
-
-                    Loader {
-                        anchors.fill: parent
-                        active: colorGridItem.mediaModeEnabled
-                        sourceComponent: Rectangle {
-                            anchors.fill: parent
-                            opacity: 0.5
-                            color: Appearance.colors.colSecondaryContainer
-                            radius: Appearance.rounding.small
-                        }
-                    }
-                    
-
                     StyledFlickable {
                         id: flickable
                         anchors.fill: parent
                         contentHeight: contentLayout.implicitHeight
                         contentWidth: width
                         clip: true
-                        enabled: !colorGridItem.mediaModeEnabled
-
 
                         ColumnLayout {
                             id: contentLayout

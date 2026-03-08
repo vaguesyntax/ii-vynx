@@ -66,7 +66,6 @@ Singleton {
 
             property JsonObject background: JsonObject {
                 property JsonObject mediaMode: JsonObject {
-                    property bool enabled: false // just a flag, cannot be changed directly
                     property real userScrollOffset: 0
                 }
             }
