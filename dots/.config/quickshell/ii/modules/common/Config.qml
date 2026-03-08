@@ -287,6 +287,8 @@ Singleton {
                 property int barBackgroundStyle: 1 // 0: Transparent | 1: Visible | 2: Adaptive
                 property bool verbose: true
                 property bool vertical: false
+                // Allow opening sidebars by clicking the empty left/right areas of the bar.
+                property bool sideClickOpensSidebar: true
                 
                 property JsonObject mediaPlayer: JsonObject {
                     property bool useFixedSize: false

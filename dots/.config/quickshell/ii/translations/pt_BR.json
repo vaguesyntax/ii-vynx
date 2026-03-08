@@ -734,5 +734,7 @@
   "Color picker": "Seletor de cores",
   "Night Light | Right-click to toggle Auto mode": "Luz Noturna | Botão direito para alternar modo Auto",
   "Inactive": "Inativo",
+  "Open sidebars by clicking bar sides": "Abrir barras laterais clicando nas laterais da barra",
+  "When enabled, clicking empty left/right areas of the bar toggles sidebars": "Quando ativado, clicar nas areas vazias esquerda/direita da barra alterna as barras laterais",
   "Hover Opacity": "Opacidade do hover"
 }

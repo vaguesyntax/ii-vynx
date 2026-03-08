@@ -662,6 +662,17 @@ ContentPage {
             }
         }
         ConfigSwitch {
+            buttonIcon: "switch_left"
+            text: Translation.tr("Open sidebars by clicking bar sides")
+            checked: Config.options.bar.sideClickOpensSidebar
+            onCheckedChanged: {
+                Config.options.bar.sideClickOpensSidebar = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("When enabled, clicking empty left/right areas of the bar toggles sidebars")
+            }
+        }
+        ConfigSwitch {
             buttonIcon: "opacity"
             text: Translation.tr("Hover Opacity")
             checked: Config.options.bar.tooltips.hoverOpacityOffset === -1

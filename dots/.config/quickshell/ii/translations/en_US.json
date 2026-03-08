@@ -605,5 +605,7 @@
   "Stroke width": "Stroke width",
   "Use varying shapes for password characters": "Use varying shapes for password characters",
   "Battery full": "Battery full",
+  "Open sidebars by clicking bar sides": "Open sidebars by clicking bar sides",
+  "When enabled, clicking empty left/right areas of the bar toggles sidebars": "When enabled, clicking empty left/right areas of the bar toggles sidebars",
   "Hover Opacity": "Hover Opacity"
 }
