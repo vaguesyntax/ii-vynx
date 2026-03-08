@@ -750,5 +750,6 @@
   "Bar blur": "Desfoque da barra (blur)",
   "Opacity": "Opacidade",
   "Blur effect": "Efeito de desfoque (blur)",
-  "Uses compositor blur through bar, sidebars and popups": "Usa o desfoque do compositor na barra, barras laterais e popups"
+  "Uses compositor blur through bar, sidebars and popups": "Usa o desfoque do compositor na barra, barras laterais e popups",
+  "Uses compositor blur through dock": "Usa o desfoque do compositor na dock"
 }

@@ -2,6 +2,7 @@ import qs
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import qs.modules.common.functions
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Effects
@@ -15,6 +16,11 @@ import Quickshell.Hyprland
 Scope { // Scope
     id: root
     property bool pinned: Config.options?.dock.pinnedOnStartup ?? false
+    readonly property bool blurEnabled: Config.options.dock.blur.enable
+    readonly property real blurOpacity: Math.max(0, Math.min(1, (Config.options?.dock?.blur?.opacity ?? 30) / 100))
+    readonly property color dockBackgroundColor: blurEnabled
+        ? ColorUtils.transparentize(Appearance.colors.colLayer0, 1 - blurOpacity)
+        : Appearance.colors.colLayer0
 
     Variants {
         // For each monitor
@@ -115,8 +121,9 @@ Scope { // Scope
                             anchors.fill: parent
                             anchors.topMargin: Appearance.sizes.elevationMargin
                             anchors.bottomMargin: Appearance.sizes.hyprlandGapsOut
-                            color: Appearance.colors.colLayer0
-                            border.width: 1
+                            antialiasing: true
+                            color: root.dockBackgroundColor
+                            border.width: root.blurEnabled ? 0 : 1
                             border.color: Appearance.colors.colLayer0Border
                             radius: Appearance.rounding.large
                         }

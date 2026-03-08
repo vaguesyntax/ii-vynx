@@ -159,6 +159,31 @@ ContentPage {
                 Config.options.dock.monochromeIcons = checked;
             }
         }
+
+        ConfigSwitch {
+            buttonIcon: "blur_on"
+            text: Translation.tr("Blur effect")
+            checked: Config.options.dock.blur.enable
+            onCheckedChanged: {
+                Config.options.dock.blur.enable = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Uses compositor blur through dock")
+            }
+        }
+
+        ConfigSpinBox {
+            enabled: Config.options.dock.blur.enable
+            icon: "opacity"
+            text: Translation.tr("Opacity")
+            from: 30
+            to: 100
+            stepSize: 1
+            value: Config.options.dock.blur.opacity
+            onValueChanged: {
+                Config.options.dock.blur.opacity = value;
+            }
+        }
     }
 
     ContentSection {
