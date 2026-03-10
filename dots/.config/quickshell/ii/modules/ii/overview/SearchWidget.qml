@@ -18,6 +18,11 @@ Item { // Wrapper
     readonly property string xdgConfigHome: Directories.config
     readonly property int typingDebounceInterval: 200
     readonly property int typingResultLimit: 15 // Should be enough to cover the whole view
+    readonly property bool blurEnabled: Config.options?.overview?.blur?.enable ?? false
+    readonly property real blurOpacity: Math.max(0, Math.min(1, (Config.options?.overview?.blur?.opacity ?? 30) / 100))
+    readonly property color searchBackgroundColor: blurEnabled
+        ? ColorUtils.transparentize(Appearance.colors.colBackgroundSurfaceContainer, 1 - blurOpacity)
+        : Appearance.colors.colBackgroundSurfaceContainer
 
     property string searchingText: LauncherSearch.query
     property bool showResults: searchingText != ""
@@ -107,7 +112,10 @@ Item { // Wrapper
         implicitWidth: gridLayout.implicitWidth
         implicitHeight: gridLayout.implicitHeight
         radius: searchBar.height / 2 + searchBar.verticalPadding
-        color: Appearance.colors.colBackgroundSurfaceContainer
+        antialiasing: true
+        color: root.searchBackgroundColor
+        border.width: root.blurEnabled ? 0 : 1
+        border.color: Appearance.colors.colLayer0Border
 
         Behavior on implicitHeight {
             id: searchHeightBehavior

@@ -40,6 +40,11 @@ Item {
     property var monitorData: HyprlandData.monitors.find(m => m.id === root.monitor?.id)
     property real scale: Config.options.overview.scale
     property color activeBorderColor: Appearance.colors.colSecondary
+    readonly property bool blurEnabled: Config.options?.overview?.blur?.enable ?? false
+    readonly property real blurOpacity: Math.max(0, Math.min(1, (Config.options?.overview?.blur?.opacity ?? 30) / 100))
+    readonly property color overviewBackgroundColor: blurEnabled
+        ? ColorUtils.transparentize(Appearance.colors.colBackgroundSurfaceContainer, 1 - blurOpacity)
+        : Appearance.colors.colBackgroundSurfaceContainer
 
     property real workspaceImplicitWidth: minWorkspaceWidth
     property real workspaceImplicitHeight: (monitorData?.transform % 2 === 1) ? 
@@ -129,7 +134,10 @@ Item {
         implicitWidth: workspaceColumnLayout.implicitWidth + padding * 2
         implicitHeight: workspaceColumnLayout.implicitHeight + padding * 2
         radius: root.largeWorkspaceRadius + padding
-        color: Appearance.colors.colBackgroundSurfaceContainer
+        antialiasing: true
+        color: root.overviewBackgroundColor
+        border.width: root.blurEnabled ? 0 : 1
+        border.color: Appearance.colors.colLayer0Border
 
         Column { // Workspaces
             id: workspaceColumnLayout

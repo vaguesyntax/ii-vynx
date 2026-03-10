@@ -14,6 +14,8 @@ RowLayout {
     property bool animateWidth: false
     property alias searchInput: searchInput
     property string searchingText
+    readonly property bool blurEnabled: Config.options?.overview?.blur?.enable ?? false
+    readonly property real blurOpacity: Math.max(0, Math.min(1, (Config.options?.overview?.blur?.opacity ?? 30) / 100))
 
     function forceFocus() {
         searchInput.forceActiveFocus();
@@ -63,6 +65,9 @@ RowLayout {
         Layout.topMargin: 4
         Layout.bottomMargin: 4
         implicitHeight: 40
+        colBackground: root.blurEnabled
+            ? ColorUtils.transparentize(Appearance.colors.colLayer1, 1 - root.blurOpacity)
+            : Appearance.colors.colLayer1
         focus: GlobalStates.overviewOpen
         font.pixelSize: Appearance.font.pixelSize.small
         placeholderText: Translation.tr("Search, calculate or run")

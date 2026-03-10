@@ -868,6 +868,31 @@ ContentPage {
                 }
             }
         }
+
+        ConfigSwitch {
+            buttonIcon: "blur_on"
+            text: Translation.tr("Blur effect")
+            checked: Config.options.overview.blur.enable
+            onCheckedChanged: {
+                Config.options.overview.blur.enable = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Uses compositor blur through overview")
+            }
+        }
+
+        ConfigSpinBox {
+            enabled: Config.options.overview.blur.enable
+            icon: "opacity"
+            text: Translation.tr("Opacity")
+            from: 30
+            to: 100
+            stepSize: 1
+            value: Config.options.overview.blur.opacity
+            onValueChanged: {
+                Config.options.overview.blur.opacity = value;
+            }
+        }
         
         ConfigRow {
             uniform: true

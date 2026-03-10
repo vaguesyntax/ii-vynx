@@ -622,5 +622,6 @@
   "Opacity": "Opacity",
   "Blur effect": "Blur effect",
   "Uses compositor blur through bar, sidebars and popups": "Uses compositor blur through bar, sidebars and popups",
-  "Uses compositor blur through dock": "Uses compositor blur through dock"
+  "Uses compositor blur through dock": "Uses compositor blur through dock",
+  "Uses compositor blur through overview": "Uses compositor blur through overview"
 }

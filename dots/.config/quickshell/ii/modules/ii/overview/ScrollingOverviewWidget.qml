@@ -20,6 +20,8 @@ Item {
     readonly property bool useWorkspaceMap: Config.options.overview.useWorkspaceMap
     readonly property list<int> workspaceMap: Config.options.overview.workspaceMap
     readonly property string backgroundStyle: Config.options.overview.scrollingStyle.backgroundStyle
+    readonly property bool blurEnabled: Config.options?.overview?.blur?.enable ?? false
+    readonly property real blurOpacity: Math.max(0, Math.min(1, (Config.options?.overview?.blur?.opacity ?? 30) / 100))
 
     property int workspaceOffset: useWorkspaceMap ? workspaceMap[monitorIndex] : 0
 
@@ -177,14 +179,31 @@ Item {
         anchors.fill: parent
         color: "transparent"
         property bool overviewOpen: GlobalStates.overviewOpen
+        readonly property real targetOpacity: backgroundStyle == "dim"
+            ? Config.options.overview.scrollingStyle.dimPercentage / 100
+            : backgroundStyle == "blur"
+                ? (root.blurEnabled ? root.blurOpacity : 0)
+                : 0
+
+        function refreshBackgroundColor() {
+            // Blur is compositor-driven and becomes visible with translucent layer alpha.
+            color = Qt.rgba(0, 0, 0, targetOpacity)
+        }
+
         Component.onCompleted: {
-            //? Blur is not actually a blur, it gets automatically applied when we set an item's opacity to >= 0.8
-            const opacity = backgroundStyle == "dim" ? Config.options.overview.scrollingStyle.dimPercentage / 100 : backgroundStyle == "blur" ? 0.8 : 0
-            color = Qt.rgba(0,0,0,opacity)
+            refreshBackgroundColor()
         }
         onOverviewOpenChanged: {
-            if (overviewOpen) return
-            color = "transparent"
+            if (!overviewOpen) {
+                color = "transparent"
+                return
+            }
+            refreshBackgroundColor()
+        }
+        onTargetOpacityChanged: {
+            if (overviewOpen) {
+                refreshBackgroundColor()
+            }
         }
         Behavior on color {
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)

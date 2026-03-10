@@ -292,7 +292,7 @@ Singleton {
                 property JsonObject blur: JsonObject {
                     property bool enable: false
                     // Bar background alpha (in %), lower values make compositor blur more visible.
-                    property int opacity: 76
+                    property int opacity: 60
                 }
                 property bool verbose: true
                 property bool vertical: false
@@ -573,6 +573,10 @@ Singleton {
                 property bool useWorkspaceMap: true
                 property list<var> workspaceMap: [0,10]
                 property bool showOpeningAnimation: true
+                property JsonObject blur: JsonObject {
+                    property bool enable: false
+                    property int opacity: 30
+                }
 
                 property JsonObject scrollingStyle: JsonObject {
                     
