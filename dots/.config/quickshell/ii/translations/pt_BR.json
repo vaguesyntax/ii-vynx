@@ -750,6 +750,12 @@
   "Bar blur": "Desfoque da barra (blur)",
   "Opacity": "Opacidade",
   "Blur effect": "Efeito de desfoque (blur)",
+  "Overview blur opacity": "Opacidade do blur da visão geral",
+  "Blur wallpaper background": "Desfocar fundo do papel de parede",
+  "Applies blur behind the overview, on the wallpaper": "Aplica desfoque atrás da visão geral, no papel de parede",
+  "Animate wallpaper blur": "Animar blur do papel de parede",
+  "Animates the wallpaper blur when opening or closing the overview": "Anima o blur do papel de parede ao abrir ou fechar a visão geral",
+  "Wallpaper blur opacity": "Opacidade do blur do papel de parede",
   "Uses compositor blur through bar, sidebars and popups": "Usa o desfoque do compositor na barra, barras laterais e popups",
   "Uses compositor blur through dock": "Usa o desfoque do compositor na dock",
   "Uses compositor blur through overview": "Usa o desfoque do compositor na visão geral"

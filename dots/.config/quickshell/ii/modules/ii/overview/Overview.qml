@@ -34,6 +34,9 @@ Scope {
 
         readonly property bool isZoomInStyle: Config.options.overview.scrollingStyle.zoomStyle === "in"
         readonly property bool showOpeningAnimation: Config.options.overview.showOpeningAnimation
+        readonly property bool backgroundBlurEnabled: Config.options?.overview?.blur?.backgroundEnable ?? false
+        readonly property bool backgroundBlurAnimate: Config.options?.overview?.blur?.backgroundAnimate ?? false
+        readonly property real backgroundBlurOpacity: Math.max(0, Math.min(1, (Config.options?.overview?.blur?.backgroundOpacity ?? 30) / 100))
 
         property real defaultRatio: isZoomInStyle ? zoomLevels.in.default : zoomLevels.out.default
         property real zoomedRatio: isZoomInStyle ? zoomLevels.in.zoomed : zoomLevels.out.zoomed
@@ -129,6 +132,16 @@ Scope {
         Item {
             id: contentItem
             anchors.fill: parent
+
+            Rectangle {
+                anchors.fill: parent
+                color: Qt.rgba(0, 0, 0, (!root.isScrollingLayout && root.backgroundBlurEnabled && GlobalStates.overviewOpen) ? root.backgroundBlurOpacity : 0)
+
+                Behavior on color {
+                    enabled: root.backgroundBlurAnimate
+                    animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+                }
+            }
 
             MouseArea { // We could have used PanelWindow.mask to detect this, but this is more stable
                 anchors.fill: parent

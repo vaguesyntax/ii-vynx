@@ -20,8 +20,9 @@ Item {
     readonly property bool useWorkspaceMap: Config.options.overview.useWorkspaceMap
     readonly property list<int> workspaceMap: Config.options.overview.workspaceMap
     readonly property string backgroundStyle: Config.options.overview.scrollingStyle.backgroundStyle
-    readonly property bool blurEnabled: Config.options?.overview?.blur?.enable ?? false
-    readonly property real blurOpacity: Math.max(0, Math.min(1, (Config.options?.overview?.blur?.opacity ?? 30) / 100))
+    readonly property bool backgroundBlurEnabled: Config.options?.overview?.blur?.backgroundEnable ?? false
+    readonly property bool backgroundBlurAnimate: Config.options?.overview?.blur?.backgroundAnimate ?? false
+    readonly property real backgroundBlurOpacity: Math.max(0, Math.min(1, (Config.options?.overview?.blur?.backgroundOpacity ?? 30) / 100))
 
     property int workspaceOffset: useWorkspaceMap ? workspaceMap[monitorIndex] : 0
 
@@ -182,7 +183,7 @@ Item {
         readonly property real targetOpacity: backgroundStyle == "dim"
             ? Config.options.overview.scrollingStyle.dimPercentage / 100
             : backgroundStyle == "blur"
-                ? (root.blurEnabled ? root.blurOpacity : 0)
+                ? (root.backgroundBlurEnabled ? root.backgroundBlurOpacity : 0)
                 : 0
 
         function refreshBackgroundColor() {
@@ -206,6 +207,7 @@ Item {
             }
         }
         Behavior on color {
+            enabled: root.backgroundBlurAnimate
             animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
         }
 

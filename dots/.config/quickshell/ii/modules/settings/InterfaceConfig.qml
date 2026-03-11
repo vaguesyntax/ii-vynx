@@ -884,13 +884,51 @@ ContentPage {
         ConfigSpinBox {
             enabled: Config.options.overview.blur.enable
             icon: "opacity"
-            text: Translation.tr("Opacity")
+            text: Translation.tr("Overview blur opacity")
             from: 30
             to: 100
             stepSize: 1
             value: Config.options.overview.blur.opacity
             onValueChanged: {
                 Config.options.overview.blur.opacity = value;
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "filter_b_and_w"
+            text: Translation.tr("Blur wallpaper background")
+            checked: Config.options.overview.blur.backgroundEnable
+            onCheckedChanged: {
+                Config.options.overview.blur.backgroundEnable = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Applies blur behind the overview, on the wallpaper")
+            }
+        }
+
+        ConfigSwitch {
+            enabled: Config.options.overview.blur.backgroundEnable
+            buttonIcon: "animation"
+            text: Translation.tr("Animate wallpaper blur")
+            checked: Config.options.overview.blur.backgroundAnimate
+            onCheckedChanged: {
+                Config.options.overview.blur.backgroundAnimate = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Animates the wallpaper blur when opening or closing the overview")
+            }
+        }
+
+        ConfigSpinBox {
+            enabled: Config.options.overview.blur.backgroundEnable
+            icon: "opacity"
+            text: Translation.tr("Wallpaper blur opacity")
+            from: 30
+            to: 100
+            stepSize: 1
+            value: Config.options.overview.blur.backgroundOpacity
+            onValueChanged: {
+                Config.options.overview.blur.backgroundOpacity = value;
             }
         }
         

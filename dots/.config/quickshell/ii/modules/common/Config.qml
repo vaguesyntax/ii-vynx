@@ -574,6 +574,9 @@ Singleton {
                 property list<var> workspaceMap: [0,10]
                 property bool showOpeningAnimation: true
                 property JsonObject blur: JsonObject {
+                    property bool backgroundEnable: false
+                    property bool backgroundAnimate: false
+                    property int backgroundOpacity: 30
                     property bool enable: false
                     property int opacity: 30
                 }

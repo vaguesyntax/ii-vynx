@@ -621,6 +621,12 @@
   "Bar blur": "Bar blur",
   "Opacity": "Opacity",
   "Blur effect": "Blur effect",
+  "Overview blur opacity": "Overview blur opacity",
+  "Blur wallpaper background": "Blur wallpaper background",
+  "Applies blur behind the overview, on the wallpaper": "Applies blur behind the overview, on the wallpaper",
+  "Animate wallpaper blur": "Animate wallpaper blur",
+  "Animates the wallpaper blur when opening or closing the overview": "Animates the wallpaper blur when opening or closing the overview",
+  "Wallpaper blur opacity": "Wallpaper blur opacity",
   "Uses compositor blur through bar, sidebars and popups": "Uses compositor blur through bar, sidebars and popups",
   "Uses compositor blur through dock": "Uses compositor blur through dock",
   "Uses compositor blur through overview": "Uses compositor blur through overview"
