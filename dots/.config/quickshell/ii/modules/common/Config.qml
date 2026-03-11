@@ -394,7 +394,7 @@ Singleton {
                 }
                 property JsonObject tooltips: JsonObject {
                     property bool clickToShow: false
-                    // -1 = stronger/more visible hover, 1 = weaker/transparent hover
+                    // Global hover strength used across the shell.
                     property int hoverOpacityOffset: -1
                 }
                 property JsonObject sizes: JsonObject {

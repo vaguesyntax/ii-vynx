@@ -757,7 +757,7 @@ ContentPage {
 
     ContentSection {
         icon: "tooltip"
-        title: Translation.tr("Tooltips")
+        title: Translation.tr("Tooltips & hover")
         ConfigSwitch {
             buttonIcon: "ads_click"
             text: Translation.tr("Click to show")
@@ -779,10 +779,13 @@ ContentPage {
         }
         ConfigSwitch {
             buttonIcon: "opacity"
-            text: Translation.tr("Hover Opacity")
+            text: Translation.tr("Stronger global hover")
             checked: Config.options.bar.tooltips.hoverOpacityOffset === -1
             onCheckedChanged: {
                 Config.options.bar.tooltips.hoverOpacityOffset = checked ? -1 : 1;
+            }
+            StyledToolTip {
+                text: Translation.tr("Affects hover surfaces across the shell, not only bar tooltips")
             }
         }
     }

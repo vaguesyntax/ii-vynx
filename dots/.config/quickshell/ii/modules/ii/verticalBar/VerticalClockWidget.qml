@@ -4,6 +4,7 @@ import qs.modules.common.widgets
 import qs.services
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import qs.modules.ii.bar as Bar
 
 Item {
@@ -11,9 +12,14 @@ Item {
     property bool showSeconds: Config.options?.bar?.clock?.secondPrecision ?? false
     property string baseTimeFormat: Config.options?.time?.format ?? "hh:mm"
     property string timeFormat: TimeUtils.getTimeFormat(baseTimeFormat, showSeconds)
-    property string formattedTime: Qt.locale().toString(DateTime.clock.date, timeFormat)
+    property string formattedTime: Qt.locale().toString(clock.date, timeFormat)
     implicitHeight: clockColumn.implicitHeight + 10
     implicitWidth: Appearance.sizes.verticalBarWidth
+
+    SystemClock {
+        id: clock
+        precision: root.showSeconds ? SystemClock.Seconds : SystemClock.Minutes
+    }
 
     ColumnLayout {
         id: clockColumn
