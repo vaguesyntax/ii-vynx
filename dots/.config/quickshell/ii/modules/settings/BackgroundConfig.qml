@@ -64,6 +64,15 @@ ContentPage {
         tooltip: Translation.tr("Toggle the mode with a keybind that executes 'quickshell:mediaModeToggle'\nExample: bindd = Super, Z, Toggle media mode, global, quickshell:mediaModeToggle")
 
         ConfigRow {
+            ConfigSwitch {
+                Layout.fillWidth: true
+                buttonIcon: "check"
+                text: Translation.tr("Enable")
+                checked: Config.options.background.mediaMode.enable
+                onCheckedChanged: {
+                    Config.options.background.mediaMode.enable = checked;
+                }
+            }
 
             ConfigSwitch {
                 Layout.fillWidth: true
@@ -1043,6 +1052,65 @@ ContentPage {
                 checked: Config.options.background.widgets.media.showPreviousToggle
                 onCheckedChanged: {
                     Config.options.background.widgets.media.showPreviousToggle = checked;
+                }
+            }
+        }
+        ContentSubsection {
+            title: Translation.tr("Lyrics")
+
+            ConfigRow {
+                ConfigSwitch {
+                    buttonIcon: "check"
+                    text: Translation.tr("Enable")
+                    Layout.fillWidth: false
+                    checked: Config.options.background.widgets.media.lyrics.enable
+                    onCheckedChanged: {
+                        Config.options.background.widgets.media.lyrics.enable = checked;
+                    }
+                    StyledToolTip {
+                        text: Translation.tr("Lyrics will be visible when they are fetched with API")
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                ConfigSelectionArray {
+                    Layout.fillWidth: false
+                    currentValue: Config.options.background.widgets.media.lyrics.style
+                    onSelected: newValue => {
+                        Config.options.background.widgets.media.lyrics.style = newValue
+                    }
+                    options: [
+                        {
+                            displayName: Translation.tr("Static"),
+                            icon: "format_size",
+                            value: "static"
+                        },
+                        {
+                            displayName: Translation.tr("Scroller"),
+                            icon: "keyboard_double_arrow_up",
+                            value: "scroller"
+                        }
+                    ]
+                }
+            }
+
+            ConfigRow {
+                uniform: true
+                ConfigSwitch {
+                    enabled: Config.options.background.widgets.media.lyrics.style === "scroller"
+                    buttonIcon: "gradient"
+                    text: Translation.tr("Use gradient mask")
+                    checked: Config.options.background.widgets.media.lyrics.useGradientMask
+                    onCheckedChanged: {
+                        Config.options.background.widgets.media.lyrics.useGradientMask = checked;
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
                 }
             }
         }

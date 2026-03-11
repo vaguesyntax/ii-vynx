@@ -218,6 +218,12 @@ Singleton {
                         property bool showPreviousToggle: true
                         property bool tintArtCover: false
                         property string backgroundShape: "Circle"  // Options: MaterialShape.Shape enum values as string
+                        property bool switchShowsLyrics: false
+                        property JsonObject lyrics: JsonObject {
+                            property bool enable: false
+                            property string style: "scroller" // Options: scroller, static
+                            property bool useGradientMask: true
+                        }
                         property JsonObject glow: JsonObject {
                             property bool enable: true
                             property real brightness: 10
@@ -249,6 +255,7 @@ Singleton {
                     property real widgetsFactor: 1.2
                 }
                 property JsonObject mediaMode: JsonObject {
+                    property bool enable: true
                     property bool togglePerMonitor: false
                     property string backgroundShape: "Square"
                     property bool enableBackgroundAnimation: true // It **may** cause nausea for someone

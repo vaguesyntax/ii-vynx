@@ -12,11 +12,15 @@ Item {
     property bool reallyUseGradient: useGradient
 
     property real defaultLyricsSize: Appearance.font.pixelSize.hugeass * 1.5
+    property int lineHeight: 0
     property int textHorizontalAlignment: Text.AlignHCenter
     property real gradientDensity: 1.0
+    property color activeTextColor: Appearance.colors.colOnLayer0
+    property color inactiveTextColor: Appearance.colors.colSubtext
+    property color gradientTextColor: inactiveTextColor
 
     width: parent.width
-    height: lyricScroller.rowHeight
+    height: lineHeight
     transformOrigin: lyricLineItem.textHorizontalAlignment === Text.AlignLeft  ? Item.Left  :
                  lyricLineItem.textHorizontalAlignment === Text.AlignRight ? Item.Right :
                                                                               Item.Center
@@ -29,7 +33,7 @@ Item {
         id: lyricText
         anchors.fill: parent
         text: lyricLineItem.text
-        color: lyricLineItem.highlight ? Appearance.colors.colOnLayer0 : Appearance.colors.colSubtext
+        color: lyricLineItem.highlight ? lyricLineItem.activeTextColor : lyricLineItem.inactiveTextColor
         font.pixelSize: lyricLineItem.currentLyricsSize * (lyricLineItem.highlight ? 1.2 : 1.0)
         font.weight: changeTextWeight ? lyricLineItem.highlight ? Font.Bold : Font.Medium : Font.Medium
         horizontalAlignment: lyricLineItem.textHorizontalAlignment
@@ -64,7 +68,7 @@ Item {
         StyledText {
             anchors.fill: parent
             text: lyricLineItem.text
-            color: Appearance.colors.colSubtext
+            color: lyricLineItem.gradientTextColor
             font.pixelSize: lyricLineItem.currentLyricsSize
             font.weight: Font.Medium
             horizontalAlignment: lyricLineItem.textHorizontalAlignment

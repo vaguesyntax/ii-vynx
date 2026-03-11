@@ -146,7 +146,17 @@ Variants {
             }
         }
 
+        readonly property bool mediaModeEnabled: Config.options.background.mediaMode.enable
         property bool mediaModeOpen: mediaModeLoader.active && MprisController.activePlayer
+        function syncMediaModeEnabledState() {
+            if (mediaModeLoader.active === mediaModeEnabled) return
+            mediaModeLoader.active = mediaModeEnabled
+            LyricsService.mediaModeOpenCount = Math.max(0, LyricsService.mediaModeOpenCount + (mediaModeEnabled ? 1 : -1))
+        }
+        Component.onCompleted: syncMediaModeEnabledState()
+        onMediaModeEnabledChanged: {
+            syncMediaModeEnabledState()
+        }
         onMediaModeOpenChanged: {
             if (!mediaModeOpen) {
                 Wallpapers.apply(Config.options.background.wallpaperPath)
@@ -377,8 +387,7 @@ Variants {
 
             onPressed: {
                 if (!monitor.focused && Config.options.background.mediaMode.togglePerMonitor) return
-                mediaModeLoader.active = !mediaModeLoader.active
-                LyricsService.mediaModeOpenCount += mediaModeLoader.active ? 1 : -1
+                Config.options.background.mediaMode.enable = !Config.options.background.mediaMode.enable
             }
         }
         
