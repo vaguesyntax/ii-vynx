@@ -260,6 +260,7 @@ AbstractBackgroundWidget {
                 z: 1
                 id: visualizer
                 anchors.fill: parent
+                roundedPolygon: artBackground.roundedPolygon
                 points: root.visualizerPoints
                 live: root.currentPlayer?.isPlaying ?? false
                 color: root.dynamicColors.colSecondaryBackground
