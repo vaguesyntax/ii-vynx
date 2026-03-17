@@ -21,13 +21,28 @@ Rectangle {
 
     property int barSection // 0: left, 1: center, 2: right
     property var listModel
-    property var sourceListModel
     property int selectedCompIndex
 
     property bool dragging: false
 
+    // Compute available components from registry based on what's already used
+    readonly property var usedIds: {
+        let ids = []
+        let allLists = [
+            Config.options.bar.layouts.left,
+            Config.options.bar.layouts.center,
+            Config.options.bar.layouts.right
+        ]
+        for (let list of allLists) {
+            for (let item of list) {
+                ids.push(item.id)
+            }
+        }
+        return ids
+    }
+    readonly property var availableComps: BarComponentRegistry.getAvailableComponents(usedIds)
+
     signal updated(var newList)
-    signal sourceUpdated(var newList)
 
     Component.onCompleted: {
         initilizateLayout(listModel)
@@ -45,8 +60,6 @@ Rectangle {
     function initilizateComponent(comp) {
         return {
             id: comp.id,
-            icon: comp.icon,
-            title: comp.title,
             centered: comp.centered !== undefined ? comp.centered : false,
             visible: comp.visible !== undefined ? comp.visible : true
         }
@@ -113,8 +126,8 @@ Rectangle {
 
             buttonIcon: "box"
             textRole: "title"
-            model: sourceListModel
-            enabled: sourceListModel.length >= 1
+            model: root.availableComps
+            enabled: root.availableComps.length >= 1
 
             onActivated: index => {
                 root.selectedCompIndex = index;
@@ -131,25 +144,19 @@ Rectangle {
             bottomRightRadius: Appearance.rounding.full
 
             buttonText: Translation.tr("Add component")
-            enabled: sourceListModel.length >= 1
+            enabled: root.availableComps.length >= 1
 
             colBackground: Appearance.colors.colSecondaryContainer
             colBackgroundHover: Appearance.colors.colSecondaryContainerHover
             rippleColor: Appearance.colors.colSecondaryContainerActive
             
             onClicked: {
-                if (sourceListModel[root.selectedCompIndex] == null) { // small sanity check
-                    sourceListModel.splice(root.selectedCompIndex, 1);
-                    root.sourceUpdated(sourceListModel);
-                    return;
-                }
+                let available = root.availableComps
+                if (available[root.selectedCompIndex] == null) return
 
-                let newComp = initilizateComponent(sourceListModel[root.selectedCompIndex]);
+                let newComp = initilizateComponent(available[root.selectedCompIndex]);
                 listModel.push(newComp);
 
-                sourceListModel.splice(root.selectedCompIndex, 1);
-
-                root.sourceUpdated(sourceListModel);
                 root.updated(listModel);
             }
         }

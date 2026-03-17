@@ -350,33 +350,22 @@ Singleton {
                     }
                 }
                 property JsonObject layouts: JsonObject {
-                    // Only adding place-essential components to left-center-right and adding the dynamic components to leftover
-                    // Not adding default values, they are initialized later
-                    // Scrolling is defined through component's id
-                    property list<var> availableComps: [
-                        { id: "record_indicator", icon: "screen_record", title: "Record indicator", visible: false },
-                        { id: "screen_share_indicator", icon: "screen_share", title: "Screen share indicator", visible: false },
-                        { id: "date", icon: "date_range", title: "Date" },
-                        { id: "battery", icon: "battery_android_6", title: "Battery" },
-                        { id: "timer", icon: "timer", title: "Timer & Pomodoro" },
-                        { id: "weather", icon: "weather_mix", title: "Weather" },
-                        { id: "utility_buttons", icon: "build", title: "Utility buttons" }
-                    ]
+                    // Only storing id and layout-specific flags (visible, centered)
+                    // Component display info (icon, title) comes from BarComponentRegistry
                     property list<var> left: [
-                        { id: "policies_panel_button", icon: "star", title: "Policies panel button" },
-                        { id: "active_window", icon: "label", title: "Active window" }
+                        { id: "policies_panel_button" },
+                        { id: "active_window" }
                     ]
                     property list<var> center: [
-                        { id: "music_player", icon: "music_note", title: "Music player" },
-                        { id: "workspaces", icon: "workspaces", title: "Workspaces", centered: true },
-                        { id: "system_monitor", icon: "monitor_heart", title: "System monitor" }
+                        { id: "music_player" },
+                        { id: "workspaces", centered: true },
+                        { id: "system_monitor" }
                     ]
                     property list<var> right: [
-                        { id: "clock", icon: "nest_clock_farsight_analog", title: "Clock" }, 
-                        { id: "system_tray", icon: "system_update_alt", title: "System tray" },
-                        { id: "dashboard_panel_button", icon: "notifications", title: "Dashboard panel button" }
+                        { id: "clock" },
+                        { id: "system_tray" },
+                        { id: "dashboard_panel_button" }
                     ]
-
                 }
                 property JsonObject tooltips: JsonObject {
                     property bool clickToShow: false

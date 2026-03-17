@@ -9,6 +9,7 @@ Item {
     id: wrapper
     
     required property var modelData
+    readonly property var compInfo: BarComponentRegistry.getComponent(modelData.id)
 
     property bool alternateColor: visualIndex % 2 == 0
     property color colBackground: alternateColor ? Appearance.colors.colLayer3 : Appearance.colors.colLayer2
@@ -125,7 +126,7 @@ Item {
             MaterialSymbol {
                 id: icon
                 Layout.leftMargin: 10
-                text: modelData.icon
+                text: wrapper.compInfo?.icon ?? ""
                 iconSize: Appearance.font.pixelSize.hugeass
                 color: Appearance.colors.colPrimary
                 fill: 1
@@ -133,7 +134,7 @@ Item {
 
             StyledText {
                 id: title
-                text: modelData.title
+                text: wrapper.compInfo?.title ?? modelData.id
                 color: wrapper.colTitle
 
                 Layout.leftMargin: 10
@@ -181,13 +182,8 @@ Item {
                 tooltip: Translation.tr("Remove")
 
                 onClicked: {
-                    if (modelData != null) { // small sanity check
-                        root.sourceListModel.push(modelData)
-                        root.sourceUpdated(root.sourceListModel)
-                    }
-                        
                     let arr = wrapper.getOrderedList()
-                    let removed = arr.splice(visualIndex, 1)
+                    arr.splice(visualIndex, 1)
                     root.updated(arr)
                 }
             }

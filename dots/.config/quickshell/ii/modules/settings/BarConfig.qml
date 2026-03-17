@@ -36,12 +36,8 @@ ContentPage {
             ConfigListView {
                 barSection: 0
                 listModel: Config.options.bar.layouts.left
-                sourceListModel: Config.options.bar.layouts.availableComps
                 onUpdated: (newList) => {
                     Config.options.bar.layouts.left = newList
-                } 
-                onSourceUpdated: (newList) => {
-                    Config.options.bar.layouts.availableComps = newList
                 }
             }
         }
@@ -51,12 +47,8 @@ ContentPage {
             ConfigListView {
                 barSection: 1
                 listModel: Config.options.bar.layouts.center
-                sourceListModel: Config.options.bar.layouts.availableComps
                 onUpdated: (newList) => {
                     Config.options.bar.layouts.center = newList
-                } 
-                onSourceUpdated: (newList) => {
-                    Config.options.bar.layouts.availableComps = newList
                 }
             }
         }
@@ -66,13 +58,9 @@ ContentPage {
             ConfigListView {
                 barSection: 2
                 listModel: Config.options.bar.layouts.right
-                sourceListModel: Config.options.bar.layouts.availableComps
                 onUpdated: (newList) => {
                     Config.options.bar.layouts.right = newList
                 }
-                onSourceUpdated: (newList) => {
-                    Config.options.bar.layouts.availableComps = newList
-                } 
             }
         }
     }
