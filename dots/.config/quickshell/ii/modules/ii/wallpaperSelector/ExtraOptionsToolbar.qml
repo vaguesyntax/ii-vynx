@@ -84,6 +84,7 @@ Toolbar {
             if (wallpaperSelectorContent.browserMode && text.trim().length > 0) {
                 const newTags = text.trim().split(/\s+/);
                 const allTags = [...newTags];
+                wallpaperSelectorContent.moreOptionsModelData = null
                 WallpaperBrowser.clearResponses();
                 WallpaperBrowser.makeRequest(allTags, 20, 1);
                 grid.currentIndex = 0;

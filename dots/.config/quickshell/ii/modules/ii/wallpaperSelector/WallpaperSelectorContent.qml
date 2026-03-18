@@ -366,6 +366,7 @@ MouseArea {
                             }
                             onSelected: newValue => {
                                 if (!newValue) return;
+                                wallpaperSelectorContent.moreOptionsModelData = null
                                 WallpaperBrowser.clearResponses();
                                 WallpaperBrowser.makeRequest([newValue], 20, 1);
                             }
