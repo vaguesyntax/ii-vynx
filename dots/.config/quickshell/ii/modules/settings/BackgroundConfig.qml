@@ -358,6 +358,29 @@ ContentPage {
                 }
             }
 
+            ConfigRow {
+                uniform: true
+
+                ConfigSwitch {
+                    buttonIcon: "colors"
+                    text: Translation.tr("Colorful digits")
+                    checked: Config.options.background.widgets.clock.digital.colorful
+                    onCheckedChanged: {
+                        Config.options.background.widgets.clock.digital.colorful = checked;
+                    }
+                }
+                ConfigSwitch {
+                    enabled: !Config.options.background.widgets.clock.digital.vertical
+                    buttonIcon: "go_to_line"
+                    text: Translation.tr("Show colon")
+                    checked: Config.options.background.widgets.clock.digital.showColon
+                    onCheckedChanged: {
+                        Config.options.background.widgets.clock.digital.showColon = checked;
+                    }
+                }
+            }
+            
+
             MaterialTextArea {
                 Layout.fillWidth: true
                 placeholderText: Translation.tr("Font family")

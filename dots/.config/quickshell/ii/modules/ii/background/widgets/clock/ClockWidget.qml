@@ -65,6 +65,8 @@ AbstractBackgroundWidget {
             fade: false
             sourceComponent: DigitalClock {
                 colText: root.colText
+                colTextSecondary: root.colTextSecondary
+                colTextTertiary: root.colTextTertiary
                 textHorizontalAlignment: root.textHorizontalAlignment
             }
         }
