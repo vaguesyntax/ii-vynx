@@ -18,8 +18,11 @@ GroupButton {
     property string buttonSymbol
     property bool leftmost: false
     property bool rightmost: false
-    leftRadius: (toggled || leftmost) ? Appearance.rounding.full : Appearance.rounding.unsharpenmore
-    rightRadius: (toggled || rightmost) ? Appearance.rounding.full : Appearance.rounding.unsharpenmore
+    
+    readonly property bool sharpModeEnabled: Config.options.appearance.noRoundingMode
+    readonly property int fullRadius: sharpModeEnabled ? Appearance.rounding.full : height / 2
+    leftRadius: (toggled || leftmost) ? fullRadius : Appearance.rounding.unsharpenmore
+    rightRadius: (toggled || rightmost) ? fullRadius : Appearance.rounding.unsharpenmore
     colBackground: Appearance.colors.colSecondaryContainer
     colBackgroundHover: Appearance.colors.colSecondaryContainerHover
     colBackgroundActive: Appearance.colors.colSecondaryContainerActive
