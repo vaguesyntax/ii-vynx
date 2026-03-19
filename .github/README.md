@@ -51,7 +51,7 @@ git clone https://github.com/vaguesyntax/ii-vynx.git --recurse-submodules
 ./setup-ii-vynx.sh
 ```
 
-Tip: You can see all flags you can use with `--help`:
+Tip: You can see all flags with `--help`:
 ```
 ./setup-ii-vynx.sh --help
 ```
