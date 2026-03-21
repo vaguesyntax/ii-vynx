@@ -35,6 +35,7 @@ ContentPage {
             }  
         }  
         ConfigRow {  
+            visible: Config.options.audio.protection.enable
             enabled: Config.options.audio.protection.enable  
             ConfigSpinBox {  
                 icon: "arrow_warm_up"  
@@ -47,53 +48,63 @@ ContentPage {
                     Config.options.audio.protection.maxAllowedIncrease = value;  
                 }  
             }  
-            ConfigSpinBox {  
-                icon: "vertical_align_top"  
-                text: Translation.tr("Volume limit")  
-                value: Config.options.audio.protection.maxAllowed  
-                from: 0  
-                to: 154 // pavucontrol allows up to 153%  
-                stepSize: 2  
-                onValueChanged: {  
-                    Config.options.audio.protection.maxAllowed = value;  
-                }  
-            }  
         }  
+        ConfigSpinBox {
+            visible: Config.options.audio.protection.enable
+            enabled: Config.options.audio.protection.enable
+            icon: "vertical_align_top"
+            text: Translation.tr("Volume limit")
+            value: Config.options.audio.protection.maxAllowed
+            from: 0
+            to: 154 // pavucontrol allows up to 153%
+            stepSize: 2
+            onValueChanged: {
+                Config.options.audio.protection.maxAllowed = value;
+            }
+        }
     }  
   
     ContentSection {  
         icon: "battery_android_full"  
-        title: Translation.tr("Battery")  
-  
-        ConfigRow {  
-            uniform: true  
-            ConfigSpinBox {  
-                icon: "warning"  
-                text: Translation.tr("Low warning")  
-                value: Config.options.battery.low  
-                from: 0  
-                to: 100  
-                stepSize: 5  
-                onValueChanged: {  
-                    Config.options.battery.low = value;  
-                }  
-            }  
-            ConfigSpinBox {  
-                icon: "dangerous"  
-                text: Translation.tr("Critical warning")  
-                value: Config.options.battery.critical  
-                from: 0  
-                to: 100  
-                stepSize: 5  
-                onValueChanged: {  
-                    Config.options.battery.critical = value;  
-                }  
+        title: Translation.tr("Battery (Laptop)")  
+
+        ConfigSwitch {
+            buttonIcon: "laptop"
+            text: Translation.tr("Battery usage (Laptop)")
+            checked: Config.options.battery.enable
+            onCheckedChanged: {
+                Config.options.battery.enable = checked;
+            }
+        }
+
+        ConfigSpinBox {
+            visible: Config.options.battery.enable
+            icon: "warning"  
+            text: Translation.tr("Low warning")  
+            value: Config.options.battery.low  
+            from: 0  
+            to: 100  
+            stepSize: 5  
+            onValueChanged: {  
+                Config.options.battery.low = value;  
             }  
         }  
-        ConfigRow {  
-            uniform: false  
-            Layout.fillWidth: false  
+        ConfigSpinBox {
+            visible: Config.options.battery.enable
+            icon: "dangerous"  
+            text: Translation.tr("Critical warning")  
+            value: Config.options.battery.critical  
+            from: 0  
+            to: 100  
+            stepSize: 5  
+            onValueChanged: {  
+                Config.options.battery.critical = value;  
+            }  
+        }  
+        ConfigRow {
+            visible: Config.options.battery.enable
             ConfigSwitch {  
+                Layout.fillWidth: false
                 buttonIcon: "pause"  
                 text: Translation.tr("Automatic suspend")  
                 checked: Config.options.battery.automaticSuspend  
@@ -106,6 +117,7 @@ ContentPage {
             }  
             ConfigSpinBox {  
                 enabled: Config.options.battery.automaticSuspend  
+                Layout.fillWidth: true
                 text: Translation.tr("at")  
                 value: Config.options.battery.suspend  
                 from: 0  
@@ -116,18 +128,16 @@ ContentPage {
                 }  
             }  
         }  
-        ConfigRow {  
-            uniform: true  
-            ConfigSpinBox {  
-                icon: "charger"  
-                text: Translation.tr("Full warning")  
-                value: Config.options.battery.full  
-                from: 0  
-                to: 101  
-                stepSize: 5  
-                onValueChanged: {  
-                    Config.options.battery.full = value;  
-                }  
+        ConfigSpinBox {
+            visible: Config.options.battery.enable
+            icon: "charger"  
+            text: Translation.tr("Full warning")  
+            value: Config.options.battery.full  
+            from: 0  
+            to: 101  
+            stepSize: 5  
+            onValueChanged: {  
+                Config.options.battery.full = value;  
             }  
         }  
     }  
