@@ -85,7 +85,7 @@ Singleton {
                 property int ai: 1 // 0: No | 1: Yes | 2: Local
                 property int weeb: 0 // 0: No | 1: Open | 2: Closet
                 property int wallpapers: 1 // 0: No | 1: Yes  
-                property int translator: 0 // 0: No | 1: Yes
+                property int translator: 1 // 0: No | 1: Yes
             }
 
             property JsonObject ai: JsonObject {
@@ -379,6 +379,7 @@ Singleton {
             }
 
             property JsonObject battery: JsonObject {
+                property bool enable: true
                 property int low: 20
                 property int critical: 5
                 property int full: 101

@@ -10,17 +10,18 @@ import Quickshell.Io
 Singleton {
     id: root
     property bool available: UPower.displayDevice.isLaptopBattery
+    readonly property bool enabled: Config.options.battery.enable
     property var chargeState: UPower.displayDevice.state
     property bool isCharging: chargeState == UPowerDeviceState.Charging
     property bool isPluggedIn: isCharging || chargeState == UPowerDeviceState.PendingCharge
     property real percentage: UPower.displayDevice?.percentage ?? 1
-    readonly property bool allowAutomaticSuspend: Config.options.battery.automaticSuspend
+    readonly property bool allowAutomaticSuspend: enabled && Config.options.battery.automaticSuspend
     readonly property bool soundEnabled: Config.options.sounds.battery
 
-    property bool isLow: available && (percentage <= Config.options.battery.low / 100)
-    property bool isCritical: available && (percentage <= Config.options.battery.critical / 100)
-    property bool isSuspending: available && (percentage <= Config.options.battery.suspend / 100)
-    property bool isFull: available && (percentage >= Config.options.battery.full / 100)
+    property bool isLow: available && enabled && (percentage <= Config.options.battery.low / 100)
+    property bool isCritical: available && enabled && (percentage <= Config.options.battery.critical / 100)
+    property bool isSuspending: available && enabled && (percentage <= Config.options.battery.suspend / 100)
+    property bool isFull: available && enabled && (percentage >= Config.options.battery.full / 100)
 
     property bool isLowAndNotCharging: isLow && !isCharging
     property bool isCriticalAndNotCharging: isCritical && !isCharging
@@ -98,7 +99,7 @@ Singleton {
     }
 
     onIsPluggedInChanged: {
-        if (!root.available || !root.soundEnabled) return;
+        if (!root.available || !root.enabled || !root.soundEnabled) return;
         if (isPluggedIn) {
             Audio.playSystemSound("power-plug")
         } else {
