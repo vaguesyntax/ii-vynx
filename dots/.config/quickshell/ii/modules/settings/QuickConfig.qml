@@ -13,7 +13,7 @@ ContentPage {
     readonly property int index: 0
     property bool register: parent.register ?? false
     forceWidth: true
-    interactive: false
+    interactive: contentHeight > height
 
     property bool allowHeavyLoad: false
     Component.onCompleted: Qt.callLater(() => page.allowHeavyLoad = true)
