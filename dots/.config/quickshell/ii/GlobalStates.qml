@@ -75,7 +75,6 @@ Singleton {
         
     }
 
-
     GlobalShortcut {
         name: "workspaceNumber"
         description: "Hold to show workspace numbers, release to show icons"

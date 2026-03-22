@@ -403,12 +403,18 @@ Item {
             }
         }
 
+        // ── Pin separator ──
         Item {
             visible: root.processedPinnedApps.length > 0 || root.processedRunningApps.length > 0 || root.processedFiles.length > 0
             Layout.preferredWidth: root.isVertical ? Appearance.sizes.dockButtonSize + root.dotMargin * 1.9 : root.sepThickness
-            Layout.preferredHeight: root.isVertical ? root.sepThickness : Appearance.sizes.dockButtonSize + root.dotMargin * 1.9
+            Layout.preferredHeight: root.isVertical ? root.sepThickness : Appearance.sizes.dockButtonSize + root.dotMargin * 2
             Layout.alignment: Qt.AlignCenter
-            DockSeparator { anchors.fill: parent }
+
+            DockSeparator { 
+                anchors.fill: parent 
+                isVertical: root.isVertical
+                marginScale: 0.15 
+            }
         }
 
         // ── 2. Scrollable middle section ──────────────────────────────────
@@ -481,11 +487,11 @@ Item {
                     ScrollBar.vertical: null
 
                     Behavior on implicitWidth {
-                        enabled: !root.dragActive && !GlobalStates.dockIsResizing
+                        enabled: !root.dragActive
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(pinnedListView)
                     }
                     Behavior on implicitHeight {
-                        enabled: !root.dragActive && !GlobalStates.dockIsResizing
+                        enabled: !root.dragActive
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(pinnedListView)
                     }
 
@@ -550,17 +556,11 @@ Item {
                 Item {
                     id: appSepWrapper
                     Layout.alignment: Qt.AlignCenter
-                    Layout.preferredWidth: root.isVertical
-                        ? Appearance.sizes.dockButtonSize + root.dotMargin * 1.9
-                        : (hasBothSections ? root.sepThickness : 0)
-                    Layout.preferredHeight: root.isVertical
-                        ? (hasBothSections ? root.sepThickness : 0)
-                        : Appearance.sizes.dockButtonSize + root.dotMargin * 1.9
+                    Layout.preferredWidth: root.isVertical ? Appearance.sizes.dockButtonSize + root.dotMargin * 1.9 : root.sepThickness
+                    Layout.preferredHeight: root.isVertical ? root.sepThickness : Appearance.sizes.dockButtonSize + root.dotMargin * 1.9
                     opacity: hasBothSections ? 1.0 : 0.0
                     visible: opacity > 0
-
-                    readonly property bool hasBothSections:
-                        root.processedPinnedApps.length > 0 && root.processedRunningApps.length > 0
+                    readonly property bool hasBothSections: root.processedPinnedApps.length > 0 && root.processedRunningApps.length > 0
 
                     Behavior on opacity {
                         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(appSepWrapper)
@@ -574,14 +574,10 @@ Item {
                         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(appSepWrapper)
                     }
 
-                    Rectangle {
-                        readonly property real sepMargin: Math.round((root.isVertical
-                            ? parent.width : parent.height) * 0.3)
-                        anchors.centerIn: parent
-                        width: root.isVertical ? parent.width - sepMargin * 2 : parent.width
-                        height: root.isVertical ? parent.height : parent.height - sepMargin * 2
-                        radius: Appearance.rounding.full
-                        color: Appearance.colors.colOutlineVariant
+                    DockSeparator {
+                        anchors.fill: parent
+                        isVertical: root.isVertical
+                        marginScale: 0.3
                     }
                 }
 
@@ -608,11 +604,9 @@ Item {
                     ScrollBar.vertical: null
 
                     Behavior on implicitWidth {
-                        enabled: !GlobalStates.dockIsResizing
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(runningListView)
                     }
                     Behavior on implicitHeight {
-                        enabled: !GlobalStates.dockIsResizing
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(runningListView)
                     }
 
@@ -673,14 +667,10 @@ Item {
                         animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(fileSepWrapper)
                     }
 
-                    Rectangle {
-                        readonly property real sepMargin: Math.round((root.isVertical
-                            ? parent.width : parent.height) * 0.15)
-                        anchors.centerIn: parent
-                        width: root.isVertical ? parent.width - sepMargin * 2 : parent.width
-                        height: root.isVertical ? parent.height : parent.height - sepMargin * 2
-                        radius: Appearance.rounding.full
-                        color: Appearance.colors.colOutlineVariant
+                    DockSeparator {
+                        anchors.fill: parent
+                        isVertical: root.isVertical
+                        marginScale: 0.15
                     }
                 }
 
@@ -817,14 +807,10 @@ Item {
                 animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(musicSepWrapper)
             }
 
-            Rectangle {
-                readonly property real sepMargin: Math.round((root.isVertical
-                    ? parent.width : parent.height) * 0.15)
-                anchors.centerIn: parent
-                width: root.isVertical ? parent.width - sepMargin * 2 : parent.width
-                height: root.isVertical ? parent.height : parent.height - sepMargin * 2
-                radius: Appearance.rounding.full
-                color: Appearance.colors.colOutlineVariant
+            DockSeparator { 
+                anchors.fill: parent 
+                isVertical: root.isVertical
+                marginScale: 0.15 // O il valore che preferisci per i bordi esterni
             }
         }
 
@@ -880,13 +866,18 @@ Item {
             }
         }
 
-        // Trailing separator
+        // ── Unpin separator ──
         Item {
             visible: root.processedPinnedApps.length > 0 || root.processedRunningApps.length > 0 || root.processedFiles.length > 0
             Layout.preferredWidth: root.isVertical ? Appearance.sizes.dockButtonSize + root.dotMargin * 1.9 : root.sepThickness
-            Layout.preferredHeight: root.isVertical ? root.sepThickness : Appearance.sizes.dockButtonSize + root.dotMargin * 1.9
+            Layout.preferredHeight: root.isVertical ? root.sepThickness : Appearance.sizes.dockButtonSize + root.dotMargin * 2
             Layout.alignment: Qt.AlignCenter
-            DockSeparator { anchors.fill: parent }
+
+            DockSeparator { 
+                anchors.fill: parent 
+                isVertical: root.isVertical
+                marginScale: 0.15 
+            }
         }
 
         // Unpin button
