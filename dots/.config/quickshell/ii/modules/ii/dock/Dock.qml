@@ -55,6 +55,7 @@ Scope {
 
             readonly property bool barConflictsWithDock: barActive && (isVertical !== barIsVertical)
 
+            // this math.max(s) prevents wayland crashes somehow
             readonly property real maxWidth: Math.max(1, availableW - (Appearance.sizes.hyprlandGapsOut * 2)
                 - (!isVertical && barConflictsWithDock ? barThickness : 0))
 
