@@ -27,6 +27,33 @@ Scope {
 
     readonly property bool isVertical: dockEffectivePosition === "left" || dockEffectivePosition === "right"
 
+    function computeSizes(opts) {
+        const gapsOut = opts.gapsOut
+        const barConflicts = opts.barActive && (opts.isVertical !== opts.barIsVertical)
+        
+        const barOffset = barConflicts
+            ? (opts.isVertical ? opts.barThickness : 0)
+            : 0
+        const barOffsetH = barConflicts
+            ? (!opts.isVertical ? opts.barThickness : 0)
+            : 0
+
+        // this math.max(s) prevents wayland crashes somehow
+        const maxW = Math.max(1, opts.availableW - gapsOut * 2 - barOffsetH)
+        const maxH = Math.max(1, opts.availableH - gapsOut * 2 - barOffset)
+
+        const contentW = opts.contentVisualWidth + opts.dockPadding * 2 + gapsOut * 2
+        const contentH = opts.contentVisualHeight + opts.dockPadding * 2 + gapsOut * 2
+
+        return {
+            maxWidth: maxW,
+            maxHeight: maxH,
+            dockWidth:  opts.isVertical ? contentW : Math.min(contentW, maxW),
+            dockHeight: opts.isVertical ? Math.min(contentH, maxH) : contentH,
+            dockThickness: opts.isVertical ? contentW : contentH
+        }
+    }
+
     Variants {
         model: Quickshell.screens
 
@@ -35,7 +62,22 @@ Scope {
             required property var modelData
             screen: modelData
             
-            visible: !GlobalStates.screenLocked && !positionChanging
+            visible: !GlobalStates.screenLocked && !positionChanging 
+            // using a flag for positionChanging is not really necessary, but it prevents some graphical issues caused by qml when the dock is moving
+
+            readonly property var sizing: dock.computeSizes({
+                gapsOut: Appearance.sizes.hyprlandGapsOut,
+                isVertical: dock.isVertical,
+                barActive: barActive,
+                barIsVertical: barIsVertical,
+                barThickness: barThickness,
+                availableW: availableW,
+                availableH: availableH,
+                contentVisualWidth: dockContent.visualWidth,
+                contentVisualHeight: dockContent.visualHeight,
+                dockPadding: dockContent.dockPadding
+            })
+
 
             property bool positionChanging: false
             
@@ -55,25 +97,10 @@ Scope {
 
             readonly property bool barConflictsWithDock: barActive && (isVertical !== barIsVertical)
 
-            // this math.max(s) prevents wayland crashes somehow
-            readonly property real maxWidth: Math.max(1, availableW - (Appearance.sizes.hyprlandGapsOut * 2)
-                - (!isVertical && barConflictsWithDock ? barThickness : 0))
+            implicitWidth: Math.max(1, dockRoot.sizing.dockWidth)
+            implicitHeight: Math.max(1, dockRoot.sizing.dockHeight)
 
-            readonly property real maxHeight: Math.max(1, availableH - (Appearance.sizes.hyprlandGapsOut * 2)
-                - (isVertical && barConflictsWithDock ? barThickness : 0))
-
-            readonly property real dockWidth: isVertical
-                ? dockContent.visualWidth + dockContent.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
-                : Math.min(dockContent.visualWidth + dockContent.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2, maxWidth)
-
-            readonly property real dockHeight: isVertical
-                ? Math.min(dockContent.visualHeight + dockContent.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2, maxHeight)
-                : dockContent.visualHeight + dockContent.dockPadding * 2 + Appearance.sizes.hyprlandGapsOut * 2
-
-            implicitWidth: Math.max(1, dockWidth)
-            implicitHeight: Math.max(1, dockHeight)
-
-            readonly property real dockThickness: isVertical ? dockWidth : dockHeight
+            readonly property real dockThickness: isVertical ? dockRoot.sizing.dockWidth : dockRoot.sizing.dockHeight
 
             property bool reveal: dock.pinned
                             || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse)
@@ -171,10 +198,10 @@ Scope {
 
                     width: dock.isVertical
                         ? dockContent.visualWidth + dockContent.dockPadding * 2
-                        : Math.min(dockContent.visualWidth + dockContent.dockPadding * 2, maxWidth - Appearance.sizes.hyprlandGapsOut * 2)
+                        : Math.min(dockContent.visualWidth + dockContent.dockPadding * 2, dockRoot.sizing.maxWidth - Appearance.sizes.hyprlandGapsOut * 2)
 
                     height: dock.isVertical
-                        ? Math.min(dockContent.visualHeight + dockContent.dockPadding * 2, maxHeight - Appearance.sizes.hyprlandGapsOut * 2)
+                        ? Math.min(dockContent.visualHeight + dockContent.dockPadding * 2, dockRoot.sizing.maxHeight - Appearance.sizes.hyprlandGapsOut * 2)
                         : dockContent.visualHeight + dockContent.dockPadding * 2
 
                     color: Appearance.colors.colLayer0
