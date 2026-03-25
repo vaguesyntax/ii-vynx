@@ -70,7 +70,7 @@ Scope {
 
             readonly property bool isVertical: dock.isVertical
             readonly property real dockThickness: isVertical ? dockRoot.sizing.dockWidth : dockRoot.sizing.dockHeight
-            property bool reveal: dock.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (dockContent.requestDockShow) || (ToplevelManager.activeToplevel?.activated === false)
+            property bool reveal: dock.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (dockContent.requestDockShow) || (!ToplevelManager.activeToplevel?.activated)
             property bool positionChanging: false
 
             readonly property var sizing: dock.computeSizes({
