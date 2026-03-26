@@ -20,8 +20,16 @@ Item {
 
     property list<var> pinnedItems: TrayService.pinnedItems
     property list<var> unpinnedItems: TrayService.unpinnedItems
-    onUnpinnedItemsChanged: {
-        if (unpinnedItems.length == 0) root.closeOverflowMenu();
+    onPinnedItemsChanged: updateVisibility()
+    onUnpinnedItemsChanged: updateVisibility()
+
+    function updateVisibility() {
+        const hasAnyItems = pinnedItems.length > 0 || unpinnedItems.length > 0;
+        rootItem.toggleVisible(hasAnyItems);
+
+        if (unpinnedItems.length === 0) {
+            root.closeOverflowMenu();
+        }
     }
 
     function grabFocus() {
