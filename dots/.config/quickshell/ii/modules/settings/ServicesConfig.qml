@@ -303,25 +303,6 @@ ContentPage {
     }
 
     ContentSection {
-        icon: "download"
-        title: Translation.tr("Update")
-
-        ContentSubsection {
-            title: Translation.tr("Script path")
-
-            MaterialTextArea {
-                Layout.fillWidth: true
-                placeholderText: Translation.tr("Direct path to setup-ii-vynx.sh")
-                text: Config.options.update.scriptPath
-                wrapMode: TextEdit.NoWrap
-                onTextChanged: {
-                    Config.options.update.scriptPath = text;
-                }
-            }
-        }
-    }
-
-    ContentSection {
         icon: "file_open"
         title: Translation.tr("Wallpaper Browser")
 
