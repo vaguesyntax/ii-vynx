@@ -89,6 +89,7 @@ Item { // MediaMode instance
 
                 FloatingArtBackground {
                     anchors.fill: parent
+                    opacity: Config.options.background.mediaMode.backgroundOpacity / 100
 
                     animationSpeedScale: Config.options.background.mediaMode.backgroundAnimation.speedScale / 10
                     artFilePath: root.displayedArtFilePath

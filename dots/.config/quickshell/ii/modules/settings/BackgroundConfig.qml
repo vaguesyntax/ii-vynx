@@ -177,6 +177,20 @@ ContentPage {
             }
         }
 
+        ConfigSpinBox {
+            Layout.fillWidth: true
+            icon: "opacity"
+            text: Translation.tr("Background album art opacity (%)")
+            value: Config.options.background.mediaMode.backgroundOpacity
+            from: 0
+            to: 100
+            stepSize: 10
+            onValueChanged: {
+                Config.options.background.mediaMode.backgroundOpacity = value;
+            }
+        }
+
+
         ContentSubsection {
             title: Translation.tr("Text highlight style")
             ConfigSelectionArray {
