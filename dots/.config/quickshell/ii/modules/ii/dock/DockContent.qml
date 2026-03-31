@@ -512,9 +512,11 @@ Item {
         fileResolvedIcon: draggedFileDelegate?.resolvedXdgIcon ?? ""
 
         scale: {
-            const intent = root.dragActive ? root.dragIntent : root.fileDragIntent;
-            const pinned = root.dragActive ? TaskbarApps.isPinned(root.draggedAppId) : true;
-            return (pinned && intent === "unpin") || (!pinned && intent === "pin") ? 0.7 : 1.0;
+            const intent = root.isFileDrag ? root.fileDragIntent : root.dragIntent;
+            const isPinned = root.isFileDrag || TaskbarApps.isPinned(root.draggedAppId);
+            if (intent === "unpin" && isPinned) return 0.7;
+            if (intent === "pin" && !isPinned) return 0.7;
+            return 1.0;
         }
         Behavior on scale {
             animation: Appearance.animation.elementResize.numberAnimation.createObject(this)
