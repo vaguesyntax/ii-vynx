@@ -174,9 +174,26 @@ Button {
                             onClicked: {
                                 root.showActions = false;
                                 const targetPath = root.imageData.is_nsfw ? root.nsfwPath : root.downloadPath;
-                                Quickshell.execDetached(["bash", "-c", 
-                                    `mkdir -p '${targetPath}' && curl '${root.imageData.file_url}' -o '${targetPath}/${root.fileName}' && notify-send '${Translation.tr("Download complete")}' '${root.downloadPath}/${root.fileName}' -a 'Shell'`
+                                const isGelbooru = root.imageData.file_url.includes("gelbooru.com");
+                                const refererHeader = isGelbooru ?
+                                `-H "Referer: https://gelbooru.com/index.php?page=post&s=view&id=${root.imageData.id}"` : "";
+                                Quickshell.execDetached(["bash", "-c",
+                                                        `mkdir -p '${targetPath}' && curl ${refererHeader} '${root.imageData.file_url}' -o '${targetPath}/${root.fileName}' && notify-send '${Translation.tr("Download complete")}' '${root.downloadPath}/${root.fileName}' -a 'Shell'`
                                 ])
+                            }
+                        }
+                        MenuButton {
+                            id: favoriteButton
+                            visible: root.imageData.file_url.includes("gelbooru.com")
+                            Layout.fillWidth: true
+                            buttonText: Translation.tr("Add to favorites")
+                            onClicked: {
+                                root.showActions = false;
+                                const postId = root.imageData.id;
+                                const cookieString = `user_id=${Booru.apiKeys["gelbooru_user_id"] || ""}; pass_hash=${Booru.apiKeys["gelbooru_pass_hash"] || ""}; post_threshold=0`;
+                                Quickshell.execDetached(["bash", "-c",
+                                                        `response=$(curl -s -H 'Referer: https://gelbooru.com/index.php?page=post&s=view&id=${postId}' -b '${cookieString}' 'https://gelbooru.com/public/addfav.php?id=${postId}'); if [ "$response" = "1" ] || [ "$response" = "3" ]; then notify-send '✅ Added to favorites' 'Post #${postId}' -a 'Shell'; else notify-send '❌ Failed to add' "Post #${postId} (response: $response)" -a 'Shell'; fi`
+                                ]);
                             }
                         }
                     }

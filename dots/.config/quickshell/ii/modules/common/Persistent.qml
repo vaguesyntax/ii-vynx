@@ -87,6 +87,7 @@ Singleton {
             property JsonObject booru: JsonObject {
                 property bool allowNsfw: false
                 property string provider: "yandere"
+                property list<var> searchHistory: []
             }
 
             property JsonObject hyprland: JsonObject {

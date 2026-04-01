@@ -669,6 +669,7 @@ Singleton {
                     property bool allowNsfw: false
                     property string defaultProvider: "yandere"
                     property int limit: 20
+                    property real rowTooShortThreshold: 250
                     property JsonObject zerochan: JsonObject {
                         property string username: "[unset]"
                     }

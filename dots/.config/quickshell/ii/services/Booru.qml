@@ -18,6 +18,7 @@ Singleton {
 
     property string failMessage: Translation.tr("That didn't work. Tips:\n- Check your tags and NSFW settings\n- If you don't have a tag in mind, type a page number")
     property var responses: []
+    property int maxResponses: 3
     property int runningRequests: 0
     property var defaultUserAgent: Config.options?.networking?.userAgent || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
     property var providerList: Object.keys(providers).filter(provider => provider !== "system" && providers[provider].api)
@@ -297,14 +298,44 @@ Singleton {
         responses = []
     }
 
+    function addResponse(newResponse) {
+        responses = [...responses, newResponse]
+
+        if (responses.length > maxResponses) {
+            responses = responses.slice(responses.length - maxResponses)
+        }
+
+        responseFinished()
+    }
+
     function addSystemMessage(message) {
-        responses = [...responses, root.booruResponseDataComponent.createObject(null, {
+        root.addResponse(root.booruResponseDataComponent.createObject(null, {
             "provider": "system",
             "tags": [],
             "page": -1,
             "images": [],
             "message": `${message}`
-        })]
+        }))
+    }
+
+    readonly property var apiKeys: KeyringStorage.keyringData?.apiKeys ?? {}
+
+    function setApiKey(provider, key) {
+        if (!providers[provider]) return;
+        KeyringStorage.setNestedField(["apiKeys", provider], key.trim());
+        root.addSystemMessage(Translation.tr("API key set for %1").arg(providers[provider].name));
+    }
+
+    function setUserId(provider, id) {
+        if (!providers[provider]) return;
+        KeyringStorage.setNestedField(["apiKeys", provider + "_user_id"], id.trim());
+        root.addSystemMessage(Translation.tr("User ID set for %1").arg(providers[provider].name));
+    }
+
+    function setPassHash(provider, hash) {
+        if (!providers[provider]) return;
+        KeyringStorage.setNestedField(["apiKeys", provider + "_pass_hash"], hash.trim());
+        root.addSystemMessage(Translation.tr("Pass hash set for %1").arg(providers[provider].name));
     }
 
     function constructRequestUrl(tags, nsfw=true, limit=20, page=1) {
@@ -344,7 +375,11 @@ Singleton {
             params.push("tags=" + encodeURIComponent(tagString))
             params.push("limit=" + limit)
             if (currentProvider == "gelbooru") {
-                params.push("pid=" + page)
+                params.push("pid=" + (page - 1))
+                if (root.apiKeys["gelbooru"] && root.apiKeys["gelbooru_user_id"]) {
+                    params.push("api_key=" + root.apiKeys["gelbooru"])
+                    params.push("user_id=" + root.apiKeys["gelbooru_user_id"])
+                }
             }
             else {
                 params.push("page=" + page)
@@ -393,16 +428,15 @@ Singleton {
                     newResponse.message = root.failMessage
                 } finally {
                     root.runningRequests--;
-                    root.responses = [...root.responses, newResponse]
+                    root.addResponse(newResponse)
                 }
             }
             else if (xhr.readyState === XMLHttpRequest.DONE) {
                 console.log("[Booru] Request failed with status: " + xhr.status)
                 newResponse.message = root.failMessage
                 root.runningRequests--;
-                root.responses = [...root.responses, newResponse]
+                root.addResponse(newResponse)
             }
-            root.responseFinished()
         }
 
         try {
@@ -435,6 +469,10 @@ Singleton {
             return
         }
         var url = provider.tagSearchTemplate.replace("{{query}}", encodeURIComponent(query))
+        if (currentProvider == "gelbooru" && root.apiKeys["gelbooru"] && root.apiKeys["gelbooru_user_id"]) {
+            url += "&api_key=" + root.apiKeys["gelbooru"]
+            url += "&user_id=" + root.apiKeys["gelbooru_user_id"]
+        }
 
         var xhr = new XMLHttpRequest()
         currentTagRequest = xhr

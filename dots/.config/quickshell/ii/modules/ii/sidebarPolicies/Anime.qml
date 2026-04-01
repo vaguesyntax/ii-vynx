@@ -25,6 +25,7 @@ Item {
     property var suggestionQuery: ""
     property var suggestionList: []
 
+    property bool showHistory: false
     property bool pullLoading: false
     property int pullLoadingGap: 80
     property real normalizedPullDistance: Math.max(0, (1 - Math.exp(-booruResponseListView.verticalOvershoot / 50)) * booruResponseListView.dragging)
@@ -39,6 +40,16 @@ Item {
             if (Booru.runningRequests === 0) {
                 root.pullLoading = false;
             }
+        }
+        function onResponseFinished() {
+            if (root.responses.length === 0) return
+
+                var last = root.responses[root.responses.length - 1]
+                if (last && last.provider !== "system") {
+                    Qt.callLater(function() {
+                        booruResponseListView.contentY = booruResponseListView.contentY + root.scrollOnNewResponse
+                    })
+                }
         }
     }
 
@@ -83,6 +94,107 @@ Item {
                 Persistent.states.booru.allowNsfw = true;
             }
         },
+        {
+            name: "gelbooru_key",
+            description: Translation.tr("Set Gelbooru API key"),
+            execute: (args) => {
+                if (args.length > 0) {
+                    Booru.setApiKey("gelbooru", args[0]);
+                } else {
+                    Booru.addSystemMessage(Translation.tr("Usage: /gelbooru_key <key>"));
+                }
+            }
+        },
+        {
+            name: "gelbooru_id",
+            description: Translation.tr("Set Gelbooru User ID"),
+            execute: (args) => {
+                if (args.length > 0) {
+                    Booru.setUserId("gelbooru", args[0]);
+                } else {
+                    Booru.addSystemMessage(Translation.tr("Usage: /gelbooru_id <id>"));
+                }
+            }
+        },
+        {
+            name: "gelbooru_pass_hash",
+            description: Translation.tr("Set Gelbooru Pass Hash"),
+            execute: (args) => {
+                if (args.length > 0) {
+                    Booru.setPassHash("gelbooru", args[0]);
+                } else {
+                    Booru.addSystemMessage(Translation.tr("Usage: /gelbooru_pass_hash <hash>"));
+                }
+            }
+        },
+        {
+            name: "history",
+            description: Translation.tr("Show your last 10 searches"),
+            execute: () => {
+                root.showHistory = !root.showHistory
+            }
+        },
+        {
+            name: "limit",
+            description: Translation.tr("Set image limit. Usage: %1limit NUMBER").arg(root.commandPrefix),
+            execute: args => {
+                if (args.length === 0 || args[0] === "") {
+                    Booru.addSystemMessage(
+                        Translation.tr("Current limit: %1").arg(Config.options.sidebar.booru.limit)
+                    );
+                    return;
+                }
+
+                const value = parseInt(args[0]);
+
+                if (isNaN(value) || value < 1 || value > 100) {
+                    Booru.addSystemMessage(
+                        Translation.tr("Invalid value. Use %1limit NUMBER (1–100)").arg(root.commandPrefix)
+                    );
+                    return;
+                }
+
+                Config.options.sidebar.booru.limit = value;
+
+                Booru.addSystemMessage(
+                    Translation.tr("Limit set to %1").arg(value)
+                );
+            }
+        },
+        {
+            name: "thumbnail",
+            description: Translation.tr("Set thumbnail row height. Usage: %1thumbnail VALUE").arg(root.commandPrefix),
+            execute: args => {
+                if (args.length === 0 || args[0] === "") {
+                    Booru.addSystemMessage(
+                        Translation.tr("Current thumbnail: %1").arg(Config.options.sidebar.booru.rowTooShortThreshold)
+                    );
+                    return;
+                }
+
+                const value = parseInt(args[0]);
+
+                if (isNaN(value) || value < 100 || value > 1000) {
+                    Booru.addSystemMessage(
+                        Translation.tr("Invalid value. Use %1thumbnail VALUE (100–1000)").arg(root.commandPrefix)
+                    );
+                    return;
+                }
+
+                Config.options.sidebar.booru.rowTooShortThreshold = value;
+
+                for (let i = 0; i < booruResponseListView.count; i++) {
+                    const item = booruResponseListView.itemAtIndex(i);
+                    if (item && item.responseData.provider !== "system") {
+                        item.rowTooShortThreshold = value;
+                    }
+                }
+
+                Booru.addSystemMessage(
+                    Translation.tr("Thumbnail set to %1").arg(value)
+                );
+            }
+        },
     ]
 
     function handleInput(inputText) {
@@ -111,6 +223,21 @@ Item {
                     break;
                 }
             }
+
+            const historyEntry = { tags: tagList, page: pageIndex, provider: Booru.currentProvider };
+            let hist = Persistent.states.booru.searchHistory
+            ? Array.from(Persistent.states.booru.searchHistory)
+            : [];
+
+            hist = hist.filter(e =>
+            !(e.tags.join(" ") === tagList.join(" ") &&
+            e.page === pageIndex &&
+            e.provider === Booru.currentProvider)
+            );
+
+            hist.unshift(historyEntry);
+            Persistent.states.booru.searchHistory = hist.slice(0, 10);
+
             Booru.makeRequest(tagList, Persistent.states.booru.allowNsfw, Config.options.sidebar.booru.limit, pageIndex);
         }
     }
@@ -177,18 +304,6 @@ Item {
                 touchpadScrollFactor: Config.options.interactions.scrolling.touchpadScrollFactor * 1.4
                 mouseScrollFactor: Config.options.interactions.scrolling.mouseScrollFactor * 1.4
 
-                property int lastResponseLength: 0
-                Connections {
-                    target: root
-                    function onResponsesChanged() {
-                        if (root.responses.length > booruResponseListView.lastResponseLength) {
-                            if (booruResponseListView.lastResponseLength > 0 && root.responses[booruResponseListView.lastResponseLength].provider != "system")
-                                booruResponseListView.contentY = booruResponseListView.contentY + root.scrollOnNewResponse
-                            booruResponseListView.lastResponseLength = root.responses.length
-                        }
-                    }
-                }
-
                 model: ScriptModel {
                     values: root.responses
                 }
@@ -243,6 +358,155 @@ Item {
                 pullProgress: Math.min(1, booruResponseListView.verticalOvershoot / root.pullLoadingGap * booruResponseListView.dragging)
                 scale: root.pullLoading ? 1 : Math.min(1, root.normalizedPullDistance * 2)
             }
+            // HISTORY
+            Rectangle {
+                id: historyPanel
+                anchors.fill: parent
+                visible: root.showHistory
+                z: 10
+                radius: Appearance.rounding.small
+                color: Appearance.m3colors.m3surfaceContainer
+
+                MouseArea {
+                    anchors.fill: parent
+                    hoverEnabled: true
+                }
+
+                ColumnLayout {
+                    anchors {
+                        fill: parent
+                        margins: 10
+                    }
+                    spacing: 6
+
+                    RowLayout {
+                        Layout.fillWidth: true
+
+                        StyledText {
+                            text: Translation.tr("Recent Searches")
+                            font.pixelSize: Appearance.font.pixelSize.normal
+                            font.weight: Font.DemiBold
+                            color: Appearance.colors.colOnLayer2
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        RippleButton {
+                            implicitWidth: 30
+                            implicitHeight: 30
+                            buttonRadius: Appearance.rounding.small
+                            onClicked: {
+                                Persistent.states.booru.searchHistory = [];
+                            }
+                            contentItem: MaterialSymbol {
+                                anchors.centerIn: parent
+                                text: "delete"
+                                iconSize: 18
+                                color: Appearance.colors.colOnLayer2
+                            }
+                        }
+
+                        RippleButton {
+                            implicitWidth: 30
+                            implicitHeight: 30
+                            buttonRadius: Appearance.rounding.small
+                            onClicked: root.showHistory = false
+                            contentItem: MaterialSymbol {
+                                anchors.centerIn: parent
+                                text: "close"
+                                iconSize: 18
+                                color: Appearance.colors.colOnLayer2
+                            }
+                        }
+                    }
+
+                    StyledListView {
+                        id: historyListView
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        spacing: 4
+                        clip: true
+
+                        model: ScriptModel {
+                            values: Persistent.states.booru.searchHistory ?? []
+                        }
+
+                        delegate: RippleButton {
+                            required property var modelData
+                            anchors.left: parent?.left
+                            anchors.right: parent?.right
+                            implicitHeight: historyRow.implicitHeight + 16
+                            buttonRadius: Appearance.rounding.small
+                            colBackground: Appearance.colors.colLayer1
+                            colBackgroundHover: Appearance.colors.colLayer1Hover
+
+                            onClicked: {
+                                const entry = modelData
+
+                                const searchText = entry.tags.join(" ") +
+                                (entry.page > 1 ? " " + entry.page : "")
+
+                                if (entry.provider && entry.provider !== Booru.currentProvider) {
+                                    Booru.setProvider(entry.provider)
+                                }
+
+                                root.showHistory = false
+                                tagInputField.text = searchText
+                                root.handleInput(searchText)
+                            }
+
+                            contentItem: RowLayout {
+                                id: historyRow
+                                anchors {
+                                    left: parent.left
+                                    right: parent.right
+                                    margins: 10
+                                    verticalCenter: parent.verticalCenter
+                                }
+                                spacing: 8
+
+                                MaterialSymbol {
+                                    text: "history"
+                                    iconSize: 18
+                                    color: Appearance.colors.colOnLayer1
+                                }
+
+                                ColumnLayout {
+                                    Layout.fillWidth: true
+                                    spacing: 2
+
+                                    StyledText {
+                                        Layout.fillWidth: true
+                                        text: modelData.tags?.join(", ") || Translation.tr("[no tags]")
+                                        font.pixelSize: Appearance.font.pixelSize.small
+                                        color: Appearance.colors.colOnLayer1
+                                        elide: Text.ElideRight
+                                    }
+
+                                    StyledText {
+                                        text: Translation.tr("Page %1 · %2")
+                                        .arg(modelData.page ?? 1)
+                                        .arg(Booru.providers[modelData.provider]?.name ?? modelData.provider ?? "?")
+                                        font.pixelSize: Appearance.font.pixelSize.smaller
+                                        color: Appearance.colors.colSubtext
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    PagePlaceholder {
+                        Layout.alignment: Qt.AlignCenter
+                        visible: (Persistent.states.booru.searchHistory ?? []).length === 0
+                        shown: (Persistent.states.booru.searchHistory ?? []).length === 0
+                        icon: "manage_search"
+                        title: Translation.tr("No history yet")
+                        description: ""
+                        shape: MaterialShape.Shape.Cookie7Sided
+                    }
+                }
+            }
+            // HISTORY BLOCK
         }
 
         DescriptionBox { // Tag suggestion description
@@ -481,6 +745,10 @@ Item {
                     {
                         name: "mode",
                         sendDirectly: false,
+                    },
+                    {
+                        name: "history",
+                        sendDirectly: true,
                     },
                     {
                         name: "clear",
