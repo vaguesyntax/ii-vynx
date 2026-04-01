@@ -74,9 +74,20 @@ Scope {
 
             readonly property bool isVertical: dock.isVertical
             readonly property real dockThickness: isVertical ? dockRoot.sizing.dockWidth : dockRoot.sizing.dockHeight
-            
-            property bool reveal: dock.pinned || (Config.options?.dock.hoverToReveal && (dockMouseArea.containsMouse || graceTimer.running)) || (dockLoader.item?.requestDockShow ?? false) || (workspaceEmpty)
+
+            // reveal is set imperatively (not as a binding) to avoid a binding loop:
+            property bool reveal: false
             property bool positionChanging: false
+            readonly property bool readyToReveal: reveal && (dockLoader.item?.ready ?? false)
+
+            function updateReveal() {
+                var shouldReveal = dock.pinned
+                    || (Config.options?.dock.hoverToReveal && (dockMouseArea.containsMouse || graceTimer.running))
+                    || (dockLoader.item?.requestDockShow ?? false)
+                    || workspaceEmpty
+                if (reveal !== shouldReveal)
+                    reveal = shouldReveal
+            }
 
             // TODO: check for multi-monitor situations
             readonly property bool workspaceEmpty: {
@@ -84,6 +95,8 @@ Scope {
                 if (wsId === -1) return true
                 return HyprlandData.hyprlandClientsForWorkspace(wsId).length === 0
             }
+
+            onWorkspaceEmptyChanged: updateReveal()
 
             readonly property var sizing: dock.computeSizes({
                 gapsOut: Appearance.sizes.hyprlandGapsOut,
@@ -128,6 +141,7 @@ Scope {
             Timer {
                 id: graceTimer
                 interval: 1000
+                onRunningChanged: dockRoot.updateReveal()
             }
 
             onRevealChanged: {
@@ -135,8 +149,10 @@ Scope {
                 else unloadTimer.stop()
             }
 
+            // Watch dock.pinned changes to update reveal
             Connections {
                 target: dock
+                function onPinnedChanged() { dockRoot.updateReveal() }
                 function onDockEffectivePositionChanged() {
                     dockRoot.positionChanging = true
                     positionChangeTimer.restart()
@@ -172,11 +188,13 @@ Scope {
                     if (containsMouse && !dockRoot.reveal && !dock.pinned) {
                         graceTimer.restart()
                     }
+                    // Update reveal imperatively to avoid binding loop
+                    dockRoot.updateReveal()
                 }
 
                 property real hiddenOffset: dockRoot.dockThickness - (Config.options?.dock.hoverRegionHeight ?? 10)
                 property real fullyHiddenOffset: dockRoot.dockThickness + 1
-                property real currentOffset: dockRoot.reveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
+                property real currentOffset: dockRoot.readyToReveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
 
                 width: dock.isVertical ? dockRoot.dockThickness : dockRoot.sizing.dockWidth
                 height: dock.isVertical ? dockRoot.sizing.dockHeight : dockRoot.dockThickness
@@ -230,13 +248,18 @@ Scope {
                             readonly property real dockPadding: content.dockPadding
                             readonly property string dragState: content.dragState
                             readonly property bool requestDockShow: content.requestDockShow
-                            
+                            readonly property bool ready: content.ready
+
                             function endDrag() { content.endDrag() }
                             function endFileDrag() { content.endFileDrag() }
                             function mimeIconFromPath(p) { return content.mimeIconFromPath(p) }
 
-                            opacity: (dockLoader.activeAsync && !dockRoot.positionChanging) ? 1.0 : 0.0
-                            Behavior on opacity { NumberAnimation { duration: 150 } }
+                            // When requestDockShow changes inside the loaded content, update reveal
+                            onRequestDockShowChanged: dockRoot.updateReveal()
+
+                            // Only show once DockContent itself is ready 
+                            readonly property bool contentReady: content.ready && !dockRoot.positionChanging
+                            opacity: contentReady ? 1.0 : 0.0
 
                             StyledRectangularShadow { 
                                 target: visualBackground

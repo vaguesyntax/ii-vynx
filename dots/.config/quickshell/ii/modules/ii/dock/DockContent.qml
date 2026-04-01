@@ -30,6 +30,7 @@ Item {
     readonly property real visualWidth: isVertical ? Appearance.sizes.dockButtonSize + dotMargin * 2 : mainLayout.implicitWidth
     readonly property real visualHeight: isVertical ? mainLayout.implicitHeight : Appearance.sizes.dockButtonSize + dotMargin * 2
 
+    readonly property bool ready: (isVertical ? visualHeight > 0 : visualWidth > 0) && !suppressSizeAnimation
     readonly property bool requestDockShow: previewPopupLoader.item?.visible || anyContextMenuOpen
 
     readonly property real maxWindowPreviewHeight: 200
@@ -273,9 +274,18 @@ Item {
         }
     }
 
+    property bool suppressSizeAnimation: true
+
+    Timer {
+        id: suppressSizeAnimTimer
+        interval: 150
+        onTriggered: root.suppressSizeAnimation = false
+    }
+
     Component.onCompleted: {
         updateModel();
         updateFileModel();
+        suppressSizeAnimTimer.start();
     }
 
     readonly property real pinButtonCenter: isVertical ? pinButtonWrapper.y + pinButtonWrapper.height / 2 : pinButtonWrapper.x + pinButtonWrapper.width / 2
@@ -401,11 +411,11 @@ Item {
                     visible: root.processedFiles.length > 0
                     clip: true
                     Behavior on Layout.preferredWidth {
-                        enabled: !root.isVertical
+                        enabled: !root.suppressSizeAnimation && !root.isVertical
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                     }
                     Behavior on Layout.preferredHeight {
-                        enabled: root.isVertical
+                        enabled: !root.suppressSizeAnimation && root.isVertical
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                     }
 
