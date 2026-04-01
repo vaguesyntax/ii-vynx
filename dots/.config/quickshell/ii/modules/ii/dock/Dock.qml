@@ -37,15 +37,19 @@ Scope {
         const maxW = Math.max(1, opts.availableW - gapsOut * 2 - barOffsetH)
         const maxH = Math.max(1, opts.availableH - gapsOut * 2 - barOffset)
 
-        const contentW = opts.contentVisualWidth + opts.dockPadding * 2
-        const contentH = opts.contentVisualHeight + opts.dockPadding * 2
+        const unloadedW = 1000
+        const unloadedH = 1000
+
+        const contentW = opts.isLoaded ? opts.contentVisualWidth : (opts.isVertical ? 60 : unloadedW)
+        const contentH = opts.isLoaded ? opts.contentVisualHeight : (opts.isVertical ? unloadedH : 60)
+        const dockPadding = opts.isLoaded ? opts.dockPadding : 0
 
         return {
             maxWidth: maxW,
             maxHeight: maxH,
-            dockWidth:     opts.isVertical ? contentW + gapsOut * 2 : Math.min(contentW + gapsOut * 2, maxW),
-            dockHeight:    opts.isVertical ? Math.min(contentH + gapsOut * 2, maxH) : contentH + gapsOut * 2,
-            dockThickness: opts.isVertical ? contentW + gapsOut * 2 : contentH + gapsOut * 2,
+            dockWidth:     opts.isVertical ? contentW + dockPadding * 2 + gapsOut * 2 : Math.min(contentW + dockPadding * 2 + gapsOut * 2, maxW),
+            dockHeight:    opts.isVertical ? Math.min(contentH + dockPadding * 2 + gapsOut * 2, maxH) : contentH + dockPadding * 2 + gapsOut * 2,
+            dockThickness: opts.isVertical ? contentW + dockPadding * 2 + gapsOut * 2 : contentH + dockPadding * 2 + gapsOut * 2,
             backgroundWidth:  Math.max(1, opts.isVertical ? contentW : Math.min(contentW, maxW - gapsOut * 2)),
             backgroundHeight: Math.max(1, opts.isVertical ? Math.min(contentH, maxH - gapsOut * 2) : contentH)
         }
@@ -66,11 +70,12 @@ Scope {
             readonly property real availableH: screen?.height ?? 1080
             readonly property bool barActive: GlobalStates.barOpen
             readonly property bool barIsVertical: Config.options?.bar?.vertical ?? false
-            readonly property real barThickness: barActive? (barIsVertical ? (Config.options?.bar?.sizes?.width ?? Appearance.sizes.verticalBarWidth) : (Config.options?.bar?.sizes?.height ?? Appearance.sizes.barHeight)) : 0
+            readonly property real barThickness: barActive ? (barIsVertical ? (Config.options?.bar?.sizes?.width ?? Appearance.sizes.verticalBarWidth) : (Config.options?.bar?.sizes?.height ?? Appearance.sizes.barHeight)) : 0
 
             readonly property bool isVertical: dock.isVertical
             readonly property real dockThickness: isVertical ? dockRoot.sizing.dockWidth : dockRoot.sizing.dockHeight
-            property bool reveal: dock.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (dockContent.requestDockShow) || (workspaceEmpty)
+            
+            property bool reveal: dock.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (dockLoader.item?.requestDockShow ?? false) || (workspaceEmpty)
             property bool positionChanging: false
 
             // TODO: check for multi-monitor situations
@@ -83,14 +88,15 @@ Scope {
             readonly property var sizing: dock.computeSizes({
                 gapsOut: Appearance.sizes.hyprlandGapsOut,
                 isVertical: dock.isVertical,
-                barActive: barActive,
-                barIsVertical: barIsVertical,
-                barThickness: barThickness,
-                availableW: availableW,
-                availableH: availableH,
-                contentVisualWidth: dockContent.visualWidth,
-                contentVisualHeight: dockContent.visualHeight,
-                dockPadding: dockContent.dockPadding
+                barActive: dockRoot.barActive,
+                barIsVertical: dockRoot.barIsVertical,
+                barThickness: dockRoot.barThickness,
+                availableW: dockRoot.availableW,
+                availableH: dockRoot.availableH,
+                isLoaded: dockLoader.activeAsync,
+                contentVisualWidth: dockLoader.item?.contentVisualWidth ?? 0,
+                contentVisualHeight: dockLoader.item?.contentVisualHeight ?? 0,
+                dockPadding: dockLoader.item?.dockPadding ?? 0
             })
 
             implicitWidth: Math.max(1, dockRoot.sizing.dockWidth)
@@ -108,14 +114,18 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             color: "transparent"
 
-            mask: Region {
-                item: dockMouseArea
+            mask: Region { 
+                item: dockMouseArea 
             }
 
-            Timer {
-                id: positionChangeTimer
-                interval: 200
-                onTriggered: dockRoot.positionChanging = false
+            Timer { 
+                id: unloadTimer
+                interval: Appearance.animation.elementMoveFast.duration + 100 
+            }
+
+            onRevealChanged: {
+                if (!reveal) unloadTimer.restart()
+                else unloadTimer.stop()
             }
 
             Connections {
@@ -126,13 +136,21 @@ Scope {
                 }
             }
 
+            Timer {
+                id: positionChangeTimer
+                interval: 200
+                onTriggered: dockRoot.positionChanging = false
+            }
+
             HyprlandFocusGrab {
                 id: dragFocusGrab
-                active: dockContent.dragState != "idle"
+                active: dockLoader.activeAsync && (dockLoader.item?.dragState ?? "idle") !== "idle"
                 windows: [dockRoot]
                 onCleared: {
-                    if (dockContent.isAppDrag) dockContent.endDrag()
-                    if (dockContent.isFileDrag) dockContent.endFileDrag()
+                    if (dockLoader.item && dockLoader.item.dragState !== "idle") {
+                        dockLoader.item.endDrag()
+                        dockLoader.item.endFileDrag()
+                    }
                 }
             }
 
@@ -177,72 +195,81 @@ Scope {
                 Behavior on anchors.leftMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
                 Behavior on anchors.rightMargin { animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(dockMouseArea) }
 
-                StyledRectangularShadow { target: dockVisualBackground }
+                Item {
+                    id: dockContentHost
+                    anchors.fill: parent
 
-                Rectangle {
-                    id: dockVisualBackground
-                    anchors.centerIn: parent
+                    LazyLoader {
+                        id: dockLoader
+                        loading: true
+                        active: dockRoot.reveal || unloadTimer.running
 
-                    width: dockRoot.sizing.backgroundWidth
-                    height: dockRoot.sizing.backgroundHeight
+                        Item {
+                            id: wrapper
+                            parent: dockContentHost
+                            anchors.fill: parent
 
-                    color: Appearance.colors.colLayer0
-                    border.width: 1
-                    border.color: Appearance.colors.colLayer0Border
-                    radius: Appearance.rounding.large
+                            readonly property real contentVisualWidth: content.visualWidth
+                            readonly property real contentVisualHeight: content.visualHeight
+                            readonly property real dockPadding: content.dockPadding
+                            readonly property string dragState: content.dragState
+                            readonly property bool requestDockShow: content.requestDockShow
+                            
+                            function endDrag() { content.endDrag() }
+                            function endFileDrag() { content.endFileDrag() }
+                            function mimeIconFromPath(p) { return content.mimeIconFromPath(p) }
 
-                    DropArea {
-                        id: fileDropArea
-                        anchors.fill: parent
-                        keys: ["text/uri-list"]
+                            opacity: (dockLoader.activeAsync && !dockRoot.positionChanging) ? 1.0 : 0.0
+                            Behavior on opacity { NumberAnimation { duration: 150 } }
 
-                        // We delay the re-enablement slightly after an internal drag ends
-                        // to prevent the "exited" event from firing for the internal drag.
-                        property bool blockDueToInternal: dockContent.dragActive
-                        onBlockDueToInternalChanged: {
-                            if (!blockDueToInternal) {
-                                reEnableTimer.restart()
-                            } else {
-                                enabled = false
+                            StyledRectangularShadow { 
+                                target: visualBackground
                             }
-                        }
 
-                        Timer {
-                            id: reEnableTimer
-                            interval: 50
-                            onTriggered: fileDropArea.enabled = true
-                        }
+                            Rectangle {
+                                id: visualBackground
+                                anchors.centerIn: parent
+                                width: dockRoot.sizing.backgroundWidth
+                                height: dockRoot.sizing.backgroundHeight
+                                color: Appearance.colors.colLayer0
+                                border.width: 1
+                                border.color: Appearance.colors.colLayer0Border
+                                radius: Appearance.rounding.large
 
-                        onEntered: (drag) => {
-                            if (!drag.hasUrls) return
-                            //console.log("[Dock] External drag entered")
-                            const url = drag.urls[0]?.toString() ?? ""
-                            dockContent.externalDragIcon = dockContent.mimeIconFromPath(url)
-                            dockContent.externalDragOver = true
-                        }
-                        onExited: {
-                            //console.log("[Dock] External drag exited")
-                            dockContent.externalDragIcon = ""
-                            dockContent.externalDragOver = false
-                        }
-                        onDropped: (drop) => {
-                            if (!drop.hasUrls) return
-                            //console.log("[Dock] External drag dropped")
-                            for (let i = 0; i < drop.urls.length; i++)
-                                TaskbarApps.addPinnedFile(drop.urls[i])
-                            drop.accept(Qt.CopyAction)
-                            dockContent.externalDragIcon = ""
-                            dockContent.externalDragOver = false
-                        }
-                    }
+                                DropArea {
+                                    id: fileDropArea
+                                    anchors.fill: parent
+                                    keys: ["text/uri-list"]
+                                    enabled: content.dragActive === false
 
-                    DockContent {
-                        id: dockContent
-                        anchors.fill: parent
-                        isPinned: dock.pinned
-                        currentScreen: dockRoot.screen
-                        onTogglePinRequested: {
-                            dock.pinned = !dock.pinned
+                                    onEntered: (drag) => {
+                                        if (!drag.hasUrls) return
+                                        const url = drag.urls[0]?.toString() ?? ""
+                                        content.externalDragIcon = content.mimeIconFromPath(url)
+                                        content.externalDragOver = true
+                                    }
+                                    onExited: {
+                                        content.externalDragIcon = ""
+                                        content.externalDragOver = false
+                                    }
+                                    onDropped: (drop) => {
+                                        if (!drop.hasUrls) return
+                                        for (let i = 0; i < drop.urls.length; i++)
+                                            TaskbarApps.addPinnedFile(drop.urls[i])
+                                        drop.accept(Qt.CopyAction)
+                                        content.externalDragIcon = ""
+                                        content.externalDragOver = false
+                                    }
+                                }
+
+                                DockContent {
+                                    id: content
+                                    anchors.fill: parent
+                                    isPinned: dock.pinned
+                                    currentScreen: dockRoot.screen
+                                    onTogglePinRequested: dock.pinned = !dock.pinned
+                                }
+                            }
                         }
                     }
                 }
