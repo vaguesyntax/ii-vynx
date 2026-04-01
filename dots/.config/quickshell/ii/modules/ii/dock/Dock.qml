@@ -37,8 +37,8 @@ Scope {
         const maxW = Math.max(1, opts.availableW - gapsOut * 2 - barOffsetH)
         const maxH = Math.max(1, opts.availableH - gapsOut * 2 - barOffset)
 
-        const unloadedW = 1000
-        const unloadedH = 1000
+        const unloadedW = maxW
+        const unloadedH = maxH
 
         const contentW = opts.isLoaded ? opts.contentVisualWidth : (opts.isVertical ? 60 : unloadedW)
         const contentH = opts.isLoaded ? opts.contentVisualHeight : (opts.isVertical ? unloadedH : 60)
@@ -47,8 +47,8 @@ Scope {
         return {
             maxWidth: maxW,
             maxHeight: maxH,
-            dockWidth:     opts.isVertical ? contentW + dockPadding * 2 + gapsOut * 2 : Math.min(contentW + dockPadding * 2 + gapsOut * 2, maxW),
-            dockHeight:    opts.isVertical ? Math.min(contentH + dockPadding * 2 + gapsOut * 2, maxH) : contentH + dockPadding * 2 + gapsOut * 2,
+            dockWidth: opts.isVertical ? contentW + dockPadding * 2 + gapsOut * 2 : Math.min(contentW + dockPadding * 2 + gapsOut * 2, maxW),
+            dockHeight: opts.isVertical ? Math.min(contentH + dockPadding * 2 + gapsOut * 2, maxH) : contentH + dockPadding * 2 + gapsOut * 2,
             dockThickness: opts.isVertical ? contentW + dockPadding * 2 + gapsOut * 2 : contentH + dockPadding * 2 + gapsOut * 2,
             backgroundWidth:  Math.max(1, opts.isVertical ? contentW : Math.min(contentW, maxW - gapsOut * 2)),
             backgroundHeight: Math.max(1, opts.isVertical ? Math.min(contentH, maxH - gapsOut * 2) : contentH)
@@ -75,7 +75,7 @@ Scope {
             readonly property bool isVertical: dock.isVertical
             readonly property real dockThickness: isVertical ? dockRoot.sizing.dockWidth : dockRoot.sizing.dockHeight
             
-            property bool reveal: dock.pinned || (Config.options?.dock.hoverToReveal && dockMouseArea.containsMouse) || (dockLoader.item?.requestDockShow ?? false) || (workspaceEmpty)
+            property bool reveal: dock.pinned || (Config.options?.dock.hoverToReveal && (dockMouseArea.containsMouse || graceTimer.running)) || (dockLoader.item?.requestDockShow ?? false) || (workspaceEmpty)
             property bool positionChanging: false
 
             // TODO: check for multi-monitor situations
@@ -123,6 +123,13 @@ Scope {
                 interval: Appearance.animation.elementMoveFast.duration + 100 
             }
 
+            // Grace timer: keeps the dock revealed for 1 second after the initial
+            // hover trigger, giving the user time to reach the dock as it expands.
+            Timer {
+                id: graceTimer
+                interval: 1000
+            }
+
             onRevealChanged: {
                 if (!reveal) unloadTimer.restart()
                 else unloadTimer.stop()
@@ -157,6 +164,15 @@ Scope {
             MouseArea {
                 id: dockMouseArea
                 hoverEnabled: true
+
+                // When the mouse enters the hover strip and the dock is hidden,
+                // start the grace timer so the dock stays open for 1 second while
+                // it animates and the user moves the cursor onto it.
+                onContainsMouseChanged: {
+                    if (containsMouse && !dockRoot.reveal && !dock.pinned) {
+                        graceTimer.restart()
+                    }
+                }
 
                 property real hiddenOffset: dockRoot.dockThickness - (Config.options?.dock.hoverRegionHeight ?? 10)
                 property real fullyHiddenOffset: dockRoot.dockThickness + 1
