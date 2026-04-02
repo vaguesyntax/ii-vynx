@@ -405,11 +405,17 @@ Item {
                 }
 
                 Item {
+                    id: fileListWrapper
                     Layout.alignment: Qt.AlignCenter
                     Layout.preferredWidth: root.isVertical ? root.buttonSlotSize : (root.processedFiles.length > 0 ? fileListView.contentWidth : 0)
                     Layout.preferredHeight: root.isVertical ? (root.processedFiles.length > 0 ? fileListView.contentHeight : 0) : root.buttonSlotSize
-                    visible: root.processedFiles.length > 0
+                    opacity: root.processedFiles.length > 0 ? 1.0 : 0.0
+                    visible: root.processedFiles.length > 0 || opacity > 0.01
                     clip: true
+
+                    Behavior on opacity {
+                        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                    }
                     Behavior on Layout.preferredWidth {
                         enabled: !root.suppressSizeAnimation && !root.isVertical
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
