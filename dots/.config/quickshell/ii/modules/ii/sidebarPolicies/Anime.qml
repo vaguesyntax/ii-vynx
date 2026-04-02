@@ -514,7 +514,8 @@ Item {
             height: item?.implicitHeight
             Layout.alignment: Qt.AlignHCenter
 
-            active: root.responses.length === 0 &&
+            active: Booru.currentProvider === "gelbooru" &&
+            root.responses.length === 0 &&
             (!Booru.apiKeys["gelbooru"] || !Booru.apiKeys["gelbooru_user_id"] || !Booru.apiKeys["gelbooru_pass_hash"])
             visible: active
 
