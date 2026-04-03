@@ -82,9 +82,9 @@ Scope {
 
             function updateReveal() {
                 var shouldReveal = dock.pinned
-                    || (Config.options?.dock.hoverToReveal && (dockMouseArea.containsMouse || graceTimer.running))
+                    || (dockMouseArea.containsMouse || graceTimer.running)
                     || (dockLoader.item?.requestDockShow ?? false)
-                    || workspaceEmpty
+                    || (Config.options?.dock?.revealOnEmptyWorkspace && workspaceEmpty)
                 if (reveal !== shouldReveal)
                     reveal = shouldReveal
             }
@@ -192,9 +192,8 @@ Scope {
                     dockRoot.updateReveal()
                 }
 
-                property real hiddenOffset: dockRoot.dockThickness - (Config.options?.dock.hoverRegionHeight ?? 10)
-                property real fullyHiddenOffset: dockRoot.dockThickness + 1
-                property real currentOffset: dockRoot.readyToReveal ? 0 : (Config.options?.dock.hoverToReveal ? hiddenOffset : fullyHiddenOffset)
+                property real hiddenOffset: dockRoot.dockThickness - (Config.options?.dock.hoverRegionHeight ?? 2)
+                property real currentOffset: dockRoot.readyToReveal ? 0 : hiddenOffset
 
                 width: dock.isVertical ? dockRoot.dockThickness : dockRoot.sizing.dockWidth
                 height: dock.isVertical ? dockRoot.sizing.dockHeight : dockRoot.dockThickness
