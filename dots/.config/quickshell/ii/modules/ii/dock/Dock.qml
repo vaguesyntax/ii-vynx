@@ -140,7 +140,7 @@ Scope {
             // hover trigger, giving the user time to reach the dock as it expands.
             Timer {
                 id: graceTimer
-                interval: 1000
+                interval: Appearance.animation.elementMoveFast.duration + 800 
                 onRunningChanged: dockRoot.updateReveal()
             }
 
