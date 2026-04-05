@@ -598,6 +598,8 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
             
         }
 
+        
+
         Rectangle { // Input area
             id: inputWrapper
             property real spacing: 5
@@ -606,6 +608,31 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
             color: Appearance.colors.colLayer2
             implicitHeight: Math.max(inputFieldRowLayout.implicitHeight + inputFieldRowLayout.anchors.topMargin + commandButtonsRow.implicitHeight + commandButtonsRow.anchors.bottomMargin + spacing, 45) + (attachedFileIndicator.implicitHeight + spacing + attachedFileIndicator.anchors.topMargin)
             clip: true
+
+            Loader {
+                z: 10
+                anchors.fill: inputWrapper
+                active: !messageInputField.activeFocus
+                sourceComponent: Rectangle {
+                    color: ColorUtils.applyAlpha(Appearance.colors.colLayer2, 0.8)
+                    radius: inputWrapper.radius
+
+                    RowLayout {
+                        anchors.centerIn: parent
+                        spacing: 8
+                        
+                        MaterialSymbol {
+                            text: "do_not_touch"
+                            font.pixelSize: Appearance.font.pixelSize.huge
+                        }
+                        StyledText {
+                            font.pixelSize: Appearance.font.pixelSize.small
+                            color: Appearance.colors.colSubtext
+                            text: Translation.tr("Focus to interact with the model")
+                        }
+                    }
+                }
+            }
 
             Behavior on implicitHeight {
                 animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
