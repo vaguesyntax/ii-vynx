@@ -47,44 +47,17 @@ StyledPopup {
         anchors.centerIn: parent
         spacing: 12
 
-        // Hero date time card
         HeroCard {
             id: clockHero
-
-            shapeContent: MaterialSymbol {
-                anchors.centerIn: parent
-                text: "schedule"
-                iconSize: 48
-                color: Appearance.colors.colOnPrimaryContainer
-            }
-
-            StyledText {
-                text: root.formattedTime
-                font.pixelSize: Appearance.font.pixelSize.hugeass * 2.5
-                font.family: Appearance.font.family.title
-                font.weight: Font.Black
-                color: clockHero.textColor
-                horizontalAlignment: Text.AlignRight
-                Layout.alignment: Qt.AlignRight
-            }
-
-            StyledText {
-                text: root.formattedDate
-                font.pixelSize: Appearance.font.pixelSize.normal
-                font.family: Appearance.font.family.main
-                font.weight: Font.DemiBold
-                color: clockHero.textColor
-                horizontalAlignment: Text.AlignRight
-                Layout.alignment: Qt.AlignRight
-            }
+            icon: "schedule"
+            title: root.formattedTime
+            subtitle: root.formattedDate
         }
 
-        // 2 middle shapes
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 12
 
-            // Uptime pill
             InfoPill {
                 text: root.formattedUptime
 
@@ -115,50 +88,22 @@ StyledPopup {
             }
         }
 
-        // To-dos List Card
         SectionCard {
             title: Translation.tr("To-Do Tasks")
+            icon: "checklist"
+            subtitle: root.todosSection
 
-            shapeContent: MaterialSymbol {
-                anchors.centerIn: parent
-                text: "checklist"
-                iconSize: Appearance.font.pixelSize.normal
-                color: Appearance.colors.colOnTertiaryContainer
-            }
-
-            StyledText {
-                visible: !root.todosEmpty
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignLeft
-                wrapMode: Text.Wrap
-                font.pixelSize: Appearance.font.pixelSize.normal
-                color: Appearance.colors.colOnSurfaceVariant
-                text: root.todosSection
-                lineHeight: 1.4
-            }
-
-            // using loading indicator on empty state for now
-            Rectangle {
+            Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 120
                 visible: root.todosEmpty
-                color: "transparent"
 
-                ColumnLayout {
+                StyledText {
+                    Layout.alignment: Qt.AlignHCenter
                     anchors.centerIn: parent
-                    spacing: 8
-
-                    MaterialLoadingIndicator {
-                        Layout.alignment: Qt.AlignHCenter
-                        loading: true
-                    }
-
-                    StyledText {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: Translation.tr("No pending tasks")
-                        font.pixelSize: Appearance.font.pixelSize.small
-                        color: Appearance.colors.colOnSurfaceVariant
-                    }
+                    text: Translation.tr("No pending tasks")
+                    font.pixelSize: Appearance.font.pixelSize.small
+                    color: Appearance.colors.colOnSurfaceVariant
                 }
             }
         }

@@ -62,7 +62,6 @@ StyledPopup {
         forecastLoading = true;
         let city = Config.options.bar.weather.city || "auto";
         city = city.trim().split(/\s+/).join('+');
-        // Fetch hourly data from today and tomorrow to ensure we have enough hours
         forecastFetcher.command[2] = `curl -s "wttr.in/${city}?format=j1" | jq '{daily: [.weather[] | {date: .date, maxC: .maxtempC, minC: .mintempC, maxF: .maxtempF, minF: .mintempF, code: .hourly[4].weatherCode}], hourly: [.weather[0].hourly[], .weather[1].hourly[] | {time: .time, tempC: .tempC, tempF: .tempF, code: .weatherCode}]}'`;
         forecastFetcher.running = true;
     }
@@ -107,104 +106,40 @@ StyledPopup {
         anchors.centerIn: parent
         spacing: root.mainSpacing
 
-        Item {
-            width: 0
-            height: 0
-            visible: false
-
-            Process {
-                id: forecastFetcher
-                command: ["bash", "-c", ""]
-                stdout: StdioCollector {
-                    onStreamFinished: {
-                        if (text.length === 0) {
-                            root.forecastLoading = false;
-                            return;
-                        }
-                        try {
-                            const data = JSON.parse(text);
-                            root.forecastData = data.daily || [];
-                            root.hourlyData = data.hourly || [];
-                        } catch (e) {
-                            console.error(`[WeatherPopup] Forecast parse error: ${e.message}`);
-                        }
+        Process {
+            id: forecastFetcher
+            command: ["bash", "-c", ""]
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    if (text.length === 0) {
                         root.forecastLoading = false;
+                        return;
                     }
+                    try {
+                        const data = JSON.parse(text);
+                        root.forecastData = data.daily || [];
+                        root.hourlyData = data.hourly || [];
+                    } catch (e) {
+                        console.error(`[WeatherPopup] Forecast parse error: ${e.message}`);
+                    }
+                    root.forecastLoading = false;
                 }
             }
         }
 
-        // Hero card
         HeroCard {
             id: weatherHero
-            Layout.minimumWidth: 360
+            Layout.minimumWidth: 320
             margins: root.heroMargins
             iconSize: root.heroIconSize
-
-            shapeContent: MaterialSymbol {
-                anchors.centerIn: parent
-                text: Icons.getWeatherIcon(Weather.data.wCode)
-                iconSize: Appearance.font.pixelSize.hugeass * 1.5
-                color: Appearance.colors.colOnPrimaryContainer
-            }
-
-            // City Pill
-            Rectangle {
-                Layout.alignment: Qt.AlignRight
-                implicitHeight: cityRow.implicitHeight + 12
-                implicitWidth: cityRow.implicitWidth + 20
-                radius: 100
-                color: Appearance.colors.colSecondaryContainer
-
-                RowLayout {
-                    id: cityRow
-                    anchors.centerIn: parent
-                    spacing: 6
-
-                    MaterialSymbol {
-                        text: "location_on"
-                        iconSize: Appearance.font.pixelSize.small
-                        color: Appearance.colors.colOnSecondaryContainer
-                    }
-                    StyledText {
-                        text: Weather.data.city || "--"
-                        font.weight: Font.Bold
-                        font.pixelSize: Appearance.font.pixelSize.small
-                        color: Appearance.colors.colOnSecondaryContainer
-                        elide: Text.ElideRight
-                        Layout.maximumWidth: 120
-                    }
-                }
-            }
-
-            StyledText {
-                text: Weather.data.temp
-                font.family: Appearance.font.family.title
-                font.weight: Font.Black
-                font.pixelSize: Appearance.font.pixelSize.hugeass * 2.5
-                color: weatherHero.textColor
-                Layout.alignment: Qt.AlignRight
-            }
-
-            StyledText {
-                text: Weather.data.wDesc || "--"
-                font.weight: Font.DemiBold
-                font.pixelSize: Appearance.font.pixelSize.large
-                color: weatherHero.textColor
-                Layout.alignment: Qt.AlignRight
-            }
-
-            StyledText {
-                text: Translation.tr("Feels like %1").arg(Weather.data.tempFeelsLike || "--")
-                font.italic: true
-                font.pixelSize: Appearance.font.pixelSize.small
-                color: weatherHero.textColor
-                Layout.alignment: Qt.AlignRight
-                Layout.topMargin: 4
-            }
+            icon: Icons.getWeatherIcon(Weather.data.wCode)
+            pillText: Weather.data.city || "--"
+            pillIcon: Weather.data.city ? "location_on" : ""
+            
+            title: Weather.data.temp
+            subtitle: Weather.data.wDesc
         }
 
-        // Divider line
         Rectangle {
             Layout.fillWidth: true
             height: 2
@@ -212,7 +147,6 @@ StyledPopup {
             radius: 1
         }
 
-        // Hourly forecast chart
         SectionCard {
             Layout.minimumWidth: 360
             margins: root.cardMargins
@@ -236,10 +170,6 @@ StyledPopup {
                 color: Appearance.colors.colOnSurfaceVariant
             }
 
-            // Bar chart
-            // Bar height calculation:
-            //   normalized = (temp - rangeMin) / rangeSpan  -> value between 0 and 1
-            //   barHeight = barMin + normalized * (barMax - barMin)
             Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.hourlyChartHeight
@@ -272,7 +202,6 @@ StyledPopup {
                             property real availableBarSpace: parent.height - timeLabel.height + 10
                             property real barHeight: availableBarSpace * (0.45 + normalized * 0.55)
 
-                            // Time label at bottom
                             StyledText {
                                 id: timeLabel
                                 anchors.bottom: parent.bottom
@@ -283,7 +212,6 @@ StyledPopup {
                                 color: isCurrentHour ? Appearance.colors.colPrimary : Appearance.colors.colOnSurfaceVariant
                             }
 
-                            // Bar above time label
                             Rectangle {
                                 anchors.bottom: timeLabel.top
                                 anchors.bottomMargin: 4
@@ -316,7 +244,6 @@ StyledPopup {
                                     }
                                 }
 
-                                // Highlight indicator for current hour
                                 Rectangle {
                                     visible: isCurrentHour
                                     anchors.horizontalCenter: parent.horizontalCenter
@@ -341,7 +268,6 @@ StyledPopup {
                 }
             }
 
-            // Loading placeholder
             Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredHeight: root.hourlyChartHeight
@@ -410,8 +336,6 @@ StyledPopup {
             }
         }
 
-        // 3-day forecast
-        // May differ from Hero (real-time) and Hourly (3-hour interval forecasts), need check if its API data
         SectionCard {
             Layout.minimumWidth: 360
             margins: root.cardMargins
@@ -428,7 +352,6 @@ StyledPopup {
                 color: Appearance.colors.colOnSecondaryContainer
             }
 
-            // Forecast Days Row
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12

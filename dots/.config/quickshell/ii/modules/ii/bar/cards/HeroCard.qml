@@ -13,16 +13,23 @@ Rectangle {
     implicitHeight: heroRow.implicitHeight + margins * 2
 
     radius: Appearance.rounding.normal
-    color: containerColor
+    color: Appearance.colors.colPrimaryContainer
 
     property int margins: 24
     property int iconSize: 110
+    property real iconFontSize: 48
+    
     property string shapeString: "Cookie9Sided"
     property string icon: ""
-    property real iconFontSize: 48
-    property color containerColor: Appearance.colors.colPrimaryContainer
+    
+    property string title: ""
+    property string subtitle: ""
+
+    property string pillText: ""
+    property string pillIcon: ""
+
     property color shapeColor: Appearance.colors.colPrimary
-    property color onShapeColor: Appearance.colors.colOnPrimaryContainer
+    property color symbolColor: Appearance.colors.colOnPrimary
     property color textColor: Appearance.colors.colOnPrimaryContainer
 
     default property alias content: contentColumn.children
@@ -46,7 +53,7 @@ Rectangle {
                 anchors.centerIn: parent
                 text: heroCardRoot.icon
                 iconSize: heroCardRoot.iconFontSize
-                color: heroCardRoot.onShapeColor
+                color: heroCardRoot.symbolColor
             }
         }
 
@@ -57,7 +64,60 @@ Rectangle {
         ColumnLayout {
             id: contentColumn
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-            spacing: -2
+            Layout.fillWidth: true
+            
+            Rectangle {
+                visible: heroCardRoot.city !== "" && heroCardRoot.pillIcon !== ""
+                Layout.alignment: Qt.AlignRight
+                implicitHeight: cityRow.implicitHeight + 12
+                implicitWidth: cityRow.implicitWidth + 20
+                radius: 100
+                color: Appearance.colors.colSecondaryContainer
+
+                RowLayout {
+                    id: cityRow
+                    anchors.centerIn: parent
+                    spacing: 6
+
+                    MaterialSymbol {
+                        text: heroCardRoot.pillIcon
+                        iconSize: Appearance.font.pixelSize.small
+                        color: Appearance.colors.colOnSecondaryContainer
+                    }
+                    StyledText {
+                        text: heroCardRoot.pillText
+                        font {
+                            weight: Font.Bold
+                            pixelSize: Appearance.font.pixelSize.small
+                        }
+                        color: Appearance.colors.colOnSecondaryContainer
+                        elide: Text.ElideRight
+                        Layout.maximumWidth: 120
+                    }
+                }
+            }
+
+            StyledText {
+                text: heroCardRoot.title
+                font.pixelSize: Appearance.font.pixelSize.hugeass * 2.5
+                font.family: Appearance.font.family.title
+                font.weight: Font.Black
+                color: heroCardRoot.textColor
+                horizontalAlignment: Text.AlignRight
+                Layout.alignment: Qt.AlignRight
+            }
+
+            StyledText {
+                text: heroCardRoot.subtitle
+                font {
+                    pixelSize: Appearance.font.pixelSize.hugeass
+                    family: Appearance.font.family.title
+                    weight: Font.Black
+                }
+                color: heroCardRoot.textColor
+                horizontalAlignment: Text.AlignRight
+                Layout.alignment: Qt.AlignRight
+            }
         }
     }
 }

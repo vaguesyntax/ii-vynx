@@ -8,7 +8,7 @@ Rectangle {
     id: root
 
     Layout.fillWidth: true
-    Layout.minimumWidth: 320
+    implicitWidth: 320
     implicitHeight: sectionColumn.implicitHeight + margins * 2
 
     radius: Appearance.rounding.normal
@@ -20,8 +20,9 @@ Rectangle {
     property int shapeSize: 36
     property alias icon: iconSymbol.text
     property alias title: titleText.text
+    property alias subtitle: subtitleText.text
     property color shapeColor: Appearance.colors.colTertiaryContainer
-    property color onShapeColor: Appearance.colors.colOnTertiaryContainer
+    property color symbolColor: Appearance.colors.colOnTertiaryContainer
     property bool showDivider: true
 
     default property alias content: contentColumn.data
@@ -51,7 +52,7 @@ Rectangle {
                     visible: iconSymbol.text !== "" && shapeItem.children.length <= 1
                     anchors.centerIn: parent
                     iconSize: Appearance.font.pixelSize.normal
-                    color: root.onShapeColor
+                    color: root.symbolColor
                 }
             }
 
@@ -82,6 +83,17 @@ Rectangle {
             id: contentColumn
             Layout.fillWidth: true
             spacing: root.spacing
+
+            StyledText {
+                id: subtitleText
+                visible: !root.todosEmpty
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignLeft
+                wrapMode: Text.Wrap
+                font.pixelSize: Appearance.font.pixelSize.normal
+                color: Appearance.colors.colOnSurfaceVariant
+                lineHeight: 1.4
+            }
         }
     }
 }
