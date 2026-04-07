@@ -25,36 +25,37 @@ Rectangle {
     default property alias shapeContent: shapeItem.children
     property alias text: pillText.text
 
-    RowLayout {
-        anchors.centerIn: parent
-        spacing: 12
-
-        MaterialShape {
-            id: shapeItem
-            shapeString: root.shapeString
-            implicitSize: root.shapeSize
-            color: root.shapeColor
-
-            MaterialSymbol {
-                id: iconSymbol
-                visible: root.icon !== "" && shapeItem.children.length <= 1
-                anchors.centerIn: parent
-                text: root.icon
-                iconSize: Appearance.font.pixelSize.large
-                color: root.symbolColor
-            }
+    MaterialShape {
+        id: shapeItem
+        shapeString: root.shapeString
+        implicitSize: root.shapeSize
+        color: root.shapeColor
+        anchors {
+            left: parent.left
+            leftMargin: 12
+            verticalCenter: parent.verticalCenter
         }
 
-        StyledText {
-            id: pillText
-            font.pixelSize: Appearance.font.pixelSize.large
-            font.family: Appearance.font.family.title
-            font.weight: Font.Bold
-            color: root.textColor
+        MaterialSymbol {
+            id: iconSymbol
+            visible: root.icon !== "" && shapeItem.children.length <= 1
+            anchors.centerIn: parent
+            text: root.icon
+            iconSize: Appearance.font.pixelSize.large
+            color: root.symbolColor
         }
+    }
 
-        Item {
-            width: 8
+    StyledText {
+        id: pillText
+        anchors {
+            verticalCenter: parent.verticalCenter
+            horizontalCenter: parent.horizontalCenter
+            horizontalCenterOffset: 9
         }
+        font.pixelSize: Appearance.font.pixelSize.large
+        font.family: Appearance.font.family.title
+        font.weight: Font.Bold
+        color: root.textColor
     }
 }
