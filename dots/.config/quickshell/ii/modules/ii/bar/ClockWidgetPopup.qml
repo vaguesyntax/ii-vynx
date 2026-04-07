@@ -1,69 +1,97 @@
 import qs.modules.common
 import qs.modules.common.widgets
+import "./cards"
 import qs.services
 import QtQuick
 import QtQuick.Layouts
 
 StyledPopup {
     id: root
-    property string formattedDate: Qt.locale().toString(DateTime.clock.date, "dddd, MMMM dd, yyyy")
+    popupRadius: Appearance.rounding.large
+
+    property string formattedDate: Qt.locale().toString(DateTime.clock.date, "MMMM dd, dddd")
     property string formattedTime: DateTime.time
     property string formattedUptime: DateTime.uptime
-    property string todosSection: getUpcomingTodos()
+    property string todosSection: getUpcomingTodos(Todo.list)
+    property bool todosEmpty: todosSection === ""
 
-    function getUpcomingTodos() {
-        const unfinishedTodos = Todo.list.filter(function (item) {
+    function getUpcomingTodos(todos) {
+        const unfinishedTodos = todos.filter(function (item) {
             return !item.done;
         });
         if (unfinishedTodos.length === 0) {
-            return Translation.tr("No pending tasks");
+            return "";
         }
 
-        // Limit to first 5 todos to keep popup manageable
-        const limitedTodos = unfinishedTodos.slice(0, 5);
+        // Limit to first 3 todos
+        const limitedTodos = unfinishedTodos.slice(0, 3);
         let todoText = limitedTodos.map(function (item, index) {
-            return `  ${index + 1}. ${item.content}`;
+            return `  • ${item.content}`;
         }).join('\n');
 
-        if (unfinishedTodos.length > 5) {
-            todoText += `\n  ${Translation.tr("... and %1 more").arg(unfinishedTodos.length - 5)}`;
+        if (unfinishedTodos.length > 3) {
+            todoText += `\n  ${Translation.tr("... and %1 more").arg(unfinishedTodos.length - 3)}`;
         }
 
         return todoText;
     }
 
+    function formatTimerDisplay(seconds) {
+        let m = Math.floor(seconds / 60);
+        let s = seconds % 60;
+        return m + ":" + (s < 10 ? "0" : "") + s;
+    }
+
     ColumnLayout {
         id: columnLayout
         anchors.centerIn: parent
-        spacing: 4
+        spacing: 12
 
-        StyledPopupHeaderRow {
-            icon: "calendar_month"
-            label: root.formattedDate
+        HeroCard {
+            id: clockHero
+            icon: "schedule"
+            title: root.formattedTime
+            subtitle: root.formattedDate
         }
 
-        StyledPopupValueRow {
-            icon: "timelapse"
-            label: Translation.tr("System uptime:")
-            value: root.formattedUptime
-        }
-
-        // Tasks
-        Column {
-            spacing: 0
+        ColumnLayout {
             Layout.fillWidth: true
+            spacing: 12
 
-            StyledPopupValueRow {
-                icon: "checklist"
-                label: Translation.tr("To Do:")
-                value: ""
+            InfoPill {
+                text: root.formattedUptime
+
+                CustomIcon {
+                    anchors.centerIn: parent
+                    width: 24
+                    height: 24
+                    source: SystemInfo.distroIcon
+                    colorize: true
+                    color: Appearance.colors.colOnSecondary
+                }
             }
 
-            StyledText {
-                horizontalAlignment: Text.AlignLeft
-                wrapMode: Text.Wrap
-                color: Appearance.colors.colOnSurfaceVariant
-                text: root.todosSection
+            InfoPill {
+                text: TimerService.pomodoroRunning ? root.formatTimerDisplay(TimerService.pomodoroSecondsLeft) : (TimerService.stopwatchRunning ? root.formatTimerDisplay(TimerService.stopwatchTime) : Translation.tr("Timer Off"))
+                containerColor: TimerService.pomodoroBreak ? Appearance.colors.colTertiaryContainer : (TimerService.pomodoroRunning || TimerService.stopwatchRunning ? Appearance.colors.colPrimaryContainer : Appearance.colors.colSecondaryContainer)
+                color: containerColor
+                shapeColor: TimerService.pomodoroBreak ? Appearance.colors.colTertiary : (TimerService.pomodoroRunning || TimerService.stopwatchRunning ? Appearance.colors.colPrimary : Appearance.colors.colSecondary)
+                symbolColor: TimerService.pomodoroBreak ? Appearance.colors.colOnTertiary : (TimerService.pomodoroRunning || TimerService.stopwatchRunning ? Appearance.colors.colOnPrimary : Appearance.colors.colOnSecondary)
+                textColor: TimerService.pomodoroBreak ? Appearance.colors.colOnTertiaryContainer : (TimerService.pomodoroRunning || TimerService.stopwatchRunning ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colOnSecondaryContainer)
+                icon: TimerService.pomodoroBreak ? "coffee" : "timer"
+            }
+        }
+
+        SectionCard {
+            title: Translation.tr("To-Do Tasks")
+            icon: "checklist"
+            subtitle: root.todosSection
+
+            LoadingPlaceholder {
+                Layout.preferredHeight: 120
+                visible: root.todosEmpty
+                loading: false
+                emptyText: Translation.tr("No pending tasks")
             }
         }
     }

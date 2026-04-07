@@ -6,6 +6,7 @@ import qs.services
 import Quickshell
 import QtQuick
 import QtQuick.Layouts
+import "../cards"
 
 MouseArea {
     id: root
@@ -53,8 +54,26 @@ MouseArea {
         }
     }
 
-    WeatherPopup {
+    property bool compactMode: Config.options.bar.tooltips.compactPopups
+
+    Loader {
+        active: true
+        sourceComponent: root.compactMode ? weatherPopupCompact : weatherPopup
+    }
+    
+    Component {
+        id: weatherPopupCompact
+
+        WeatherPopupCompact {
+            hoverTarget: root
+        }
+    }
+    
+    Component {
         id: weatherPopup
-        hoverTarget: root
+
+        WeatherPopup {
+            hoverTarget: root
+        }
     }
 }

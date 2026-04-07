@@ -1,115 +1,168 @@
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
+import "../cards"
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Io
 import qs.modules.ii.bar
 
 StyledPopup {
     id: root
+    popupRadius: Appearance.rounding.large
 
-    ColumnLayout {
-        id: columnLayout
+    property bool compactMode: Config.options.bar.tooltips.compactPopups
+    property int cardMargins: 14
+
+    // Forecast data model
+    property var forecastData: []
+    property var hourlyData: []
+    property bool forecastLoading: true
+    property int maxHourlyBars: 5
+
+    property var filteredHourlyData: {
+        const now = new Date();
+        const currentHr = now.getHours();
+        // Round down to nearest 3-hour slot (API intervals: 0, 3, 6, 9, 12, 15, 18, 21)
+        const currentSlot = Math.floor(currentHr / 3) * 3;
+        let futureHours = [];
+        let passedMidnight = false;
+
+        for (let i = 0; i < hourlyData.length; i++) {
+            const item = hourlyData[i];
+            const itemHour = Math.floor(parseInt(item.time) / 100);
+
+            if (i > 0 && itemHour < Math.floor(parseInt(hourlyData[i - 1].time) / 100)) {
+                passedMidnight = true;
+            }
+
+            if (passedMidnight || itemHour >= currentSlot) {
+                futureHours.push(item);
+            }
+        }
+        return futureHours.slice(0, maxHourlyBars);
+    }
+
+    function fetchForecast() {
+        forecastLoading = true;
+        let city = Config.options.bar.weather.city || "auto";
+        city = city.trim().split(/\s+/).join('+');
+        forecastFetcher.command[2] = `curl -s "wttr.in/${city}?format=j1" | jq '{daily: [.weather[] | {date: .date, maxC: .maxtempC, minC: .mintempC, maxF: .maxtempF, minF: .mintempF, code: .hourly[4].weatherCode}], hourly: [.weather[0].hourly[], .weather[1].hourly[] | {time: .time, tempC: .tempC, tempF: .tempF, code: .weatherCode}]}'`;
+        forecastFetcher.running = true;
+    }
+
+    function getDayName(dateStr, index) {
+        if (index === 0)
+            return Translation.tr("Today");
+        if (index === 1)
+            return Translation.tr("Tomorrow");
+        const date = new Date(dateStr);
+        const days = [Translation.tr("Sun"), Translation.tr("Mon"), Translation.tr("Tue"), Translation.tr("Wed"), Translation.tr("Thu"), Translation.tr("Fri"), Translation.tr("Sat")];
+        return days[date.getDay()];
+    }
+
+    function formatHour(timeStr) {
+        const hour = Math.floor(parseInt(timeStr) / 100);
+        return hour.toString().padStart(2, '0') + ":00";
+    }
+
+    function getHourlyTempRange() {
+        const data = filteredHourlyData.length > 0 ? filteredHourlyData : hourlyData;
+        if (data.length === 0)
+            return {
+                min: 0,
+                max: 100
+            };
+        const temps = data.map(h => Weather.useUSCS ? parseInt(h.tempF) : parseInt(h.tempC));
+        const min = Math.min(...temps);
+        const max = Math.max(...temps);
+        // Add 20% padding (minimum 2°) to make small differences more visible
+        const padding = Math.max(2, (max - min) * 0.2);
+        return {
+            min: min - padding,
+            max: max + padding
+        };
+    }
+
+    Component.onCompleted: fetchForecast()
+
+    contentItem: ColumnLayout {
+        id: contentLayout
         anchors.centerIn: parent
-        implicitWidth: Math.max(header.implicitWidth, gridLayout.implicitWidth)
-        implicitHeight: gridLayout.implicitHeight
-        spacing: 5
+        spacing: 12
 
-        // Header
-        ColumnLayout {
-            id: header
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 2
-
-            RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: 6
-
-                MaterialSymbol {
-                    fill: 0
-                    font.weight: Font.Medium
-                    text: "location_on"
-                    iconSize: Appearance.font.pixelSize.large
-                    color: Appearance.colors.colOnSurfaceVariant
-                }
-
-                StyledText {
-                    text: Weather.data.city
-                    font {
-                        weight: Font.Medium
-                        pixelSize: Appearance.font.pixelSize.normal
+        Process {
+            id: forecastFetcher
+            command: ["bash", "-c", ""]
+            stdout: StdioCollector {
+                onStreamFinished: {
+                    if (text.length === 0) {
+                        root.forecastLoading = false;
+                        return;
                     }
-                    color: Appearance.colors.colOnSurfaceVariant
+                    try {
+                        const data = JSON.parse(text);
+                        root.forecastData = data.daily || [];
+                        root.hourlyData = data.hourly || [];
+                    } catch (e) {
+                        console.error(`[WeatherPopup] Forecast parse error: ${e.message}`);
+                    }
+                    root.forecastLoading = false;
                 }
             }
-            StyledText {
-                id: temp
-                font.pixelSize: Appearance.font.pixelSize.smaller
-                color: Appearance.colors.colOnSurfaceVariant
-                text: Weather.data.temp + " • " + Translation.tr("Feels like %1").arg(Weather.data.tempFeelsLike)
-            }
         }
 
-        // Metrics grid
-        GridLayout {
-            id: gridLayout
+        HeroCard {
+            id: weatherHero
+            Layout.minimumWidth: 320
+            margins: 20
+            iconSize: 100
+            icon: Icons.getWeatherIcon(Weather.data.wCode)
+            pillText: Weather.data.city || "--"
+            pillIcon: Weather.data.city ? "location_on" : ""
+            title: Weather.data.temp
+            subtitle: Weather.data.wDesc
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            height: 2
+            color: Appearance.colors.colSurfaceContainerHighest
+            radius: 1
+        }
+
+        HourlyForecast {
+            Layout.minimumWidth: 360
+            margins: root.cardMargins
+            spacing: 6
+            shapeString: "Clover4Leaf"
+            shapeColor: Appearance.colors.colSecondaryContainer
+            symbolColor: Appearance.colors.colOnSecondaryContainer
+            showDivider: false
+            title: Translation.tr("Hourly")
+            icon: "schedule"
+            headerExtraText: Translation.tr("Last refresh: %1").arg(Weather.data.lastRefresh || "--").slice(0, 20)
+        }
+
+        MetricsGrid {
+            Layout.fillWidth: true
             columns: 2
-            rowSpacing: 5
-            columnSpacing: 5
+            rowSpacing: 8
+            columnSpacing: 8
             uniformCellWidths: true
-
-            WeatherCard {
-                title: Translation.tr("UV Index")
-                symbol: "wb_sunny"
-                value: Weather.data.uv
-            }
-            WeatherCard {
-                title: Translation.tr("Wind")
-                symbol: "air"
-                value: `(${Weather.data.windDir}) ${Weather.data.wind}`
-            }
-            WeatherCard {
-                title: Translation.tr("Precipitation")
-                symbol: "rainy_light"
-                value: Weather.data.precip
-            }
-            WeatherCard {
-                title: Translation.tr("Humidity")
-                symbol: "humidity_low"
-                value: Weather.data.humidity
-            }
-            WeatherCard {
-                title: Translation.tr("Visibility")
-                symbol: "visibility"
-                value: Weather.data.visib
-            }
-            WeatherCard {
-                title: Translation.tr("Pressure")
-                symbol: "readiness_score"
-                value: Weather.data.press
-            }
-            WeatherCard {
-                title: Translation.tr("Sunrise")
-                symbol: "wb_twilight"
-                value: Weather.data.sunrise
-            }
-            WeatherCard {
-                title: Translation.tr("Sunset")
-                symbol: "bedtime"
-                value: Weather.data.sunset
-            }
         }
 
-        // Footer: last refresh
-        StyledText {
-            Layout.alignment: Qt.AlignHCenter
-            text: Translation.tr("Last refresh: %1").arg(Weather.data.lastRefresh)
-            font {
-                weight: Font.Medium
-                pixelSize: Appearance.font.pixelSize.smaller
-            }
-            color: Appearance.colors.colOnSurfaceVariant
+        InDayForecast {
+            Layout.minimumWidth: 360
+            margins: root.cardMargins
+            spacing: 8
+            shapeString: "Cookie6Sided"
+            shapeColor: Appearance.colors.colSecondaryContainer
+            symbolColor: Appearance.colors.colOnSecondaryContainer
+            showDivider: false
+            title: Translation.tr("Forecast")
+            icon: "calendar_month"
         }
     }
 }

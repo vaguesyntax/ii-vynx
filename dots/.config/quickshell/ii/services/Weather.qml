@@ -36,6 +36,7 @@ Singleton {
         sunset: 0,
         windDir: 0,
         wCode: 0,
+        wDesc: "",
         city: 0,
         wind: 0,
         precip: 0,
@@ -54,6 +55,7 @@ Singleton {
         temp.sunset = data?.astronomy?.sunset || "0.0";
         temp.windDir = data?.current?.winddir16Point || "N";
         temp.wCode = data?.current?.weatherCode || "113";
+        temp.wDesc = root.getWeatherDescription(temp.wCode);
         temp.city = data?.location?.areaName[0]?.value || "City";
         temp.temp = "";
         temp.tempFeelsLike = "";
@@ -96,6 +98,46 @@ Singleton {
         command += "jq '{current: .current_condition[0], location: .nearest_area[0], astronomy: .weather[0].astronomy[0]}'";
         fetcher.command[2] = command;
         fetcher.running = true;
+    }
+
+    function getWeatherDescription(code) {
+        const codeInt = parseInt(code);
+        const descriptions = {
+            "113": Translation.tr("Clear"),
+            "116": Translation.tr("Partly Cloudy"),
+            "119": Translation.tr("Cloudy"),
+            "122": Translation.tr("Overcast"),
+            "143": Translation.tr("Mist"),
+            "176": Translation.tr("Patchy Rain"),
+            "200": Translation.tr("Thundery Outbreaks"),
+            "248": Translation.tr("Fog"),
+            "266": Translation.tr("Light Drizzle"),
+            "296": Translation.tr("Light Rain"),
+            "302": Translation.tr("Moderate Rain"),
+            "308": Translation.tr("Heavy Rain"),
+            "326": Translation.tr("Light Snow"),
+            "332": Translation.tr("Moderate Snow"),
+            "338": Translation.tr("Heavy Snow"),
+            "353": Translation.tr("Light Rain Shower"),
+            "389": Translation.tr("Heavy Rain with Thunder")
+        };
+
+        if (descriptions[code]) {
+            return descriptions[code];
+        }
+
+        let keys = Object.keys(descriptions).map(Number).sort((a, b) => a - b);
+        let bestMatch = keys[0];
+
+        for (let i = 0; i < keys.length; i++) {
+            if (codeInt >= keys[i]) {
+                bestMatch = keys[i];
+            } else {
+                break;
+            }
+        }
+
+        return descriptions[bestMatch.toString()] || Translation.tr("Unknown");
     }
 
     function formatCityName(cityName) {

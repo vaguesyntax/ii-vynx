@@ -677,5 +677,13 @@ ContentPage {
                 Config.options.bar.tooltips.clickToShow = checked;
             }
         }
+        ConfigSwitch {
+            buttonIcon: "compress"
+            text: Translation.tr("Compact popups")
+            checked: Config.options.bar.tooltips.compactPopups
+            onCheckedChanged: {
+                Config.options.bar.tooltips.compactPopups = checked;
+            }
+        }
     }
 }
