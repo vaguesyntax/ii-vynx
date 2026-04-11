@@ -109,7 +109,7 @@ Rectangle {
             right: parent.right
             margins: heroCardRoot.margins
         }
-        width: 150
+        width: 200
     }
 
     StyledText {
