@@ -68,24 +68,8 @@ MouseArea {
         }
     }
 
-    Bar.StyledPopup {
+    Bar.MediaPopup {
         hoverTarget: root
         active: GlobalStates.mediaControlsOpen ? false : root.containsMouse
-
-        Column {
-            anchors.centerIn: parent
-            spacing: 4
-
-            Bar.StyledPopupHeaderRow {
-                icon: "music_note"
-                label: Translation.tr("Media")
-            }
-
-            StyledText {
-                color: Appearance.colors.colOnSurfaceVariant
-                text: `${cleanedTitle}${activePlayer?.trackArtist ? '\n' + activePlayer.trackArtist : ''}`
-            }
-        }
     }
-
 }

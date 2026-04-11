@@ -25,6 +25,8 @@ Rectangle {
 
     property string title: ""
     property string subtitle: ""
+    property int titleSize: Appearance.font.pixelSize.hugeass * 2.5
+    property int subtitleSize: Appearance.font.pixelSize.hugeass
 
     property string pillText: ""
     property string pillIcon: ""
@@ -95,16 +97,19 @@ Rectangle {
 
     StyledText {
         text: heroCardRoot.title
-        font.pixelSize: Appearance.font.pixelSize.hugeass * 2.5
+        font.pixelSize: heroCardRoot.titleSize
         font.family: Appearance.font.family.title
         font.weight: Font.Black
         color: heroCardRoot.textColor
         horizontalAlignment: Text.AlignRight
+        elide: Text.ElideRight
         anchors {
             verticalCenter: parent.verticalCenter
+            verticalCenterOffset: 4
             right: parent.right
             margins: heroCardRoot.margins
         }
+        width: 150
     }
 
     StyledText {
@@ -115,12 +120,13 @@ Rectangle {
             margins: heroCardRoot.margins
         }
         font {
-            pixelSize: Appearance.font.pixelSize.hugeass
+            pixelSize: heroCardRoot.subtitleSize
             family: Appearance.font.family.title
             weight: Font.Black
         }
         color: heroCardRoot.textColor
         horizontalAlignment: Text.AlignRight
         elide: Text.ElideRight
+        width: 200
     }
 }
