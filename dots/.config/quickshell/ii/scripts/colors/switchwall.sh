@@ -57,6 +57,11 @@ post_process() {
 
     handle_kde_material_you_colors &
     "$SCRIPT_DIR/code/material-code-set-color.sh" &
+    
+    # Generate YouTube Music theme
+    if [ -d "$HOME/.config/YouTube Music" ] && [ -x "$HOME/.config/YouTube Music/generate-theme.sh" ]; then
+        "$HOME/.config/YouTube Music/generate-theme.sh" > /dev/null 2>&1 &
+    fi
 }
 
 check_and_prompt_upscale() {
