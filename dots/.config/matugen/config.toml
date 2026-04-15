@@ -32,7 +32,3 @@ output_path = '~/.local/state/quickshell/user/generated/color.txt'
 [templates.wallpaper]
 input_path = '~/.config/matugen/templates/wallpaper.txt'
 output_path = '~/.local/state/quickshell/user/generated/wallpaper/path.txt'
-
-[templates.ytmusic]
-input_path = '~/.config/YouTube Music/ytmusic.css'
-output_path = '~/.config/YouTube Music/style.css'
