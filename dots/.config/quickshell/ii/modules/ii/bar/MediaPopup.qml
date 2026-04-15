@@ -17,14 +17,9 @@ StyledPopup {
 
     contentItem: HeroCard {
         id: mediaHero
-        Layout.fillWidth: true
+        compactMode: true
         anchors.centerIn: parent
         icon: "music_note"
-
-        implicitHeight: 150
-
-        titleSize: Appearance.font.pixelSize.huge
-        subtitleSize: Appearance.font.pixelSize.large
 
         title: activePlayer?.trackArtist || Translation.tr("Unknown Artist")
         subtitle: activePlayer ? activePlayer.trackTitle : Translation.tr("No media")

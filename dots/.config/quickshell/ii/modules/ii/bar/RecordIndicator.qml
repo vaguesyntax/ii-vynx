@@ -113,14 +113,9 @@ MouseArea {
     
     component PopupContent: HeroCard {
         id: mediaHero
-        Layout.fillWidth: true
         anchors.centerIn: parent
+        compactMode: true
         icon: "screen_record"
-
-        implicitHeight: 150
-
-        titleSize: Appearance.font.pixelSize.huge
-        subtitleSize: Appearance.font.pixelSize.large
 
         title: Translation.tr("Recording...")
         subtitle: Translation.tr("Click to stop recording")

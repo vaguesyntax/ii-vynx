@@ -11,10 +11,12 @@ Rectangle {
     Layout.preferredHeight: implicitHeight
     Layout.preferredWidth: implicitWidth
     implicitWidth: 380  // fixed sizes to keep consistency
-    implicitHeight: 180
+    implicitHeight: compactMode ? 150 : 180
 
     radius: Appearance.rounding.normal
     color: Appearance.colors.colPrimaryContainer
+
+    property bool compactMode: false
 
     property int margins: 24
     property int iconSize: 110
@@ -25,8 +27,8 @@ Rectangle {
 
     property string title: ""
     property string subtitle: ""
-    property int titleSize: Appearance.font.pixelSize.hugeass * 2.5
-    property int subtitleSize: Appearance.font.pixelSize.hugeass
+    property int titleSize: compactMode ? Appearance.font.pixelSize.huge : Appearance.font.pixelSize.hugeass * 2.5
+    property int subtitleSize: compactMode ? Appearance.font.pixelSize.large : Appearance.font.pixelSize.hugeass
 
     property string pillText: ""
     property string pillIcon: ""
