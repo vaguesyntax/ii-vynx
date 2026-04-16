@@ -10,7 +10,7 @@ Rectangle {
     Layout.fillWidth: true
     Layout.preferredHeight: implicitHeight
     Layout.preferredWidth: implicitWidth
-    implicitWidth: adaptiveWidth ? Math.max(180 + subtitleMetrics.width, 380) : 380  // fixed sizes to keep consistency
+    implicitWidth: adaptiveWidth ? Math.max(Math.max(220 + titleMetrics.width, 180 + subtitleMetrics.width), 380) : 380  // fixed sizes to keep consistency
     implicitHeight: compactMode ? 150 : 180
 
     radius: Appearance.rounding.normal
@@ -40,6 +40,12 @@ Rectangle {
 
     property alias shapeContent: shapeItem.data
     property int spacing: 16
+
+    TextMetrics {
+        id: titleMetrics
+        text: heroCardRoot.title
+        font.pixelSize: heroCardRoot.titleSize
+    }
 
     TextMetrics {
         id: subtitleMetrics

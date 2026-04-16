@@ -22,6 +22,7 @@ StyledPopup {
         HeroCard {
             id: resourcesHero
             Layout.fillWidth: true
+            adaptiveWidth: true
             icon: "developer_board"
             title: `${Math.round(ResourceUsage.cpuUsage * 100)}%`
             subtitle: ResourceUsage.cpuModel
