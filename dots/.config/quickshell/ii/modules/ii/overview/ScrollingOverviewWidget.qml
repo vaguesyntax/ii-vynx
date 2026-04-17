@@ -182,7 +182,109 @@ Item {
         }
     }
 
-    Rectangle { // Background
+
+    RowLayout {
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: 1920
+        spacing: 0
+
+        Repeater { 
+            id: windowRepeater
+            model: ScriptModel {
+                values: {
+                    return ToplevelManager.toplevels.values
+                        .map((toplevel) => {
+                            const address = `0x${toplevel.HyprlandToplevel?.address}`
+                            const win = windowByAddress[address]
+                            return { toplevel, win }
+                        })
+                        .filter(({ win }) => {
+                            return win && win.workspace?.id === monitor.activeWorkspace?.id
+                        })
+                        .sort((a, b) => {
+                            return a.win.at[0] - b.win.at[0] 
+                        })
+                        .map(({ toplevel }) => toplevel)
+                }
+            }
+            delegate: ScreencopyView {
+                required property var modelData
+                required property int index
+
+                property string address: `0x${modelData.HyprlandToplevel.address}`
+                property var window: windowByAddress[address]
+
+                Layout.preferredWidth: window.size[0]
+                Layout.preferredHeight: window.size[1]
+                width: Layout.preferredWidth
+                height: Layout.preferredHeight
+
+                captureSource: modelData
+
+                Component.onCompleted: {
+                    Layout.preferredWidth = window.size[0] / 2
+                    Layout.preferredHeight = window.size[1] / 2
+                }
+
+                Rectangle { 
+                    z: -10
+                    anchors.fill: parent
+                    color: "blue"
+                    opacity: 0.1
+                }
+
+                Behavior on width {
+                    NumberAnimation {
+                        duration: Appearance.animation.elementMove.duration * 3
+                        easing.type: Appearance.animation.elementMove.type
+                        easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
+                    }
+                }
+                Behavior on height {
+                    NumberAnimation {
+                        duration: Appearance.animation.elementMove.duration * 3
+                        easing.type: Appearance.animation.elementMove.type
+                        easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
+                    }
+                }
+                Behavior on Layout.preferredWidth {
+                    NumberAnimation {
+                        duration: Appearance.animation.elementMove.duration * 3
+                        easing.type: Appearance.animation.elementMove.type
+                        easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
+                    }
+                }
+                Behavior on Layout.preferredHeight {
+                    NumberAnimation {
+                        duration: Appearance.animation.elementMove.duration * 3
+                        easing.type: Appearance.animation.elementMove.type
+                        easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
+                    }
+                }
+            }
+        }
+
+        Item {
+            Layout.preferredWidth: 0
+
+            Component.onCompleted: {
+                Layout.preferredWidth = 1920
+            }
+            
+            Behavior on Layout.preferredWidth {
+                NumberAnimation {
+                    duration: Appearance.animation.elementMove.duration * 3
+                    easing.type: Appearance.animation.elementMove.type
+                    easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
+                }
+            }
+        }
+
+
+    }
+
+    /* Rectangle { // Background
         id: overviewBackground
         anchors.fill: parent
         color: "transparent"
@@ -585,5 +687,5 @@ Item {
             }
 
         }
-    }
+    } */
 }

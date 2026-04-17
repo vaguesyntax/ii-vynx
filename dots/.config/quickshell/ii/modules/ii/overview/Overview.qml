@@ -204,7 +204,7 @@ Scope {
 
                     Loader { // Scrolling overview
                         id: scrollingOverviewLoader
-                        scale: root.effectiveScale
+                        //scale: root.effectiveScale
                         anchors.fill: parent
                         active: root.visible && (Config?.options.overview.enable ?? true) && root.isScrollingLayout
                         sourceComponent: ScrollingOverviewWidget {
