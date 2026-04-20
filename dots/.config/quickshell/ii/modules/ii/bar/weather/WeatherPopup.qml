@@ -131,14 +131,7 @@ StyledPopup {
             title: Weather.data.temp
             subtitle: Weather.data.wDesc
         }
-
-        Rectangle {
-            Layout.fillWidth: true
-            height: 2
-            color: Appearance.colors.colSurfaceContainerHighest
-            radius: 1
-        }
-
+        
         HourlyForecast {
             Layout.minimumWidth: 360
             margins: root.cardMargins

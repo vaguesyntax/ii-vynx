@@ -30,13 +30,6 @@ StyledPopup {
             pillIcon: "device_thermostat"
         }
 
-        Rectangle {
-            Layout.fillWidth: true
-            height: 2
-            color: Appearance.colors.colSurfaceContainerHighest
-            radius: 1
-        }
-
         RowLayout {
             Layout.fillWidth: true
 
