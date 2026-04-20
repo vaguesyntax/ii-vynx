@@ -59,9 +59,7 @@ post_process() {
     "$SCRIPT_DIR/code/material-code-set-color.sh" &
     
     # Generate YouTube Music theme
-    if [ -d "$HOME/.config/YouTube Music" ] && [ -x "$HOME/.config/YouTube Music/generate-theme.sh" ]; then
-        "$HOME/.config/YouTube Music/generate-theme.sh" > /dev/null 2>&1 &
-    fi
+    "$SCRIPT_DIR/../ytmusic/generate-ytmusic-theme.sh" "$wallpaper_path" > /dev/null 2>&1 &
 }
 
 check_and_prompt_upscale() {
