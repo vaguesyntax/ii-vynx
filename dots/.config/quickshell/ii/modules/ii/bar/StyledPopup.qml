@@ -104,15 +104,24 @@ LazyLoader {
             
             readonly property real targetWidth: (root.contentItem?.implicitWidth ?? 0) + margin * 2
             readonly property real targetHeight: (root.contentItem?.implicitHeight ?? 0) + margin * 2
+
+            property bool isVertical: Config.options.bar.vertical
+            property bool isBottom: Config.options.bar.bottom
+            property int elevation: Appearance.sizes.elevationMargin
             
             anchors {
-                top: (!Config.options.bar.vertical && !Config.options.bar.bottom) ? parent.top : undefined
-                bottom: (!Config.options.bar.vertical && Config.options.bar.bottom) ? parent.bottom : undefined
-                verticalCenter: Config.options.bar.vertical ? parent.verticalCenter : undefined
+                top: (!isVertical && !isBottom) ? parent.top : undefined
+                bottom: (!isVertical && isBottom) ? parent.bottom : undefined
+                left: (isVertical && !isBottom) ? parent.left : undefined
+                right: (isVertical && isBottom) ? parent.right : undefined
 
-                horizontalCenter: !Config.options.bar.vertical ? parent.horizontalCenter : undefined
-                left: (Config.options.bar.vertical && !Config.options.bar.bottom) ? parent.left : undefined
-                right: (Config.options.bar.vertical && Config.options.bar.bottom) ? parent.right : undefined
+                topMargin: top ? elevation : undefined
+                bottomMargin: bottom ? elevation : undefined
+                leftMargin: left ? elevation : undefined
+                rightMargin: right ? elevation : undefined
+
+                verticalCenter: isVertical ? parent.verticalCenter : undefined
+                horizontalCenter: !isVertical ? parent.horizontalCenter : undefined
             }
             
             width: targetWidth
