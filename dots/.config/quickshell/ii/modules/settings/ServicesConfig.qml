@@ -5,7 +5,7 @@ import qs.modules.common
 import qs.modules.common.widgets
 
 ContentPage {
-    id: page
+    id: page;
     readonly property int index: 5
     property bool register: parent.register ?? false
     forceWidth: true
@@ -166,7 +166,7 @@ ContentPage {
     ContentSection {
         icon: "file_open"
         title: Translation.tr("Save paths")
-
+        
         MaterialTextArea {
             Layout.fillWidth: true
             placeholderText: Translation.tr("Video Recording Path")
@@ -184,6 +184,49 @@ ContentPage {
             wrapMode: TextEdit.Wrap
             onTextChanged: {
                 Config.options.screenSnip.savePath = text;
+            }
+        }
+    }
+
+    ContentSection {
+        icon: "devices"
+        title: Translation.tr("LocalSend")
+        visible: Config.options.policies.localSend !== 0
+
+        ConfigSwitch {
+            buttonIcon: "power_settings_new"
+            text: Translation.tr("Auto-start server")
+            checked: Config.options.localsend.autoStart
+            onCheckedChanged: {
+                Config.options.localsend.autoStart = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Automatically start LocalSend server when shell starts")
+            }
+        }
+
+        ConfigSwitch {
+            buttonIcon: "notifications"
+            text: Translation.tr("Show notifications")
+            checked: Config.options.localsend.showNotifications
+            onCheckedChanged: {
+                Config.options.localsend.showNotifications = checked;
+            }
+            StyledToolTip {
+                text: Translation.tr("Show notifications for incoming transfers and completed downloads")
+            }
+        }
+
+        MaterialTextArea {
+            Layout.fillWidth: true
+            placeholderText: Translation.tr("Download path")
+            text: Config.options.localsend.downloadPath
+            wrapMode: TextEdit.Wrap
+            onTextChanged: {
+                Config.options.localsend.downloadPath = text;
+            }
+            StyledToolTip {
+                text: Translation.tr("Directory where received files will be saved")
             }
         }
     }

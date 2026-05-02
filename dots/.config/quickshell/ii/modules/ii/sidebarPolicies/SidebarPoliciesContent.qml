@@ -16,12 +16,14 @@ Item {
     property bool translatorEnabled: Config.options.policies.translator !== 0
     property bool animeEnabled: Config.options.policies.weeb !== 0  
     property bool animeCloset: Config.options.policies.weeb === 2  
-    property bool wallpapersEnabled: Config.options.policies.wallpapers !== 0  
-    property var tabButtonList: [  
-        ...(root.aiChatEnabled ? [{"icon": "neurology", "name": Translation.tr("Intelligence")}] : []),  
-        ...(root.translatorEnabled ? [{"icon": "translate", "name": Translation.tr("Translator")}] : []), 
+    property bool wallpapersEnabled: Config.options.policies.wallpapers !== 0
+    property bool localSendEnabled: Config.options.policies.localSend !== 0
+    property var tabButtonList: [
+        ...(root.aiChatEnabled ? [{"icon": "neurology", "name": Translation.tr("Intelligence")}] : []),
+        ...(root.translatorEnabled ? [{"icon": "translate", "name": Translation.tr("Translator")}] : []),
         ...(root.wallpapersEnabled ? [{"icon": "wallpaper", "name": Translation.tr("Wallpapers")}] : []),
-        ...((root.animeEnabled && !root.animeCloset) ? [{"icon": "bookmark_heart", "name": Translation.tr("Anime")}] : []) 
+        ...((root.animeEnabled && !root.animeCloset) ? [{"icon": "bookmark_heart", "name": Translation.tr("Anime")}] : []),
+        ...(root.localSendEnabled ? [{"icon": "devices", "name": Translation.tr("LocalSend")}] : [])
     ]
     property int tabCount: swipeView.count
 
@@ -93,7 +95,8 @@ Item {
                     ...(root.translatorEnabled ? [translator.createObject()] : []),
                     ...((root.tabButtonList.length === 0 || (!root.aiChatEnabled && !root.translatorEnabled && root.animeCloset)) ? [placeholder.createObject()] : []),
                     ...(root.wallpapersEnabled ? [wallpaperBrowser.createObject()] : []),
-                    ...(root.animeEnabled ? [anime.createObject()] : [])
+                        ...(root.animeEnabled ? [anime.createObject()] : []),
+                    ...(root.localSendEnabled ? [localSendPage.createObject()] : []),
                 ]
             }
         }
@@ -113,6 +116,10 @@ Item {
         Component {
             id: anime
             Anime {}
+        }
+        Component {
+            id: localSendPage
+            LocalSendPage {}
         }
         Component {
             id: placeholder
