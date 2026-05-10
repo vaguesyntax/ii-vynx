@@ -19,9 +19,9 @@ Item {
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: root.padding
-        spacing: 15
+        spacing: 8
 
-        // 1. EN ÜSTTE: Header + Sunucu Toggle (Container içinde)
+        // 1. TOP: Server Status + Toggle
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: headerRow.implicitHeight + 20
@@ -40,7 +40,7 @@ Item {
                 }
 
                 StyledText {
-                    text: "LocalSend"
+                    text: "LocalSend Server"
                     font.pixelSize: Appearance.font.pixelSize.enormous
                     font.weight: Font.Bold
                     color: Appearance.colors.colOnLayer1
@@ -78,222 +78,130 @@ Item {
             }
         }
 
-        // 2. TAM ORTADA: Esnek boşluk (Gelen dosyalar veya boş durum)
-        Item {
+        // 2. MIDDLE (350px): Incoming Transfers
+        Rectangle {
+            id: incomingContainer
             Layout.fillWidth: true
-            Layout.fillHeight: true
+            Layout.preferredHeight: 350
+            radius: Appearance.rounding.normal
+            color: Appearance.colors.colLayer2
+            border.color: Appearance.colors.colLayer3
+            border.width: LocalSend.currentTransfer !== null ? 1 : 0
 
-            // BOŞ DURUM: Henüz transfer yapılmadı (Ortada)
+            // Empty state (shown when no active transfer)
             StyledText {
                 anchors.centerIn: parent
-                visible: LocalSend.currentTransfer === null && LocalSend.transferHistory.length === 0
+                visible: LocalSend.currentTransfer === null
                 text: "Henüz transfer yapılmadı"
                 color: Appearance.colors.colSubtext
                 font.pixelSize: Appearance.font.pixelSize.normal
             }
 
-            // GELEN DOSYALAR: Bekleyen transfer (Ortada)
-            Loader {
+            // Active transfer details
+            ColumnLayout {
                 anchors.fill: parent
-                active: LocalSend.currentTransfer !== null
-                visible: active
-
-                sourceComponent: Component {
-                    Rectangle {
-                        radius: Appearance.rounding.normal
-                        color: Appearance.colors.colLayer2
-                        border.color: Appearance.colors.colLayer3
-                        border.width: 1
-
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: 15
-                            spacing: 10
-
-                            StyledText {
-                                text: "Bekleyen Transfer"
-                                font.pixelSize: Appearance.font.pixelSize.large
-                                font.weight: Font.Bold
-                                color: Appearance.colors.colOnLayer2
-                            }
-
-                            StyledText {
-                                text: "Gönderen: " + (LocalSend.currentTransfer?.sender || "Unknown")
-                                color: Appearance.colors.colSubtext
-                                font.pixelSize: Appearance.font.pixelSize.normal
-                                elide: Text.ElideMiddle
-                                Layout.fillWidth: true
-                            }
-
-                            Repeater {
-                                model: LocalSend.currentTransfer?.files || []
-                                delegate: RowLayout {
-                                    spacing: 8
-                                    MaterialSymbol {
-                                        text: "description"
-                                        iconSize: 16
-                                        color: Appearance.colors.colSubtext
-                                    }
-                                    StyledText {
-                                        Layout.fillWidth: true
-                                        text: {
-                                            const size = modelData.size || 0
-                                            const sizeStr = size < 1024 ? size + " B" : 
-                                                       size < 1024 * 1024 ? (size / 1024).toFixed(1) + " KB" : 
-                                                       (size / (1024 * 1024)).toFixed(1) + " MB"
-                                            return modelData.name + " (" + sizeStr + ")"
-                                        }
-                                        color: Appearance.colors.colOnLayer2
-                                        font.pixelSize: Appearance.font.pixelSize.normal
-                                        elide: Text.ElideMiddle
-                                    }
-                                }
-                            }
-
-                            // Accept/Deny buttons
-                            RowLayout {
-                                Layout.topMargin: 10
-                                spacing: 10
-
-                                RippleButton {
-                                    Layout.fillWidth: true
-                                    buttonRadius: Appearance.rounding.normal
-                                    colBackground: Appearance.colors.colPrimary
-                                    onClicked: LocalSend.acceptTransfer()
-
-                                    contentItem: RowLayout {
-                                        spacing: 6
-                                        anchors.centerIn: parent
-                                        MaterialSymbol {
-                                            text: "check_circle"
-                                            iconSize: 18
-                                            color: Appearance.colors.colOnPrimary
-                                        }
-                                        StyledText {
-                                            text: "Kabul Et"
-                                            color: Appearance.colors.colOnPrimary
-                                            font.pixelSize: Appearance.font.pixelSize.normal
-                                        }
-                                    }
-                                }
-
-                                RippleButton {
-                                    Layout.fillWidth: true
-                                    buttonRadius: Appearance.rounding.normal
-                                    colBackground: "#F44336"
-                                    onClicked: LocalSend.denyTransfer()
-
-                                    contentItem: RowLayout {
-                                        spacing: 6
-                                        anchors.centerIn: parent
-                                        MaterialSymbol {
-                                            text: "cancel"
-                                            iconSize: 18
-                                            color: Appearance.colors.colOnPrimary
-                                        }
-                                        StyledText {
-                                            text: "Reddet"
-                                            color: Appearance.colors.colOnPrimary
-                                            font.pixelSize: Appearance.font.pixelSize.normal
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Transfer history
-        StyledText {
-            Layout.topMargin: 10
-            text: "Son Transferler"
-            font.pixelSize: Appearance.font.pixelSize.large
-            font.weight: Font.Bold
-            color: Appearance.colors.colOnLayer1
-            visible: LocalSend.transferHistory.length > 0
-        }
-
-        ScrollView {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            visible: LocalSend.transferHistory.length > 0
-            clip: true
-
-            ListView {
-                model: LocalSend.transferHistory
-                spacing: 8
-
-                delegate: Rectangle {
-                    width: ListView.view.width
-                    height: delegateLayout.implicitHeight + 20
-                    radius: Appearance.rounding.normal
-                    color: Appearance.colors.colLayer2
-
-                    RowLayout {
-                        id: delegateLayout
-                        anchors.fill: parent
-                        anchors.margins: 10
-                        spacing: 10
-
-                        MaterialSymbol {
-                            text: modelData.text !== undefined ? "text_snippet" : "file_present"
-                            iconSize: 20
-                            color: Appearance.colors.colSubtext
-                        }
-
-                        ColumnLayout {
-                            spacing: 4
-                            Layout.fillWidth: true
-
-                            StyledText {
-                                text: modelData.fileName || modelData.text || "Transfer"
-                                color: Appearance.colors.colOnLayer2
-                                font.pixelSize: Appearance.font.pixelSize.normal
-                                elide: Text.ElideMiddle
-                                Layout.fillWidth: true
-                            }
-
-                            StyledText {
-                                text: modelData.sender || ""
-                                color: Appearance.colors.colSubtext
-                                font.pixelSize: Appearance.font.pixelSize.small
-                            }
-                        }
-
-                        StyledText {
-                            text: Qt.formatDateTime(new Date(modelData.timestamp), "HH:mm")
-                            color: Appearance.colors.colSubtext
-                            font.pixelSize: Appearance.font.pixelSize.small
-                        }
-                    }
-                }
-            }
-        }
-
-        // 3. EN ALTTTA: Server Status (Container içinde)
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: statusRow.implicitHeight + 20
-            radius: Appearance.rounding.normal
-            color: Appearance.colors.colLayer2
-
-            RowLayout {
-                id: statusRow
-                anchors.centerIn: parent
+                anchors.margins: 15
                 spacing: 10
+                visible: LocalSend.currentTransfer !== null
 
-                MaterialSymbol {
-                    text: LocalSend.serverRunning ? "check_circle" : "cancel"
-                    iconSize: 20
-                    color: LocalSend.serverRunning ? "#4CAF50" : "#F44336"
+                StyledText {
+                    text: "Bekleyen Transfer"
+                    font.pixelSize: Appearance.font.pixelSize.large
+                    font.weight: Font.Bold
+                    color: Appearance.colors.colOnLayer2
                 }
 
                 StyledText {
-                    text: LocalSend.serverRunning ? "Sunucu çalışıyor" : "Sunucu durdu"
-                    color: Appearance.colors.colOnLayer2
-                    font.pixelSize: Appearance.font.pixelSize.large
+                    text: "Gönderen: " + (LocalSend.currentTransfer?.sender || "Unknown")
+                    color: Appearance.colors.colSubtext
+                    font.pixelSize: Appearance.font.pixelSize.normal
+                    elide: Text.ElideMiddle
+                    Layout.fillWidth: true
+                }
+
+                ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    clip: true
+
+                    ListView {
+                        model: LocalSend.currentTransfer?.files || []
+                        spacing: 8
+
+                        delegate: RowLayout {
+                            spacing: 8
+                            MaterialSymbol {
+                                text: "description"
+                                iconSize: 16
+                                color: Appearance.colors.colSubtext
+                            }
+                            StyledText {
+                                Layout.fillWidth: true
+                                text: {
+                                    var size = modelData.size || 0;
+                                    var sizeStr = size + " B";
+                                    if (size >= 1024 && size < 1024 * 1024) {
+                                        sizeStr = (size / 1024).toFixed(1) + " KB";
+                                    } else if (size >= 1024 * 1024) {
+                                        sizeStr = (size / (1024 * 1024)).toFixed(1) + " MB";
+                                    }
+                                    return modelData.name + " (" + sizeStr + ")";
+                                }
+                                color: Appearance.colors.colOnLayer2
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                                elide: Text.ElideMiddle
+                            }
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.topMargin: 10
+                    spacing: 10
+
+                    RippleButton {
+                        Layout.fillWidth: true
+                        buttonRadius: Appearance.rounding.normal
+                        colBackground: Appearance.colors.colPrimary
+                        onClicked: LocalSend.acceptTransfer()
+
+                        contentItem: RowLayout {
+                            spacing: 6
+                            anchors.centerIn: parent
+                            MaterialSymbol {
+                                text: "check_circle"
+                                iconSize: 18
+                                color: Appearance.colors.colOnPrimary
+                            }
+                            StyledText {
+                                text: "Kabul Et"
+                                color: Appearance.colors.colOnPrimary
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                            }
+                        }
+                    }
+
+                    RippleButton {
+                        Layout.fillWidth: true
+                        buttonRadius: Appearance.rounding.normal
+                        colBackground: "#F44336"
+                        onClicked: LocalSend.denyTransfer()
+
+                        contentItem: RowLayout {
+                            spacing: 6
+                            anchors.centerIn: parent
+                            MaterialSymbol {
+                                text: "cancel"
+                                iconSize: 18
+                                color: Appearance.colors.colOnPrimary
+                            }
+                            StyledText {
+                                text: "Reddet"
+                                color: Appearance.colors.colOnPrimary
+                                font.pixelSize: Appearance.font.pixelSize.normal
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -16,14 +16,13 @@ Singleton {
     property bool available: false
     property bool serverRunning: receiveProc.running
     property bool autoStart: Config.options?.localsend?.autoStart ?? false
-    property string downloadPath: Config.options?.localsend?.downloadPath ?? (Directories.homePath + "/Downloads")
+    property string downloadPath: Config.options?.localsend?.downloadPath
     property bool showNotifications: Config.options?.localsend?.showNotifications ?? true
     property bool localSendEnabled: Config.options?.policies?.localSend !== 0
 
     // Transfer state
     property var currentTransfer: null
     property list<var> pendingTransfers: []
-    property list<var> transferHistory: []
 
     signal transferRequested(var transfer)
     signal transferStarted(var transfer)
@@ -39,7 +38,7 @@ Singleton {
     // Check if localsend-cli is available
     Process {
         id: checkAvailabilityProc
-        running: false
+        running: true
         command: ["which", "localsend-cli"]
         onExited: (exitCode, exitStatus) => {
             root.available = (exitCode === 0)
@@ -159,7 +158,6 @@ Singleton {
                     timestamp: Date.now()
                 }
                 root.transferCompleted(textTransfer)
-                root.addToHistory(textTransfer)
                 if (root.showNotifications) {
                     Quickshell.execDetached([
                         "notify-send",
@@ -172,15 +170,15 @@ Singleton {
                 break
 
             case "saved":
+                console.log("[LocalSend] File saved:", event.path || "unknown path")
                 const fileTransfer = {
                     sender: event.sender || "Unknown",
                     fileName: event.name || "",
-                    filePath: event.path || "",
+                    filePath: event.path || root.downloadPath + "/" + (event.name || ""),
                     fileSize: event.size || 0,
                     timestamp: Date.now()
                 }
                 root.transferCompleted(fileTransfer)
-                root.addToHistory(fileTransfer)
                 if (root.showNotifications) {
                     Quickshell.execDetached([
                         "notify-send",
@@ -247,23 +245,13 @@ Singleton {
     function acceptTransfer(): void {
         console.log("[LocalSend] Accepting transfer...")
         receiveProc.write("y\n")
+        root.currentTransfer = null
     }
 
     function denyTransfer(): void {
         console.log("[LocalSend] Denying transfer...")
+        root.currentTransfer = null
         receiveProc.write("n\n")
-    }
-
-    function addToHistory(transfer: var): void {
-        root.transferHistory.push(transfer)
-        // Keep only last 50 transfers
-        if (root.transferHistory.length > 50) {
-            root.transferHistory = root.transferHistory.slice(-50)
-        }
-    }
-
-    function clearHistory(): void {
-        root.transferHistory = []
     }
 
     function getPendingTransfers(): list<var> {
@@ -272,12 +260,6 @@ Singleton {
 
     function clearPendingTransfers(): void {
         root.pendingTransfers = []
-    }
-
-    Component.onCompleted: {
-        if (Config.ready) {
-            checkAvailabilityProc.running = true
-        }
     }
 
     onLocalSendEnabledChanged: {
