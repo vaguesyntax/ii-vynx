@@ -12,21 +12,33 @@ Singleton {
         let key = extId + "." + serviceId
         if (root.loaded[key]) return root.loaded[key]
 
-        let comp = Qt.createComponent(qmlPath)
+        let url = qmlPath.startsWith("file://") ? qmlPath : "file://" + qmlPath
+        let comp = Qt.createComponent(url)
         if (comp.status === Component.Error) {
             console.warn("ExtensionServices: failed to create component for", key, ":", comp.errorString())
             return null
         }
         if (comp.status === Component.Ready) {
-            let instance = comp.createObject(null)
-            if (instance) {
-                let updated = Object.assign({}, root.loaded)
-                updated[key] = instance
-                root.loaded = updated
-            }
-            return instance
+            return root._instantiate(comp, key)
         }
+        comp.statusChanged.connect(() => {
+            if (comp.status === Component.Ready) {
+                root._instantiate(comp, key)
+            } else if (comp.status === Component.Error) {
+                console.warn("ExtensionServices: async component error for", key, ":", comp.errorString())
+            }
+        })
         return null
+    }
+
+    function _instantiate(comp, key) {
+        let instance = comp.createObject(null)
+        if (instance) {
+            let updated = Object.assign({}, root.loaded)
+            updated[key] = instance
+            root.loaded = updated
+        }
+        return instance
     }
 
     function unload(extId, serviceId) {
