@@ -29,10 +29,23 @@ Item {
             anchors.margins: 10
             spacing: 12
 
-            MaterialSymbol {
-                text: ext.enabled ? "check_circle" : "cancel"
-                iconSize: 22
-                color: ext.enabled ? Appearance.colors.colPrimary : Appearance.colors.colError
+            Rectangle {
+                Layout.preferredWidth: 60
+                Layout.preferredHeight: 60
+                radius: Appearance.rounding.normal
+                color: Appearance.colors.colLayer3
+                MaterialSymbol {
+                    anchors.centerIn: parent
+                    text: "extension"
+                    iconSize: 28
+                    color: Appearance.colors.colSubtext
+                }
+                Image {
+                    anchors.fill: parent
+                    visible: ext.hasManifest && ext.manifest && ext.manifest.coverArt
+                    source: ext.hasManifest && ext.manifest && ext.manifest.coverArt ? ext.manifest.coverArt : ""
+                    fillMode: Image.PreserveAspectCrop
+                }
             }
 
             ColumnLayout {
@@ -43,7 +56,6 @@ Item {
                     Layout.fillWidth: true
                     spacing: 6
                     StyledText {
-                        Layout.fillWidth: true
                         text: ext.name
                         font.pixelSize: Appearance.font.pixelSize.normal
                         font.weight: Font.Medium
@@ -54,26 +66,42 @@ Item {
                         visible: ext.repoUrl && ext.repoUrl.includes("vaguesyntax")
                         radius: 999
                         color: Appearance.colors.colSecondaryContainer
-                        implicitWidth: childrenRect.width + 6
-                        implicitHeight: childrenRect.height + 2
+                        implicitWidth: childrenRect.width + 20
+                        implicitHeight: childrenRect.height + 8
                         StyledText {
                             x: 3; y: 1
                             text: Translation.tr("Official")
                             font.pixelSize: Appearance.font.pixelSize.smallest
                             color: Appearance.colors.colOnSecondaryContainer
+                            anchors.centerIn: parent
+                        }
+                        HoverHandler {
+                            id: hoverOff
+                        }
+                        StyledToolTip { 
+                            extraVisibleCondition: hoverOff.hovered
+                            text: Translation.tr("Created by the ii-vynx developer") 
                         }
                     }
                     Rectangle {
                         visible: ExtensionManager.recommendedExtensions.includes(ext.id)
                         radius: 999
                         color: Appearance.colors.colTertiaryContainer
-                        implicitWidth: childrenRect.width + 6
-                        implicitHeight: childrenRect.height + 2
+                        implicitWidth: childrenRect.width + 20
+                        implicitHeight: childrenRect.height + 8
                         StyledText {
                             x: 3; y: 1
                             text: Translation.tr("Recommended")
                             font.pixelSize: Appearance.font.pixelSize.smallest
                             color: Appearance.colors.colOnTertiaryContainer
+                            anchors.centerIn: parent
+                        }
+                        HoverHandler {
+                            id: hoverRec
+                        }
+                        StyledToolTip { 
+                            extraVisibleCondition: hoverRec.hovered
+                            text: Translation.tr("Recommended by the ii-vynx developer based on user feedback") 
                         }
                     }
                 }
@@ -112,47 +140,52 @@ Item {
                 onClicked: ExtensionManager.toggleExtension(ext.id, !ext.enabled)
             }
 
-            RippleButton {
-                implicitWidth: 60
-                implicitHeight: 28
-                padding: 0
-                buttonRadius: Appearance.rounding.full
-                colBackground: updateAvailable ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer3
-                colBackgroundHover: updateAvailable ? Appearance.colors.colPrimaryContainerHover : Appearance.colors.colLayer3Hover
-                visible: ext.repoUrl && ext.repoUrl.length > 0
-                contentItem: StyledText {
-                    anchors.centerIn: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    text: updateChecking ? "..." : (updateAvailable ? Translation.tr("Update") : Translation.tr("Check"))
-                    font.pixelSize: Appearance.font.pixelSize.smaller
-                    color: updateAvailable ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colSubtext
-                }
-                onClicked: {
-                    if (updateAvailable) {
-                        ExtensionManager.updateExtension(ext.id)
-                    } else {
-                        ExtensionManager.checkUpdate(ext.id)
+            ColumnLayout {
+                spacing: 6
+
+                RippleButton {
+                    implicitWidth: 80
+                    implicitHeight: 28
+                    padding: 0
+                    buttonRadius: Appearance.rounding.full
+                    colBackground: updateAvailable ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer3
+                    colBackgroundHover: updateAvailable ? Appearance.colors.colPrimaryContainerHover : Appearance.colors.colLayer3Hover
+                    visible: ext.repoUrl && ext.repoUrl.length > 0
+                    contentItem: StyledText {
+                        anchors.centerIn: parent
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        text: updateChecking ? "..." : (updateAvailable ? Translation.tr("Update") : Translation.tr("Check"))
+                        font.pixelSize: Appearance.font.pixelSize.smaller
+                        color: updateAvailable ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colSubtext
+                    }
+                    onClicked: {
+                        if (updateAvailable) {
+                            ExtensionManager.updateExtension(ext.id)
+                        } else {
+                            ExtensionManager.checkUpdate(ext.id)
+                        }
                     }
                 }
-            }
 
-            RippleButton {
-                implicitWidth: 60
-                implicitHeight: 28
-                padding: 0
-                buttonRadius: Appearance.rounding.full
-                colBackground: Appearance.colors.colError
-                colBackgroundHover: Appearance.colors.colErrorHover
-                contentItem: StyledText {
-                    anchors.centerIn: parent
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    text: Translation.tr("Remove")
-                    font.pixelSize: Appearance.font.pixelSize.smaller
-                    color: Appearance.colors.colOnError
+                RippleButton {
+                    implicitWidth: 80
+                    implicitHeight: 28
+                    padding: 0
+                    buttonRadius: Appearance.rounding.full
+                    colBackground: Appearance.colors.colError
+                    colBackgroundHover: Appearance.colors.colErrorHover
+                    contentItem: StyledText {
+                        anchors.centerIn: parent
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        text: Translation.tr("Remove")
+                        font.pixelSize: Appearance.font.pixelSize.smaller
+                        color: Appearance.colors.colOnError
+                    }
+                    onClicked: ExtensionManager.uninstallExtension(ext.id)
                 }
-                onClicked: ExtensionManager.uninstallExtension(ext.id)
+
             }
         }
     }

@@ -69,7 +69,6 @@ Item {
                     Layout.fillWidth: true
                     spacing: 6
                     StyledText {
-                        Layout.fillWidth: true
                         text: ext.manifest && ext.manifest.name ? ext.manifest.name : ext.name
                         font.pixelSize: Appearance.font.pixelSize.normal
                         font.weight: Font.Medium
@@ -77,29 +76,45 @@ Item {
                         elide: Text.ElideRight
                     }
                     Rectangle {
-                        visible: ext.owner === "vaguesyntax"
-                        radius: 999
+                        visible: ext.repoUrl && ext.repoUrl.includes("vaguesyntax")
+                        radius: Appearance.rounding.full
                         color: Appearance.colors.colSecondaryContainer
-                        implicitWidth: childrenRect.width + 6
-                        implicitHeight: childrenRect.height + 2
+                        implicitWidth: childrenRect.width + 20
+                        implicitHeight: childrenRect.height + 8
                         StyledText {
                             x: 3; y: 1
                             text: Translation.tr("Official")
                             font.pixelSize: Appearance.font.pixelSize.smallest
                             color: Appearance.colors.colOnSecondaryContainer
+                            anchors.centerIn: parent
+                        }
+                        HoverHandler {
+                            id: hoverOff
+                        }
+                        StyledToolTip { 
+                            extraVisibleCondition: hoverOff.hovered
+                            text: Translation.tr("Created by the ii-vynx developer") 
                         }
                     }
                     Rectangle {
                         visible: ExtensionManager.recommendedExtensions.includes(ext.name)
-                        radius: 999
+                        radius: Appearance.rounding.full
                         color: Appearance.colors.colTertiaryContainer
-                        implicitWidth: childrenRect.width + 6
-                        implicitHeight: childrenRect.height + 2
+                        implicitWidth: childrenRect.width + 20
+                        implicitHeight: childrenRect.height + 8
                         StyledText {
                             x: 3; y: 1
                             text: Translation.tr("Recommended")
                             font.pixelSize: Appearance.font.pixelSize.smallest
                             color: Appearance.colors.colOnTertiaryContainer
+                            anchors.centerIn: parent
+                        }
+                        HoverHandler {
+                            id: hoverRec
+                        }
+                        StyledToolTip { 
+                            extraVisibleCondition: hoverRec.hovered
+                            text: Translation.tr("Recommended by the ii-vynx developer based on user feedback") 
                         }
                     }
                 }
