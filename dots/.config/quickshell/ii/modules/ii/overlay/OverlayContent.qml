@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Widgets
-import qs
+import qs.modules.ii.overlay
 import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
@@ -54,24 +54,11 @@ Item {
         Repeater {
             model: ScriptModel {
                 values: Persistent.states.overlay.open.map(identifier => {
-                    return OverlayContext.availableWidgets.find(w => w.identifier === identifier && !w.isExtension);
+                    return OverlayContext.availableWidgets.find(w => w.identifier === identifier);
                 })
                 objectProp: "identifier"
             }
             delegate: OverlayWidgetDelegateChooser {}
-        }
-
-        Repeater {
-            model: ScriptModel {
-                values: Persistent.states.overlay.open.map(identifier => {
-                    return OverlayContext.availableWidgets.find(w => w.identifier === identifier && w.isExtension);
-                })
-                objectProp: "identifier"
-            }
-            delegate: Loader {
-                source: model && model.modelData && model.modelData.isExtension ? "file://" + model.modelData.fullPath : ""
-                active: source.length > 0
-            }
         }
     }
 }

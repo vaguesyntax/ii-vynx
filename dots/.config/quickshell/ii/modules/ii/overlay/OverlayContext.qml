@@ -1,6 +1,7 @@
 pragma Singleton
 pragma ComponentBehavior: Bound
 import Quickshell
+import Quickshell.Io
 import qs.services
 import QtQuick
 
@@ -8,15 +9,6 @@ Singleton {
     id: root
     
     signal requestCenter(string identifier)
-
-    property list<var> extensionOverlayWidgets: ExtensionManager.ready
-        ? ExtensionManager.getContributionPoint("overlayWidgets").map(p => ({
-            identifier: p.identifier,
-            materialSymbol: p.icon,
-            fullPath: p.fullPath,
-            isExtension: true
-        }))
-        : []
 
     readonly property list<var> availableWidgets: [
         { identifier: "crosshair", materialSymbol: "point_scan" },
@@ -27,25 +19,7 @@ Singleton {
         { identifier: "resources", materialSymbol: "browse_activity" },
         { identifier: "notes", materialSymbol: "note_stack" },
         { identifier: "volumeMixer", materialSymbol: "volume_up" },
-    ].concat(root.extensionOverlayWidgets)
-
-    Connections {
-        target: ExtensionManager
-        function onExtensionInstalled() { root.reloadExtensionWidgets() }
-        function onExtensionRemoved() { root.reloadExtensionWidgets() }
-        function onExtensionToggled() { root.reloadExtensionWidgets() }
-    }
-
-    function reloadExtensionWidgets() {
-        root.extensionOverlayWidgets = ExtensionManager.ready
-            ? ExtensionManager.getContributionPoint("overlayWidgets").map(p => ({
-                identifier: p.identifier,
-                materialSymbol: p.icon,
-                fullPath: p.fullPath,
-                isExtension: true
-            }))
-            : []
-    }
+    ]
 
     readonly property bool hasPinnedWidgets: root.pinnedWidgetIdentifiers.length > 0
 

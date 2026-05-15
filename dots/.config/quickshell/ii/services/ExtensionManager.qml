@@ -17,6 +17,7 @@ Singleton {
     property var availableExtensions: []
     property var installedExtensions: ({})
     property var updateStates: ({})
+    property var _updateQueue: ({}) // { extId: string, repoUrl: string, branch: string, step: string }
 
     signal extensionSearchDone()
     signal extensionInstalled(string extId)
@@ -251,18 +252,28 @@ Singleton {
 
     function updateExtension(extId) {
         let ext = root.installedExtensions[extId]
-        if (!ext) return
+        if (!ext || !ext.repoUrl) return
 
         root.loading = true
         root.error = ""
+        root._updateQueue = { extId: extId, step: "disable" }
+
+        // Step 1: disable
+        root.toggleExtension(extId, false)
+
+        // Step 2: pull (after toggle syncs)
+        root._updateQueue.step = "pull"
         updatePullProc._pendingExtId = extId
         updatePullProc.exec(["git", "-C", ext.installedPath, "pull", "--ff-only"])
     }
 
     function finalizeUpdate(extId, exitCode) {
-        root.loading = false
         if (exitCode !== 0) {
             root.error = "Update failed (exit " + exitCode + ")"
+            root.loading = false
+            // Re-enable even if pull failed
+            root.toggleExtension(extId, true)
+            root._updateQueue = {}
             return
         }
         // Re-read extension.json to update the entry
@@ -270,6 +281,9 @@ Singleton {
         if (ext) {
             updateReader._pendingExtId = extId
             updateReader.path = ext.installedPath + "/extension.json"
+        } else {
+            root.loading = false
+            root._updateQueue = {}
         }
     }
 
@@ -288,9 +302,14 @@ Singleton {
             })
             root.installedExtensions = Object.assign({}, root.installedExtensions, { [extId]: updated })
             root.syncPluginsAdapter()
+            // Re-enable the extension
+            root.toggleExtension(extId, true)
         } catch (e) {
             root.error = "Failed to re-read extension.json: " + e
+            root.toggleExtension(extId, true)
         }
+        root.loading = false
+        root._updateQueue = {}
     }
 
     function getContributionPoint(pointName) {
