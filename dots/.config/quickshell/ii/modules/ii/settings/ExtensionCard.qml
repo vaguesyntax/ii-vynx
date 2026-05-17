@@ -204,7 +204,7 @@ Item {
                                 }
                             }
                         } else {
-                            ExtensionManager.installExtension(ext.repoUrl, ext.name, ext.defaultBranch || "main")
+                            ExtensionManager.installExtension(ext.repoUrl, ext.name, ext.defaultBranch || "main", ext.htmlUrl)
                         }
                     }
                 }

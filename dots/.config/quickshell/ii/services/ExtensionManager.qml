@@ -168,7 +168,7 @@ Singleton {
 
     // ── Install / Uninstall ──
 
-    function installExtension(repoUrl, extId, defaultBranch) {
+    function installExtension(repoUrl, extId, defaultBranch, htmlUrl) {
         root.loading = true
         root.error = ""
         let dest = Directories.extensionsInstalledPath + "/" + extId
@@ -176,10 +176,11 @@ Singleton {
         installProc._pendingDest = dest
         installProc._pendingRepoUrl = repoUrl
         installProc._pendingBranch = defaultBranch || "main"
+        installProc._pendingHtmlUrl = htmlUrl || ""
         installProc.exec(["git", "clone", "--depth", "1", repoUrl, dest])
     }
 
-    function registerInstalled(extId, dest, repoUrl, defaultBranch, jsonText) {
+    function registerInstalled(extId, dest, repoUrl, defaultBranch, htmlUrl, jsonText) {
         try {
             let extensionJson = JSON.parse(jsonText)
             let entry = {
@@ -194,6 +195,7 @@ Singleton {
                 installedPath: dest,
                 installedAt: new Date().toISOString(),
                 repoUrl: repoUrl || "",
+                htmlUrl: htmlUrl || "",
                 defaultBranch: defaultBranch || "main",
                 contributes: extensionJson.contributes || {}
             }
@@ -476,12 +478,14 @@ Singleton {
         property string _pendingDest: ""
         property string _pendingRepoUrl: ""
         property string _pendingBranch: "main"
+        property string _pendingHtmlUrl: ""
         onExited: (exitCode, _) => {
             if (exitCode === 0) {
                 installReader._pendingExtId = installProc._pendingExtId
                 installReader._pendingDest = installProc._pendingDest
                 installReader._pendingRepoUrl = installProc._pendingRepoUrl
                 installReader._pendingBranch = installProc._pendingBranch
+                installReader._pendingHtmlUrl = installProc._pendingHtmlUrl
                 installReader.path = installProc._pendingDest + "/extension.json"
             } else {
                 root.error = "Git clone failed (exit " + exitCode + ")"
@@ -559,7 +563,8 @@ Singleton {
         property string _pendingDest: ""
         property string _pendingRepoUrl: ""
         property string _pendingBranch: "main"
-        onLoaded: root.registerInstalled(installReader._pendingExtId, installReader._pendingDest, installReader._pendingRepoUrl, installReader._pendingBranch, installReader.text())
+        property string _pendingHtmlUrl: ""
+        onLoaded: root.registerInstalled(installReader._pendingExtId, installReader._pendingDest, installReader._pendingRepoUrl, installReader._pendingBranch, installReader._pendingHtmlUrl, installReader.text())
         onLoadFailed: {
             root.error = "Installed extension has no extension.json"
             root.loading = false

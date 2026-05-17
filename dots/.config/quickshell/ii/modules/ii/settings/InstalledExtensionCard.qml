@@ -43,12 +43,27 @@ Item {
                 Layout.preferredWidth: 60
                 Layout.preferredHeight: 60
                 shapeString: ext.shapeString || ""
-                color: ext.enabled ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer3
+                color: iconArea.containsMouse && !iconArea.held ? Appearance.colors.colPrimaryContainerHover
+                    : ext.enabled ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer3
+
                 MaterialSymbol {
                     anchors.centerIn: parent
-                    text: ext.icon || "extension"
+                    text: iconArea.containsMouse ? "info" : (ext.icon || "extension")
                     iconSize: 28
-                    color: ext.enabled ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colSubtext
+                    color: iconArea.containsMouse ? Appearance.colors.colOnPrimaryContainer
+                        : ext.enabled ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colSubtext
+                }
+
+                MouseArea {
+                    id: iconArea
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    hoverEnabled: true
+
+                    onClicked: {
+                        let url = ext.htmlUrl || ext.repoUrl
+                        if (url) Qt.openUrlExternally(url)
+                    }
                 }
             }
 
