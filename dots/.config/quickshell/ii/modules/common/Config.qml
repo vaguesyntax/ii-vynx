@@ -263,6 +263,9 @@ Singleton {
                         property real x: 400
                         property real y: 100
                     }
+                    property JsonObject extensions: JsonObject {
+                        property bool enable: true
+                    }
                 }
                 property bool animateWallpaperChanges: true
                 property string wallpaperPath: ""

@@ -10,6 +10,8 @@ import qs.modules.common.functions
 Singleton {
     id: root
 
+    signal refreshExtensions()
+
     property bool loading: false
     property bool extensionJsonLoading: false
     property bool ready: false
@@ -17,12 +19,18 @@ Singleton {
     property var availableExtensions: []
     property var installedExtensions: ({})
     property var updateStates: ({})
+    property var extensionWidgetConfigs: ({}) // { extId: { widgetId: { enable, x, y } } }
     property var _updateQueue: ({}) // { extId: string, repoUrl: string, branch: string, step: string }
     property var _updateCheckQueue: []
     property bool _updateCheckRunning: false
     property list<string> recommendedExtensions: [
         "ii-vynx-test-extension"
     ]
+
+    onAvailableExtensionsChanged: { root.refreshExtensions() }
+    onInstalledExtensionsChanged: { root.refreshExtensions() }
+    onUpdateStatesChanged: { root.refreshExtensions() }
+    onReadyChanged: { root.refreshExtensions() }
 
     property var _extensionJsonQueue: []
 
@@ -46,6 +54,19 @@ Singleton {
     }
 
     // ── Search cache ──
+
+    function saveExtensionWidgetConfig(extId, widgetId, config) {
+        let extConfigs = Object.assign({}, root.extensionWidgetConfigs)
+        if (!extConfigs[extId]) extConfigs[extId] = {}
+        extConfigs[extId][widgetId] = { enable: config.enable, x: config.x, y: config.y }
+        root.extensionWidgetConfigs = extConfigs
+        extensionsAdapter.extensionWidgetConfigs = extConfigs
+        extensionsFileView.writeAdapter()
+    }
+
+    function getExtensionWidgetConfig(extId, widgetId) {
+        return root.extensionWidgetConfigs?.[extId]?.[widgetId] ?? null
+    }
 
     function saveSearchCache(repos) {
         extensionsAdapter.searchCache = { cachedAt: new Date().toISOString(), results: repos }
@@ -427,7 +448,9 @@ Singleton {
             let ext = root.installedExtensions[id]
             if (!ext.enabled) continue
             let items = ext.contributes && ext.contributes[pointName]
-            if (!items) continue
+            if (!items) {
+                continue
+            }
             for (let i = 0; i < items.length; i++) {
                 let item = items[i]
                 result.push({
@@ -439,7 +462,10 @@ Singleton {
                     fullPath: ext.installedPath + "/" + (item.component || item.qml || ""),
                     qml: item.qml || "",
                     verticalQml: item.verticalQml || "",
-                    fullPathVertical: item.verticalQml ? (ext.installedPath + "/" + item.verticalQml) : ""
+                    fullPathVertical: item.verticalQml ? (ext.installedPath + "/" + item.verticalQml) : "",
+                    x: item.x ?? 100,
+                    y: item.y ?? 100,
+                    placementStrategy: item.placementStrategy ?? "free"
                 })
             }
         }
@@ -532,6 +558,7 @@ Singleton {
         onFileChanged: reload()
         onLoaded: {
             root.installedExtensions = extensionsAdapter.extensions || {}
+            root.extensionWidgetConfigs = extensionsAdapter.extensionWidgetConfigs || {}
             let cache = extensionsAdapter.searchCache
             if (cache && cache.cachedAt && root.isCacheValid(cache.cachedAt) && cache.results) {
                 root.availableExtensions = cache.results
@@ -554,6 +581,7 @@ Singleton {
             id: extensionsAdapter
             property var extensions: ({})
             property var searchCache: ({})
+            property var extensionWidgetConfigs: ({})
         }
     }
 

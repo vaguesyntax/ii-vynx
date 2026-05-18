@@ -53,7 +53,8 @@ ContentPage {
             list = list.filter(e =>
                 e.name.toLowerCase().includes(q) ||
                 e.fullName.toLowerCase().includes(q) ||
-                e.description.toLowerCase().includes(q)
+                e.description.toLowerCase().includes(q) ||
+                e.displayName?.toLowerCase().includes(q)
             )
         }
         page.filteredExtensions = list
@@ -108,14 +109,6 @@ ContentPage {
             font.pixelSize: Appearance.font.pixelSize.normal
             font.weight: Font.Medium
             color: Appearance.colors.colOnLayer0
-        }
-
-        StyledText {
-            Layout.alignment: Qt.AlignHCenter
-            visible: ExtensionManager.loading
-            text: Translation.tr("Searching GitHub for extensions...")
-            color: Appearance.colors.colSubtext
-            font.pixelSize: Appearance.font.pixelSize.small
         }
 
         ExtensionList {
