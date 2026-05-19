@@ -20,6 +20,7 @@ Singleton {
     property var installedExtensions: ({})
     property var updateStates: ({})
     property var extensionWidgetConfigs: ({}) // { extId: { widgetId: { enable, x, y } } }
+    property var extensionConfigs: ({}) // { extId: { key: value } }
     property var _updateQueue: ({}) // { extId: string, repoUrl: string, branch: string, step: string }
     property var _updateCheckQueue: []
     property bool _updateCheckRunning: false
@@ -50,6 +51,7 @@ Singleton {
 
     function syncPluginsAdapter() {
         extensionsAdapter.extensions = root.installedExtensions
+        extensionsAdapter.extensionConfigs = root.extensionConfigs
         extensionsFileView.writeAdapter()
     }
 
@@ -67,6 +69,23 @@ Singleton {
     function getExtensionWidgetConfig(extId, widgetId) {
         return root.extensionWidgetConfigs?.[extId]?.[widgetId] ?? null
     }
+
+    // ── Extension config API ──
+
+    function setExtensionConfig(extId, key, value) {
+        let allConfigs = Object.assign({}, root.extensionConfigs)
+        if (!allConfigs[extId]) allConfigs[extId] = {}
+        allConfigs[extId][key] = value
+        root.extensionConfigs = allConfigs
+        extensionsAdapter.extensionConfigs = allConfigs
+        extensionsFileView.writeAdapter()
+    }
+
+    function getExtensionConfig(extId, key, defaultValue) {
+        return root.extensionConfigs?.[extId]?.[key] ?? defaultValue
+    }
+
+    // ── Search cache ──
 
     function saveSearchCache(repos) {
         extensionsAdapter.searchCache = { cachedAt: new Date().toISOString(), results: repos }
@@ -230,17 +249,54 @@ Singleton {
                 defaultBranch: defaultBranch || "main",
                 isLocal: isLocal || false,
                 isCustomUrl: isCustomUrl || false,
-                contributes: extensionJson.contributes || {}
+                contributes: extensionJson.contributes || {},
+                configDefaults: extensionJson.configDefaults || {}
             }
             root.installedExtensions = Object.assign({}, root.installedExtensions, { [extId]: entry })
             root.syncPluginsAdapter()
             root.loading = false
             root.extensionInstalled(extId)
             root.loadExtensionServices(extId)
+            root.applyExtensionConfigDefaults(extId)
         } catch (e) {
             root.error = "Invalid extension.json: " + e
             root.loading = false
         }
+    }
+
+    function applyExtensionConfigDefaults(extId) {
+        let entry = root.installedExtensions[extId]
+        if (!entry || !entry.configDefaults) return
+        let defaults = entry.configDefaults
+        let current = root.extensionConfigs[extId]
+        let merged = {}
+        if (current) {
+            for (let key in current) merged[key] = current[key]
+        }
+        let changed = false
+        for (let key in defaults) {
+            if (!(key in merged)) {
+                merged[key] = defaults[key]
+                changed = true
+            }
+        }
+        if (changed) {
+            let allConfigs = Object.assign({}, root.extensionConfigs)
+            allConfigs[extId] = merged
+            root.extensionConfigs = allConfigs
+            extensionsAdapter.extensionConfigs = allConfigs
+            extensionsFileView.writeAdapter()
+        }
+    }
+
+    function resetExtensionConfig(extId) {
+        let entry = root.installedExtensions[extId]
+        if (!entry || !entry.configDefaults) return
+        let allConfigs = Object.assign({}, root.extensionConfigs)
+        allConfigs[extId] = Object.assign({}, entry.configDefaults)
+        root.extensionConfigs = allConfigs
+        extensionsAdapter.extensionConfigs = allConfigs
+        extensionsFileView.writeAdapter()
     }
 
     function uninstallExtension(extId) {
@@ -260,6 +316,14 @@ Singleton {
         let ext = Object.assign({}, root.installedExtensions)
         delete ext[extId]
         root.installedExtensions = ext
+        // Clean up extension config
+        let allConfigs = Object.assign({}, root.extensionConfigs)
+        delete allConfigs[extId]
+        root.extensionConfigs = allConfigs
+        // Also clean up widget configs
+        let widgetConfigs = Object.assign({}, root.extensionWidgetConfigs)
+        delete widgetConfigs[extId]
+        root.extensionWidgetConfigs = widgetConfigs
         root.syncPluginsAdapter()
         root.extensionRemoved(extId)
     }
@@ -385,10 +449,12 @@ Singleton {
                 author: extensionJson.author || existing.author,
                 contributes: extensionJson.contributes || existing.contributes,
                 icon: extensionJson.icon || existing.icon,
-                shapeString: extensionJson.shapeString || existing.shapeString
+                shapeString: extensionJson.shapeString || existing.shapeString,
+                configDefaults: extensionJson.configDefaults || {}
             })
             root.installedExtensions = Object.assign({}, root.installedExtensions, { [extId]: updated })
             root.syncPluginsAdapter()
+            root.applyExtensionConfigDefaults(extId)
             // Clear update state since we just updated
             let states = Object.assign({}, root.updateStates)
             delete states[extId]
@@ -578,6 +644,7 @@ Singleton {
         onLoaded: {
             root.installedExtensions = extensionsAdapter.extensions || {}
             root.extensionWidgetConfigs = extensionsAdapter.extensionWidgetConfigs || {}
+            root.extensionConfigs = extensionsAdapter.extensionConfigs || {}
             let cache = extensionsAdapter.searchCache
             if (cache && cache.cachedAt && root.isCacheValid(cache.cachedAt) && cache.results) {
                 root.availableExtensions = cache.results
@@ -586,6 +653,7 @@ Singleton {
             }
             root.ready = true
             for (let id in root.installedExtensions) {
+                root.applyExtensionConfigDefaults(id)
                 if (root.installedExtensions[id].enabled) {
                     root.loadExtensionServices(id)
                 }
@@ -601,6 +669,7 @@ Singleton {
             property var extensions: ({})
             property var searchCache: ({})
             property var extensionWidgetConfigs: ({})
+            property var extensionConfigs: ({})
         }
     }
 
