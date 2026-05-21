@@ -610,6 +610,7 @@ ContentPage {
         }
 
         ConfigSpinBox {
+            enabled: !Config.options.bar.workspaces.dynamicWorkspaces
             icon: "view_column"
             text: Translation.tr("Workspaces shown")
             value: Config.options.bar.workspaces.shown
@@ -791,23 +792,6 @@ ContentPage {
                     to: 5000
                     stepSize: 100
                     onValueChanged: { Config.options.bar.networkSpeed.updateInterval = value; }
-                }
-            }
-        }
-    ContentSection {
-        id: updates
-        icon: "update"
-        title: Translation.tr("Updates")
-        
-        ConfigRow {
-            ContentSubsection {
-                title: Translation.tr("Note")
-                StyledText {
-                    text: Translation.tr("Shows available package updates. Click to launch the system update command.")
-                    color: Appearance.colors.colOnLayer0
-                    font.pixelSize: Appearance.font.pixelSize.small
-                    wrapMode: Text.WordWrap
-                    Layout.fillWidth: true
                 }
             }
         }
