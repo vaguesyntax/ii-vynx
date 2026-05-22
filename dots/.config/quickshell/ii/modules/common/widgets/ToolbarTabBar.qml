@@ -21,6 +21,8 @@ Item {
         tabBar.setCurrentIndex(index);
     }
 
+    property int maxTextTabs: 99
+
     Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
     implicitWidth: contentItem.implicitWidth
     implicitHeight: 40
@@ -29,6 +31,7 @@ Item {
         required property int index
         required property var modelData
         current: index == root.currentIndex
+        showLabel: root.tabButtonList.length <= root.maxTextTabs || current
         text: modelData.name
         materialSymbol: modelData.icon
         onClicked: {

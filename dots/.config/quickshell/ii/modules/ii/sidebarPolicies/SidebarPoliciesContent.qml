@@ -18,6 +18,9 @@ Item {
     property bool animeCloset: Config.options.policies.weeb === 2  
     property bool wallpapersEnabled: Config.options.policies.wallpapers !== 0  
 
+    property bool _sidebarExtended: scopeRoot.extend
+    property int _maxTextTabs: _sidebarExtended ? 4 : 3
+
     property var extensionPages: ExtensionManager.ready
         ? ExtensionManager.getContributionPoint("sidebarLeftPages") : []
 
@@ -77,6 +80,7 @@ Item {
                 id: tabBar
                 Layout.alignment: Qt.AlignHCenter
                 tabButtonList: root.tabButtonList
+                maxTextTabs: root._maxTextTabs
                 currentIndex: Math.min(Persistent.states.sidebar.policies.tab, Math.max(0, root.tabButtonList.length - 1))
                 onCurrentIndexChanged: Persistent.states.sidebar.policies.tab = currentIndex
             }
