@@ -744,9 +744,9 @@ ContentPage {
                     Config.options.bar.networkSpeed.unitType = newValue;
                 }
                 options: [
-                    { displayName: Translation.tr("Binary (KiB/s)"), icon: "memory", value: 0 },
-                    { displayName: Translation.tr("Metric (KB/s)"), icon: "functions", value: 1 },
-                    { displayName: Translation.tr("Bitrate (Kbps)"), icon: "speed", value: 2 }
+                    { displayName: Translation.tr("Binary (KiB/s)"), icon: "memory", value: 0, tooltip: Translation.tr("Base-1024, commonly used in system monitors") },
+                    { displayName: Translation.tr("Metric (KB/s)"), icon: "functions", value: 1, tooltip: Translation.tr("Base-1000, commonly used by network adapters") },
+                    { displayName: Translation.tr("Bitrate (Kbps)"), icon: "speed", value: 2, tooltip: Translation.tr("Bits per second, standard for speed tests") }
                 ]
             }
         }
@@ -775,8 +775,8 @@ ContentPage {
                         Config.options.bar.networkSpeed.iconPosition = newValue;
                     }
                     options: [
-                        { displayName: Translation.tr("Left"), icon: "align_horizontal_left", value: 0 },
-                        { displayName: Translation.tr("Right"), icon: "align_horizontal_right", value: 1 }
+                        { displayName: Translation.tr("Left"), icon: "align_horizontal_left", value: 0, tooltip: Translation.tr("Show icon before the text") },
+                        { displayName: Translation.tr("Right"), icon: "align_horizontal_right", value: 1, tooltip: Translation.tr("Show icon after the text") }
                     ]
                 }
             }
