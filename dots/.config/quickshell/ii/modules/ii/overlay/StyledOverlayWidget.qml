@@ -30,8 +30,9 @@ AbstractOverlayWidget {
     required property var modelData
     readonly property string identifier: modelData.identifier
     readonly property string materialSymbol: modelData.materialSymbol ?? "widgets"
-    property string title: identifier.replace(/([A-Z])/g, " $1").replace(/^./, function(str){ return str.toUpperCase(); })
-    property var persistentStateEntry: Persistent.states.overlay[identifier]
+    property string title: modelData.title ?? identifier.replace(/([A-Z])/g, " $1").replace(/^./, function(str){ return str.toUpperCase(); })
+    property var configEntry: null // Optional — set by extension widget loader for alternative persistence
+    property var persistentStateEntry: configEntry ?? Persistent.states.overlay[identifier]
     property real radius: Appearance.rounding.windowRounding
     property real minimumWidth: contentItem.implicitWidth
     property real minimumHeight: contentItem.implicitHeight

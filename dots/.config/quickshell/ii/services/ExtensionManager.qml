@@ -20,6 +20,7 @@ Singleton {
     property var installedExtensions: ({})
     property var updateStates: ({})
     property var extensionWidgetConfigs: ({}) // { extId: { widgetId: { enable, x, y } } }
+    property var extensionOverlayConfigs: ({}) // { extId: { widgetId: { x, y, width, height, pinned, clickthrough } } }
     property var extensionConfigs: ({}) // { extId: { key: value } }
     property var _updateQueue: ({}) // { extId: string, repoUrl: string, branch: string, step: string }
     property var _updateCheckQueue: []
@@ -52,6 +53,7 @@ Singleton {
     function syncPluginsAdapter() {
         extensionsAdapter.extensions = root.installedExtensions
         extensionsAdapter.extensionConfigs = root.extensionConfigs
+        extensionsAdapter.extensionOverlayConfigs = root.extensionOverlayConfigs
         extensionsFileView.writeAdapter()
     }
 
@@ -68,6 +70,28 @@ Singleton {
 
     function getExtensionWidgetConfig(extId, widgetId) {
         return root.extensionWidgetConfigs?.[extId]?.[widgetId] ?? null
+    }
+
+    // ── Extension overlay widget config API ──
+
+    function saveExtensionOverlayConfig(extId, widgetId, config) {
+        let extConfigs = Object.assign({}, root.extensionOverlayConfigs)
+        if (!extConfigs[extId]) extConfigs[extId] = {}
+        extConfigs[extId][widgetId] = {
+            x: config.x ?? 100,
+            y: config.y ?? 100,
+            width: config.width ?? 300,
+            height: config.height ?? 200,
+            pinned: config.pinned ?? false,
+            clickthrough: config.clickthrough ?? true
+        }
+        root.extensionOverlayConfigs = extConfigs
+        extensionsAdapter.extensionOverlayConfigs = extConfigs
+        extensionsFileView.writeAdapter()
+    }
+
+    function getExtensionOverlayConfig(extId, widgetId) {
+        return root.extensionOverlayConfigs?.[extId]?.[widgetId] ?? null
     }
 
     // ── Extension config API ──
@@ -324,6 +348,9 @@ Singleton {
         let widgetConfigs = Object.assign({}, root.extensionWidgetConfigs)
         delete widgetConfigs[extId]
         root.extensionWidgetConfigs = widgetConfigs
+        let overlayConfigs = Object.assign({}, root.extensionOverlayConfigs)
+        delete overlayConfigs[extId]
+        root.extensionOverlayConfigs = overlayConfigs
         root.syncPluginsAdapter()
         root.extensionRemoved(extId)
     }
@@ -536,7 +563,7 @@ Singleton {
             }
             for (let i = 0; i < items.length; i++) {
                 let item = items[i]
-                result.push({
+                let base = {
                     extensionId: id,
                     title: item.title || item.name || "",
                     icon: item.icon || "",
@@ -549,7 +576,18 @@ Singleton {
                     x: item.x ?? 100,
                     y: item.y ?? 100,
                     placementStrategy: item.placementStrategy ?? "free"
-                })
+                }
+                if (pointName === "overlayWidgets") {
+                    let saved = root.getExtensionOverlayConfig(id, base.identifier)
+                    base.materialSymbol = item.materialSymbol || item.icon || "extension"
+                    base.width = saved?.width ?? item.width ?? 300
+                    base.height = saved?.height ?? item.height ?? 200
+                    base.pinned = saved?.pinned ?? item.pinned ?? false
+                    base.clickthrough = saved?.clickthrough ?? item.clickthrough ?? true
+                    base.x = saved?.x ?? item.x ?? 100
+                    base.y = saved?.y ?? item.y ?? 100
+                }
+                result.push(base)
             }
         }
         return result
@@ -644,6 +682,7 @@ Singleton {
         onLoaded: {
             root.installedExtensions = extensionsAdapter.extensions || {}
             root.extensionWidgetConfigs = extensionsAdapter.extensionWidgetConfigs || {}
+            root.extensionOverlayConfigs = extensionsAdapter.extensionOverlayConfigs || {}
             root.extensionConfigs = extensionsAdapter.extensionConfigs || {}
             let cache = extensionsAdapter.searchCache
             if (cache && cache.cachedAt && root.isCacheValid(cache.cachedAt) && cache.results) {
@@ -669,6 +708,7 @@ Singleton {
             property var extensions: ({})
             property var searchCache: ({})
             property var extensionWidgetConfigs: ({})
+            property var extensionOverlayConfigs: ({})
             property var extensionConfigs: ({})
         }
     }
