@@ -203,8 +203,17 @@ Variants {
                         wallpaperScale: bgRoot.effectiveWallpaperScale
                     })
 
-                    if (widget) {
-                        widget.extensionId = extId
+                    if (widget && extId) {
+                        if ("extensionId" in widget) {
+                            widget.extensionId = extId
+                        } else {
+                            Object.defineProperty(widget, "extensionId", {
+                                value: extId,
+                                writable: true,
+                                configurable: true,
+                                enumerable: true
+                            })
+                        }
                         let objects = _extensionBgWidgetObjects.slice()
                         objects.push(widget)
                         _extensionBgWidgetObjects = objects

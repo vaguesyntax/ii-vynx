@@ -35,7 +35,16 @@ Singleton {
         let extId = key.split(".")[0]
         let instance = comp.createObject(null)
         if (instance) {
-            instance.extensionId = extId
+            if ("extensionId" in instance) {
+                instance.extensionId = extId
+            } else {
+                Object.defineProperty(instance, "extensionId", {
+                    value: extId,
+                    writable: true,
+                    configurable: true,
+                    enumerable: true
+                })
+            }
             let updated = Object.assign({}, root.loaded)
             updated[key] = instance
             root.loaded = updated

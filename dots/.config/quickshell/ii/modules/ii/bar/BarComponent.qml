@@ -113,8 +113,17 @@ Item {
             sourceComponent: wrapper._currentComp
             onLoaded: {
                 let extId = BarComponentRegistry.getExtensionIdForComponent(modelData.id)
-                if (extId && item && ("extensionId" in item)) {
-                    item.extensionId = extId
+                if (extId && item) {
+                    if ("extensionId" in item) {
+                        item.extensionId = extId
+                    } else {
+                        Object.defineProperty(item, "extensionId", {
+                            value: extId,
+                            writable: true,
+                            configurable: true,
+                            enumerable: true
+                        })
+                    }
                 }
             }
         }

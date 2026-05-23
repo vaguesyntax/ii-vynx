@@ -45,10 +45,28 @@ Item {
     }
 
     function createExtensionPage(page) {
-        return Qt.createQmlObject(
-            'import QtQuick; Loader { source: "file://' + page.fullPath + '"; active: true; onLoaded: if (item) item.extensionId = "' + page.extensionId + '" }',
-            swipeView
-        )
+        let loader = Qt.createQmlObject('import QtQuick; Loader { active: true }', swipeView)
+        loader.source = "file://" + page.fullPath
+        let setExtId = () => {
+            if (loader.item) {
+                if ("extensionId" in loader.item) {
+                    loader.item.extensionId = page.extensionId
+                } else {
+                    Object.defineProperty(loader.item, "extensionId", {
+                        value: page.extensionId,
+                        writable: true,
+                        configurable: true,
+                        enumerable: true
+                    })
+                }
+            }
+        }
+        if (loader.status === Loader.Ready) {
+            setExtId()
+        } else {
+            loader.loaded.connect(setExtId)
+        }
+        return loader
     }
 
     Keys.onPressed: (event) => {

@@ -219,7 +219,16 @@ Rectangle {
                 onLoaded: {
                     let tab = root.tabs[root.selectedTab]
                     if (tab && tab.extensionId && item) {
-                        item.extensionId = tab.extensionId
+                        if ("extensionId" in item) {
+                            item.extensionId = tab.extensionId
+                        } else {
+                            Object.defineProperty(item, "extensionId", {
+                                value: tab.extensionId,
+                                writable: true,
+                                configurable: true,
+                                enumerable: true
+                            })
+                        }
                     }
                 }
 
