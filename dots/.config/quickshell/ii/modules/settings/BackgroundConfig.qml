@@ -69,6 +69,7 @@ ContentPage {
         ContentSubsection {
             visible: Config.options.background.animateWallpaperChanges
             title: Translation.tr("Wallpaper transition style")
+            
             StyledComboBox {
                 Layout.fillWidth: true
                 buttonIcon: "masked_transitions"
