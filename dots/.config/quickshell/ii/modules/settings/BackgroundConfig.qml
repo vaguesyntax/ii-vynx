@@ -69,55 +69,54 @@ ContentPage {
         ContentSubsection {
             visible: Config.options.background.animateWallpaperChanges
             title: Translation.tr("Wallpaper transition style")
-            ConfigSelectionArray {
-                currentValue: Config.options.background.transitionType
-                onSelected: newValue => {
-                    Config.options.background.transitionType = newValue;
-                }
-                options: [
+            StyledComboBox {
+                Layout.fillWidth: true
+                buttonIcon: "masked_transitions"
+                textRole: "displayName"
+                model: [
                     {
                         displayName: Translation.tr("Radial Wipe"),
                         icon: "circle",
-                        value: "radial",
-                        tooltip: Translation.tr("Expands a circle outward from the center to reveal the new wallpaper")
+                        value: "radial"
                     },
                     {
                         displayName: Translation.tr("Crossfade"),
                         icon: "blur_on",
-                        value: "crossfade",
-                        tooltip: Translation.tr("Smoothly blends the old wallpaper into the new one")
+                        value: "crossfade"
                     },
                     {
                         displayName: Translation.tr("Linear Wipe"),
                         icon: "swap_horiz",
-                        value: "wipe",
-                        tooltip: Translation.tr("Wipes the screen horizontally to reveal the new wallpaper")
+                        value: "wipe"
                     },
                     {
                         displayName: Translation.tr("Diamond Wipe"),
                         icon: "diamond",
-                        value: "diamond",
-                        tooltip: Translation.tr("Expands a 4-sided diamond outward from the center to reveal the new wallpaper")
+                        value: "diamond"
                     },
                     {
                         displayName: Translation.tr("Slash Wipe"),
                         icon: "timeline",
-                        value: "slash",
-                        tooltip: Translation.tr("Expands a 45-degree slash line outward to reveal the new wallpaper")
+                        value: "slash"
                     },
                     {
                         displayName: Translation.tr("Outer Wipe"),
                         icon: "radio_button_unchecked",
-                        value: "outer",
-                        tooltip: Translation.tr("Closes in from the edges to the center to reveal the new wallpaper")
+                        value: "outer"
                     },
                     {
                         displayName: Translation.tr("Wave Wipe"),
                         icon: "water",
-                        value: "wave",
-                        tooltip: Translation.tr("Wipes the screen with a wavy edge to reveal the new wallpaper")
+                        value: "wave"
                     }
                 ]
+                currentIndex: {
+                    const index = model.findIndex(item => item.value === Config.options.background.transitionType);
+                    return index !== -1 ? index : 0;
+                }
+                onActivated: index => {
+                    Config.options.background.transitionType = model[index].value;
+                }
             }
 
             ConfigSpinBox {
