@@ -128,7 +128,7 @@ Item {
                         icon: root._auditState === "trusted" ? "verified" : "help"
                         bgColor: root._auditState === "trusted" ? Appearance.m3colors.m3successContainer : Appearance.colors.colTertiaryContainer
                         fgColor: root._auditState === "trusted" ? Appearance.m3colors.m3success : Appearance.colors.colTertiary
-                        tooltip: root._auditState === "trusted" ? Translation.tr("This extension is trsuted. You can safely use it") : Translation.tr("This extension has not been audited yet. Be cautious when installing it.")
+                        tooltip: root._auditState === "trusted" ? Translation.tr("This extension is trusted. You can safely use it") : Translation.tr("This extension has not been audited yet. Be cautious when installing it.")
                         visible: root._auditState.length > 0 && root._auditState !== "blocked"
                     }
                 }

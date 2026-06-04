@@ -258,7 +258,7 @@ AbstractOverlayWidget {
                         materialSymbol: "recenter"
                         onClicked: root.center()
                         StyledToolTip {
-                            text: "Center"
+                            text: Translation.tr("Center")
                         }
                     }
 
@@ -268,7 +268,7 @@ AbstractOverlayWidget {
                         toggled: !root.clickthrough
                         onClicked: root.toggleClickthrough()
                         StyledToolTip {
-                            text: "Clickable when pinned"
+                            text: Translation.tr("Clickable when pinned")
                         }
                     }
 
@@ -277,7 +277,7 @@ AbstractOverlayWidget {
                         toggled: root.pinned
                         onClicked: root.togglePinned()
                         StyledToolTip {
-                            text: "Pin"
+                            text: Translation.tr("Pin")
                         }
                     }
 
@@ -285,7 +285,7 @@ AbstractOverlayWidget {
                         materialSymbol: "close"
                         onClicked: root.close()
                         StyledToolTip {
-                            text: "Close"
+                            text: Translation.tr("Close")
                         }
                     }
                 }
