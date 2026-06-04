@@ -155,17 +155,32 @@ Variants {
         }
 
         property var extensionBgWidgets: []
-        property var _extensionBgWidgetObjects: []
+        property var _extensionBgWidgetEntries: []
+        property var _pendingWidgetSaves: ({})
+
+        Timer {
+            id: bgWidgetSaveTimer
+            interval: 300
+            repeat: false
+            onTriggered: {
+                for (let key in bgRoot._pendingWidgetSaves) {
+                    let p = bgRoot._pendingWidgetSaves[key]
+                    ExtensionManager.saveExtensionWidgetConfig(p.extId, p.wid, p.config)
+                }
+                bgRoot._pendingWidgetSaves = {}
+            }
+        }
 
         function refreshExtensionBgWidgets() {
             // Destroy all existing extension widget objects
-            for (let i = 0; i < _extensionBgWidgetObjects.length; i++) {
-                let obj = _extensionBgWidgetObjects[i]
-                if (obj && obj.destroy) {
-                    obj.destroy()
+            for (let i = 0; i < _extensionBgWidgetEntries.length; i++) {
+                let entry = _extensionBgWidgetEntries[i]
+                if (entry) {
+                    if (entry.cfg) entry.cfg.destroy()
+                    if (entry.widget) entry.widget.destroy()
                 }
             }
-            _extensionBgWidgetObjects = []
+            _extensionBgWidgetEntries = []
 
             let list = ExtensionManager.getContributionPoint("backgroundWidgets")
 
@@ -188,7 +203,12 @@ Variants {
                     let cfg = Qt.createQmlObject(qml,bgRoot)
 
                     let onPosChanged = () => {
-                        ExtensionManager.saveExtensionWidgetConfig(extId, wid, { enable: cfg.enable, x: cfg.x, y: cfg.y })
+                        bgRoot._pendingWidgetSaves[extId + "/" + wid] = {
+                            extId: extId,
+                            wid: wid,
+                            config: { enable: cfg.enable, x: cfg.x, y: cfg.y }
+                        }
+                        bgWidgetSaveTimer.restart()
                     }
                     cfg.xChanged.connect(onPosChanged)
                     cfg.yChanged.connect(onPosChanged)
@@ -213,20 +233,22 @@ Variants {
                                 enumerable: true
                             })
                         }
-                        let objects = _extensionBgWidgetObjects.slice()
-                        objects.push(widget)
-                        _extensionBgWidgetObjects = objects
+                        let entries = _extensionBgWidgetEntries.slice()
+                        entries.push({ widget: widget, cfg: cfg })
+                        _extensionBgWidgetEntries = entries
                     }
                 }
 
                 if (comp.status === Component.Ready) {
                     createWidget(comp, entry, fullPath, extId, wid, x, y, strat)
                 } else if (comp.status === Component.Error) {
+                    console.warn("Background: failed to load extension widget component for", extId, wid, ":", comp.errorString())
                 } else {
                     comp.statusChanged.connect(() => {
                         if (comp.status === Component.Ready) {
                             createWidget(comp, entry, fullPath, extId, wid, x, y, strat)
                         } else if (comp.status === Component.Error) {
+                            console.warn("Background: async component error for", extId, wid, ":", comp.errorString())
                         }
                     })
                 }

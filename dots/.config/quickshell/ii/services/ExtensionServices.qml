@@ -12,7 +12,7 @@ Singleton {
         let key = extId + "." + serviceId
         if (root.loaded[key]) return root.loaded[key]
 
-        let url = qmlPath.startsWith("file://") ? qmlPath : "file://" + qmlPath
+        let url = (qmlPath.startsWith("file://") ? qmlPath : "file://" + qmlPath) + "?_t=" + Date.now()
         let comp = Qt.createComponent(url)
         if (comp.status === Component.Error) {
             console.warn("ExtensionServices: failed to create component for", key, ":", comp.errorString())
