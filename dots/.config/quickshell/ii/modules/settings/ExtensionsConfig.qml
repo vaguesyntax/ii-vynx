@@ -40,8 +40,8 @@ ContentPage {
 
     Component.onCompleted: {
         if (!ExtensionManager.ready) return
-        if (ExtensionManager.availableExtensions.length === 0) {
-            ExtensionManager.refreshAvailableExtensions()
+        if (ExtensionSearch.availableExtensions.length === 0) {
+            ExtensionSearch.refreshAvailableExtensions()
         }
         ExtensionManager.checkAllUpdates()
         page.filter()
@@ -50,17 +50,21 @@ ContentPage {
     Connections {
         target: ExtensionManager
         function onReadyChanged() { if (ExtensionManager.ready) page.filter() }
-        function onExtensionSearchDone() { page.filter() }
-        function onManifestReady(repoId) { page.filter() }
         function onExtensionInstalled(extId) { page.filter() }
         function onExtensionRemoved(extId) { page.filter() }
         function onExtensionToggled(extId) { page.filter() }
         function onUpdateCheckDone(extId, available, error) { page.filter() }
     }
 
+    Connections {
+        target: ExtensionSearch
+        function onExtensionSearchDone() { page.filter() }
+        function onExtensionJsonReady(repoId) { page.filter() }
+    }
+
     function filter() {
         let installed = ExtensionManager.installedExtensions
-        let list = ExtensionManager.availableExtensions
+        let list = ExtensionSearch.availableExtensions
 
         // Exclude installed extensions
         let installedIds = {}
@@ -116,7 +120,7 @@ ContentPage {
                 extraWidth: 26
                 buttonIcon: ExtensionManager.loading ? "hourglass_bottom" : "refresh"
                 toggled: ExtensionManager.loading
-                onClicked: ExtensionManager.refreshAvailableExtensions()
+                onClicked: ExtensionSearch.refreshAvailableExtensions()
                 StyledToolTip { text: Translation.tr("Refresh extension list") }
             }
         }

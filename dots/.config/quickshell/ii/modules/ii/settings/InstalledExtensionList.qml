@@ -11,7 +11,7 @@ ColumnLayout {
     readonly property var installedList: {
         let list = []
         for (let id in ExtensionManager.installedExtensions) {
-            if (!ExtensionManager._blockedIds[id]) {
+            if (!ExtensionAudit.blockedIds[id]) {
                 list.push(ExtensionManager.installedExtensions[id])
             }
         }

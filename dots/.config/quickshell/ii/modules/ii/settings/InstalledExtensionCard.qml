@@ -15,9 +15,9 @@ Item {
     property bool updateChecking: updateState.checking || false
     property bool updateAvailable: updateState.updateAvailable || false
     readonly property string _auditState: {
-        ExtensionManager._auditDbVersion
-        if (!ExtensionManager.auditDatabaseReady) return ""
-        return ExtensionManager.getExtensionAuditState(ext.id)
+        ExtensionAudit.auditDbVersion
+        if (!ExtensionAudit.auditDatabaseReady) return ""
+        return ExtensionAudit.getExtensionAuditState(ext.id)
     }
 
     property real topRadius: {
@@ -146,8 +146,8 @@ Item {
                     implicitHeight: 28
                     padding: 0
                     buttonRadius: Appearance.rounding.full
-                    colBackground: updateAvailable ? Appearance.colors.colPrimaryContainer : Appearance.colors.colLayer3
-                    colBackgroundHover: updateAvailable ? Appearance.colors.colPrimaryContainerHover : Appearance.colors.colLayer3Hover
+                    colBackground: Appearance.colors.colSecondaryContainer
+                    colBackgroundHover: Appearance.colors.colSecondaryContainerHover
                     visible: ext.repoUrl && ext.repoUrl.length > 0 && !ext.isLocal
                     contentItem: StyledText {
                         anchors.centerIn: parent
@@ -155,7 +155,7 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         text: updateChecking ? "..." : (updateAvailable ? Translation.tr("Update") : Translation.tr("Check"))
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: updateAvailable ? Appearance.colors.colOnPrimaryContainer : Appearance.colors.colSubtext
+                        color: Appearance.colors.colOnSecondaryContainer
                     }
                     onClicked: {
                         if (updateAvailable) {
@@ -190,15 +190,15 @@ Item {
                     implicitHeight: 28
                     padding: 0
                     buttonRadius: Appearance.rounding.full
-                    colBackground: Appearance.colors.colError
-                    colBackgroundHover: Appearance.colors.colErrorHover
+                    colBackground: Appearance.colors.colErrorContainer
+                    colBackgroundHover: Appearance.colors.colErrorContainerHover
                     contentItem: StyledText {
                         anchors.centerIn: parent
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         text: Translation.tr("Remove")
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: Appearance.colors.colOnError
+                        color: Appearance.colors.colOnErrorContainer
                     }
                     onClicked: ExtensionManager.uninstallExtension(ext.id)
                 }

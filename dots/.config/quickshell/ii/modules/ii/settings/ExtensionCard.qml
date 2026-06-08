@@ -40,9 +40,9 @@ Item {
         return false
     }
     readonly property string _auditState: {
-        ExtensionManager._auditDbVersion
-        if (!ExtensionManager.auditDatabaseReady || !ext.hasExtensionJson) return ""
-        return ExtensionManager.getExtensionAuditState(ext.name)
+        ExtensionAudit.auditDbVersion
+        if (!ExtensionAudit.auditDatabaseReady || !ext.hasExtensionJson) return ""
+        return ExtensionAudit.getExtensionAuditState(ext.name)
     }
 
     property real topRadius: {
@@ -74,22 +74,22 @@ Item {
                 Layout.preferredWidth: 60
                 Layout.preferredHeight: 60
                 shapeString: ext.shapeString || ""
-                color: isEnabled ? Appearance.colors.colPrimaryContainer : ExtensionManager.isExtensionRecommended(ext.name) ? Appearance.colors.colTertiary : Appearance.colors.colLayer3
+                color: isEnabled ? Appearance.colors.colPrimaryContainer : ExtensionAudit.isExtensionRecommended(ext.name) ? Appearance.colors.colTertiary : Appearance.colors.colLayer3
                 
                 HoverHandler {
                     id: hover
                 }
 
                 StyledToolTip {
-                    extraVisibleCondition: hover.hovered && ExtensionManager.isExtensionRecommended(ext.name)
-                    text: ExtensionManager.isExtensionRecommended(ext.name) ? Translation.tr("Recommended by the ii-vynx developer based on user feedback") : ""
+                    extraVisibleCondition: hover.hovered && ExtensionAudit.isExtensionRecommended(ext.name)
+                    text: ExtensionAudit.isExtensionRecommended(ext.name) ? Translation.tr("Recommended by the ii-vynx developer based on user feedback") : ""
                 }
 
                 MaterialSymbol {
                     anchors.centerIn: parent
                     text: ext.icon || "extension"
                     iconSize: 28
-                    color: isEnabled ? Appearance.colors.colOnPrimaryContainer : ExtensionManager.isExtensionRecommended(ext.name) ? Appearance.colors.colOnTertiary : Appearance.colors.colSubtext
+                    color: isEnabled ? Appearance.colors.colOnPrimaryContainer : ExtensionAudit.isExtensionRecommended(ext.name) ? Appearance.colors.colOnTertiary : Appearance.colors.colSubtext
                 }
             }
 
@@ -126,8 +126,8 @@ Item {
                     ExtensionBadge {
                         extraWidth: 14
                         icon: root._auditState === "trusted" ? "verified" : "help"
-                        bgColor: root._auditState === "trusted" ? Appearance.m3colors.m3successContainer : Appearance.colors.colTertiaryContainer
-                        fgColor: root._auditState === "trusted" ? Appearance.m3colors.m3success : Appearance.colors.colTertiary
+                        bgColor: root._auditState === "trusted" ? Appearance.m3colors.m3successContainer : Appearance.colors.colErrorContainer
+                        fgColor: root._auditState === "trusted" ? Appearance.m3colors.m3success : Appearance.colors.colError
                         tooltip: root._auditState === "trusted" ? Translation.tr("This extension is trusted. You can safely use it") : Translation.tr("This extension has not been audited yet. Be cautious when installing it.")
                         visible: root._auditState.length > 0 && root._auditState !== "blocked"
                     }
@@ -195,32 +195,22 @@ Item {
                     implicitHeight: 28
                     padding: 0
                     buttonRadius: Appearance.rounding.full
-                    colBackground: isInstalled ? Appearance.colors.colError : Appearance.colors.colPrimaryContainer
-                    colBackgroundHover: isInstalled ? Appearance.colors.colErrorHover : Appearance.colors.colPrimaryContainerHover
+                    colBackground: Appearance.colors.colPrimaryContainer
+                    colBackgroundHover: Appearance.colors.colPrimaryContainerHover
                     contentItem: StyledText {
                         anchors.centerIn: parent
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        text: isInstalled ? Translation.tr("Remove") : Translation.tr("Install")
+                        text: Translation.tr("Install")
                         font.pixelSize: Appearance.font.pixelSize.smaller
-                        color: isInstalled ? Appearance.colors.colOnError : Appearance.colors.colOnPrimaryContainer
+                        color: Appearance.colors.colOnPrimaryContainer
                     }
                     StyledToolTip {
                         extraVisibleCondition: root._auditState !== "trusted"
                         text: Translation.tr("This extension has not been audited yet. Try not to install this extension without checking the source code.")
                     }
                     onClicked: {
-                        if (isInstalled) {
-                            for (let id in ExtensionManager.installedExtensions) {
-                                let e = ExtensionManager.installedExtensions[id]
-                                if (e.name === ext.name || e.id === ext.name) {
-                                    ExtensionManager.uninstallExtension(id)
-                                    break
-                                }
-                            }
-                        } else {
-                            ExtensionManager.installExtension(ext.repoUrl, ext.name, ext.defaultBranch || "main", ext.htmlUrl)
-                        }
+                        ExtensionManager.installExtension(ext.repoUrl, ext.name, ext.defaultBranch || "main", ext.htmlUrl)
                     }
                 }
             }
