@@ -132,7 +132,7 @@ Button {
                                 buttonText: Translation.tr("More like this picture")  
                                 onClicked: {  
                                     root.showActions = false  
-                                    WallpaperBrowser.moreLikeThisPicture(root.imageData.id) 
+                                    ExtensionServices.get("vynx-wallpaper-browser", "wallpaperBrowserService").moreLikeThisPicture(root.imageData.id) 
                                 }  
                             }
                             MenuButton {  

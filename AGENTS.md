@@ -90,6 +90,10 @@ Access via `Config.options.bar.vertical`, `Config.options.appearance.sharpMode`,
 - **Early return:** Prefer `if (!condition) return; doStuff()` over deep nesting
 - **Conditional loading:** Use `Loader`/`LazyLoader` for anything guarded by config options
 
+## Extension System
+
+The details of the extension system are in the file named `EXTENSIONS.md` located at `.github/EXTENSIONS.md`
+
 ## Git Setup
 
 - **Must clone with `--recurse-submodules`** — submodule at `modules/common/widgets/shapes` (rounded-polygon-qmljs)

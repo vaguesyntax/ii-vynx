@@ -30,8 +30,9 @@ AbstractOverlayWidget {
     required property var modelData
     readonly property string identifier: modelData.identifier
     readonly property string materialSymbol: modelData.materialSymbol ?? "widgets"
-    property string title: identifier.replace(/([A-Z])/g, " $1").replace(/^./, function(str){ return str.toUpperCase(); })
-    property var persistentStateEntry: Persistent.states.overlay[identifier]
+    property string title: modelData.title ?? identifier.replace(/([A-Z])/g, " $1").replace(/^./, function(str){ return str.toUpperCase(); })
+    property var configEntry: null // Optional — set by extension widget loader for alternative persistence
+    property var persistentStateEntry: configEntry ?? Persistent.states.overlay[identifier]
     property real radius: Appearance.rounding.windowRounding
     property real minimumWidth: contentItem.implicitWidth
     property real minimumHeight: contentItem.implicitHeight
@@ -257,7 +258,7 @@ AbstractOverlayWidget {
                         materialSymbol: "recenter"
                         onClicked: root.center()
                         StyledToolTip {
-                            text: "Center"
+                            text: Translation.tr("Center")
                         }
                     }
 
@@ -267,7 +268,7 @@ AbstractOverlayWidget {
                         toggled: !root.clickthrough
                         onClicked: root.toggleClickthrough()
                         StyledToolTip {
-                            text: "Clickable when pinned"
+                            text: Translation.tr("Clickable when pinned")
                         }
                     }
 
@@ -276,7 +277,7 @@ AbstractOverlayWidget {
                         toggled: root.pinned
                         onClicked: root.togglePinned()
                         StyledToolTip {
-                            text: "Pin"
+                            text: Translation.tr("Pin")
                         }
                     }
 
@@ -284,7 +285,7 @@ AbstractOverlayWidget {
                         materialSymbol: "close"
                         onClicked: root.close()
                         StyledToolTip {
-                            text: "Close"
+                            text: Translation.tr("Close")
                         }
                     }
                 }
