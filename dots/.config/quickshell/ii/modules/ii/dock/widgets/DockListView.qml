@@ -26,11 +26,11 @@ StyledListView {
     implicitWidth: root.isVertical ? root.buttonSlotSize : Math.max(1, contentWidth)
     implicitHeight: root.isVertical ? Math.max(1, contentHeight) : root.buttonSlotSize
     Behavior on implicitWidth {
-        enabled: !root.dragActive && !root.isFileDrag
+        enabled: !root.suppressSizeAnimation && !root.dragActive && !root.isFileDrag
         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
     }
     Behavior on implicitHeight {
-        enabled: !root.dragActive && !root.isFileDrag
+        enabled: !root.suppressSizeAnimation && !root.dragActive && !root.isFileDrag
         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
     }
     removeDisplaced: Transition {

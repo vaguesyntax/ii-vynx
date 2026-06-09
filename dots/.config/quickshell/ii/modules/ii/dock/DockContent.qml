@@ -30,6 +30,7 @@ Item {
     readonly property real visualWidth: isVertical ? Appearance.sizes.dockButtonSize + dotMargin * 2 : mainLayout.implicitWidth
     readonly property real visualHeight: isVertical ? mainLayout.implicitHeight : Appearance.sizes.dockButtonSize + dotMargin * 2
 
+    readonly property bool ready: (isVertical ? visualHeight > 0 : visualWidth > 0) && !suppressSizeAnimation
     readonly property bool requestDockShow: previewPopupLoader.item?.visible || anyContextMenuOpen
 
     readonly property real maxWindowPreviewHeight: 200
@@ -273,9 +274,18 @@ Item {
         }
     }
 
+    property bool suppressSizeAnimation: true
+
+    Timer {
+        id: suppressSizeAnimTimer
+        interval: 150
+        onTriggered: root.suppressSizeAnimation = false
+    }
+
     Component.onCompleted: {
         updateModel();
         updateFileModel();
+        suppressSizeAnimTimer.start();
     }
 
     readonly property real pinButtonCenter: isVertical ? pinButtonWrapper.y + pinButtonWrapper.height / 2 : pinButtonWrapper.x + pinButtonWrapper.width / 2
@@ -395,17 +405,23 @@ Item {
                 }
 
                 Item {
+                    id: fileListWrapper
                     Layout.alignment: Qt.AlignCenter
                     Layout.preferredWidth: root.isVertical ? root.buttonSlotSize : (root.processedFiles.length > 0 ? fileListView.contentWidth : 0)
                     Layout.preferredHeight: root.isVertical ? (root.processedFiles.length > 0 ? fileListView.contentHeight : 0) : root.buttonSlotSize
-                    visible: root.processedFiles.length > 0
+                    opacity: root.processedFiles.length > 0 ? 1.0 : 0.0
+                    visible: root.processedFiles.length > 0 || opacity > 0.01
                     clip: true
+
+                    Behavior on opacity {
+                        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                    }
                     Behavior on Layout.preferredWidth {
-                        enabled: !root.isVertical
+                        enabled: !root.suppressSizeAnimation && !root.isVertical
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                     }
                     Behavior on Layout.preferredHeight {
-                        enabled: root.isVertical
+                        enabled: !root.suppressSizeAnimation && root.isVertical
                         animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
                     }
 
@@ -512,9 +528,11 @@ Item {
         fileResolvedIcon: draggedFileDelegate?.resolvedXdgIcon ?? ""
 
         scale: {
-            const intent = root.dragActive ? root.dragIntent : root.fileDragIntent;
-            const pinned = root.dragActive ? TaskbarApps.isPinned(root.draggedAppId) : true;
-            return (pinned && intent === "unpin") || (!pinned && intent === "pin") ? 0.7 : 1.0;
+            const intent = root.isFileDrag ? root.fileDragIntent : root.dragIntent;
+            const isPinned = root.isFileDrag || TaskbarApps.isPinned(root.draggedAppId);
+            if (intent === "unpin" && isPinned) return 0.7;
+            if (intent === "pin" && !isPinned) return 0.7;
+            return 1.0;
         }
         Behavior on scale {
             animation: Appearance.animation.elementResize.numberAnimation.createObject(this)

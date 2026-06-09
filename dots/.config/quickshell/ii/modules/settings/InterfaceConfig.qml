@@ -134,10 +134,10 @@ ContentPage {
         ConfigRow {
             uniform: true
             ConfigSwitch {
-                buttonIcon: "highlight_mouse_cursor"
-                text: Translation.tr("Hover to reveal")
-                checked: Config.options.dock.hoverToReveal
-                onCheckedChanged: { Config.options.dock.hoverToReveal = checked; }
+                buttonIcon: "computer_arrow_up"
+                text: Translation.tr("Reveal on empty workspace")
+                checked: Config.options.dock.revealOnEmptyWorkspace
+                onCheckedChanged: { Config.options.dock.revealOnEmptyWorkspace = checked; }
             }
             ConfigSwitch {
                 buttonIcon: "keep"

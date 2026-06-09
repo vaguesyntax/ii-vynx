@@ -35,9 +35,8 @@ DockContextMenuBase {
                 Layout.fillWidth: true
 
                 readonly property var shapePool: [
-                    "Flower", "Gem", "SoftBurst", "Clover4Leaf",
-                    "Heart", "Puffy", "Diamond", "Pentagon",
-                    "Cookie6Sided", "SoftBoom", "Bun", "PuffyDiamond"
+                    "Clover4Leaf", "Arrow", "Pill", "SoftBurst",
+                    "Diamond", "ClamShell", "Pentagon"
                 ]
 
                 shapeString: shapePool[index % shapePool.length]
