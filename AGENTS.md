@@ -4,7 +4,6 @@ Hyprland dotfiles based on illogical-impulse, built with Quickshell (QtQuick/QML
 
 ## Commands
 
-- **Restart shell (dev):** `pkill qs; qs -c ii`
 - **Run settings app:** `qs -c ii settings.qml` (separate QApplication)
 - **Setup/update:** `./setup-ii-vynx.sh` or `vynx update` (CLI)
 - **Legacy setup router:** `./setup <subcommand>` (install, uninstall, exp-update, etc.)

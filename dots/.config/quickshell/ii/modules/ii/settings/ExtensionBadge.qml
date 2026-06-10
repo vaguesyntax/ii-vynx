@@ -12,7 +12,7 @@ Rectangle {
     property color bgColor: Appearance.colors.colSecondaryContainer
     property color fgColor: Appearance.colors.colOnSecondaryContainer
     property int iconSize: 16
-    property int extraWidth: 0
+    property int extraWidth: label.length > 0 ? 0 : 14
 
     visible: false
     radius: Appearance.rounding.full

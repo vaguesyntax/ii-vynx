@@ -164,7 +164,8 @@ Singleton {
                 icon: extensionJson.icon || existing.icon,
                 shapeString: extensionJson.shapeString || existing.shapeString,
                 contributes: extensionJson.contributes || {},
-                configDefaults: extensionJson.configDefaults || {}
+                configDefaults: extensionJson.configDefaults || {},
+                configSchema: extensionJson.configSchema || {}
             })
             root.installedExtensions = Object.assign({}, root.installedExtensions, { [extId]: updated })
             root.syncPluginsAdapter()
@@ -215,7 +216,8 @@ Singleton {
                 isLocal: isLocal || false,
                 isCustomUrl: isCustomUrl || false,
                 contributes: extensionJson.contributes || {},
-                configDefaults: extensionJson.configDefaults || {}
+                configDefaults: extensionJson.configDefaults || {},
+                configSchema: extensionJson.configSchema || {}
             }
             root.installedExtensions = Object.assign({}, root.installedExtensions, { [extId]: entry })
             root.syncPluginsAdapter()
@@ -412,7 +414,8 @@ Singleton {
                 contributes: extensionJson.contributes || existing.contributes,
                 icon: extensionJson.icon || existing.icon,
                 shapeString: extensionJson.shapeString || existing.shapeString,
-                configDefaults: extensionJson.configDefaults || {}
+                configDefaults: extensionJson.configDefaults || {},
+                configSchema: extensionJson.configSchema || {}
             })
             root.installedExtensions = Object.assign({}, root.installedExtensions, { [extId]: updated })
             root.syncPluginsAdapter()

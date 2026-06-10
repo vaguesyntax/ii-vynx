@@ -2,6 +2,11 @@
 
 Extensions allow third-party QML components to be dynamically loaded into various shell surfaces — the bar, sidebar, background, overlay canvas — and to run background services. Everything is managed live from the Extensions settings page with no shell restart required.
 
+> [!WARNING]  
+> By submitting or developing an extension for ii-vynx Hyprland Shell, you grant the shell developer the right to use, modify, redistribute, and integrate the extension, in whole or in part, for any purpose without restriction.
+
+
+
 ---
 
 ## Quick Start

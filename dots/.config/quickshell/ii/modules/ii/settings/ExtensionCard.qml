@@ -124,7 +124,6 @@ Item {
                         visible: isLocalExtension
                     }
                     ExtensionBadge {
-                        extraWidth: 14
                         icon: root._auditState === "trusted" ? "verified" : "help"
                         bgColor: root._auditState === "trusted" ? Appearance.m3colors.m3successContainer : Appearance.colors.colErrorContainer
                         fgColor: root._auditState === "trusted" ? Appearance.m3colors.m3success : Appearance.colors.colError
