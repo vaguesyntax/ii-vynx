@@ -128,7 +128,7 @@ Item {
                         icon: root._auditState === "trusted" ? "verified" : "help"
                         bgColor: root._auditState === "trusted" ? Appearance.m3colors.m3successContainer : Appearance.colors.colErrorContainer
                         fgColor: root._auditState === "trusted" ? Appearance.m3colors.m3success : Appearance.colors.colError
-                        tooltip: root._auditState === "trusted" ? Translation.tr("This extension is trusted. You can safely use it") : Translation.tr("This extension has not been audited yet. Be cautious when installing it.")
+                        tooltip: root._auditState === "trusted" ? Translation.tr("This extension is trusted. You can safely use it") : Translation.tr("This extension has not been audited yet. It may have security vulnerabilities.")
                         visible: root._auditState.length > 0 && root._auditState !== "blocked"
                     }
                 }
@@ -207,7 +207,7 @@ Item {
                     }
                     StyledToolTip {
                         extraVisibleCondition: root._auditState !== "trusted"
-                        text: Translation.tr("This extension has not been audited yet. Try not to install this extension without checking the source code.")
+                        text: Translation.tr("This extension has not been audited yet. It may have security vulnerabilities.")
                     }
                     onClicked: {
                         ExtensionManager.installExtension(ext.repoUrl, ext.name, ext.defaultBranch || "main", ext.htmlUrl)

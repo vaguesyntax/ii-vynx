@@ -345,21 +345,6 @@ ContentPage {
         }
     }
 
-    ContentSection {
-        icon: "file_open"
-        title: Translation.tr("Wallpaper Browser")
-
-        MaterialTextArea {
-            Layout.fillWidth: true
-            placeholderText: Translation.tr("Download path")
-            text: Config.options.wallpapers.paths.download
-            wrapMode: TextEdit.Wrap
-            onTextChanged: {
-                Config.options.wallpapers.paths.download = text;
-            }
-        }
-    }
-
     // There's no update indicator in ii for now so we shouldn't show this yet
     // ContentSection {
     //     icon: "deployed_code_update"

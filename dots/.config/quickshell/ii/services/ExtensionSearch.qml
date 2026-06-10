@@ -76,8 +76,8 @@ Singleton {
                 extensionJson: null,
                 extensionJsonError: null
             }))
-            root.saveSearchCache(repos)
             root.availableExtensions = repos.filter(r => !ExtensionAudit.blockedIds[r.name])
+            root.saveSearchCache(root.availableExtensions)
             root.extensionSearchDone()
             root.startExtensionJsonFetchAll()
         } catch (e) {
