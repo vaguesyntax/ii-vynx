@@ -505,6 +505,58 @@ Use `configDefaults` to provide initial values for your extension's config. Thes
 
 Users can change these from an extension settings UI (if you provide one) and they persist in `plugins.json`.
 
+### Config Schema
+
+Use `configSchema` to define a typed settings UI that is automatically rendered in the extension's card. Each key maps to a control:
+
+```json
+{
+  "configSchema": {
+    "refreshInterval": {
+      "type": "int",
+      "label": "Refresh Interval",
+      "default": 30,
+      "min": 5,
+      "max": 120
+    },
+    "theme": {
+      "type": "enum",
+      "label": "Theme",
+      "default": "dark",
+      "values": ["light", "dark", "system"]
+    },
+    "showBadges": {
+      "type": "bool",
+      "label": "Show Badges",
+      "default": true
+    },
+    "opacity": {
+      "type": "slider",
+      "label": "Opacity",
+      "default": 0.8,
+      "min": 0.1,
+      "max": 1.0
+    },
+    "apiKey": {
+      "type": "string",
+      "label": "API Key",
+      "default": ""
+    }
+  }
+}
+```
+
+| Type     | Control              | Extra properties       |
+|----------|----------------------|------------------------|
+| `bool`   | Switch               | —                      |
+| `int`    | SpinBox              | `min`, `max`           |
+| `slider` | Slider (float)       | `min`, `max`           |
+| `float`  | SpinBox (decimal)    | `min`, `max`           |
+| `enum`   | Dropdown             | `values` (string[])    |
+| `string` | Text field           | —                      |
+
+Values are stored per-extension in `plugins.json` and accessible at runtime via `ExtensionManager.getExtensionConfig(extId, key, defaultValue)`.
+
 ---
 
 ## Publishing
