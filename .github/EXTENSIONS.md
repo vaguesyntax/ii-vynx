@@ -474,7 +474,7 @@ StyledOverlayWidget {
 
 You can directly use qml files in the file if they are in the folder as the main qml file. If not, you can use `import "./folderName"` to import a folder and use the files in that folder. 
 
-You can check official plugin to see an example for it from (here)[https://github.com/vaguesyntax/vynx-wallpaper-browser/blob/main/src/WallpaperBrowserUI.qml]
+You can check official plugin to see an example for it from [here](https://github.com/vaguesyntax/vynx-wallpaper-browser/blob/main/src/WallpaperBrowserUI.qml).
 
 ### Naming
 
