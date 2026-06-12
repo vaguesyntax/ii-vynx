@@ -103,8 +103,8 @@ Toolbar {
                 const newTags = text.trim().split(/\s+/);
                 const allTags = [...newTags];
                 wallpaperSelectorContent.moreOptionsModelData = null
-                WallpaperBrowser.clearResponses();
-                WallpaperBrowser.makeRequest(allTags, 20, 1);
+                ExtensionServices.get("vynx-wallpaper-browser", "wallpaperBrowserService").clearResponses();
+                ExtensionServices.get("vynx-wallpaper-browser", "wallpaperBrowserService").makeRequest(allTags, 20, 1);
                 grid.currentIndex = 0;
                 text = "";
             }

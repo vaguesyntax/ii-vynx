@@ -15,6 +15,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions as CF
+import qs.modules.settings
 
 ApplicationWindow {
     id: root
@@ -62,6 +63,11 @@ ApplicationWindow {
             component: "modules/settings/ServicesConfig.qml"
         },
         {
+            name: Translation.tr("Extensions"),
+            icon: "extension",
+            component: "modules/settings/ExtensionsConfig.qml"
+        },
+        {
             name: Translation.tr("Advanced"),
             icon: "construction",
             component: "modules/settings/AdvancedConfig.qml"
@@ -81,6 +87,7 @@ ApplicationWindow {
     Component.onCompleted: {
         MaterialThemeLoader.reapplyTheme()
         Config.readWriteDelay = 0 // Settings app always only sets one var at a time so delay isn't needed
+        ExtensionManager.watchFileChanges = false // Settings app doesn't need file watching to prevent loops
     }
 
     minimumWidth: 750

@@ -17,6 +17,36 @@ Rectangle {
     property int selectedTab: Persistent.states.sidebar.bottomGroup.tab
     property int previousIndex: -1
     property bool collapsed: Persistent.states.sidebar.bottomGroup.collapsed
+    property var extensionTabs: ExtensionManager.ready ? ExtensionManager.getContributionPoint("sidebarRightBottom") : []
+
+    Connections {
+        target: ExtensionManager
+        function onRefreshExtensions() { root.extensionTabs = ExtensionManager.getContributionPoint("sidebarRightBottom"); root.refreshCurrentTab() }
+        function onExtensionInstalled() { root.extensionTabs = ExtensionManager.getContributionPoint("sidebarRightBottom"); root.refreshCurrentTab() }
+        function onExtensionRemoved() { root.extensionTabs = ExtensionManager.getContributionPoint("sidebarRightBottom"); root.refreshCurrentTab() }
+        function onExtensionToggled() { root.extensionTabs = ExtensionManager.getContributionPoint("sidebarRightBottom"); root.refreshCurrentTab() }
+    }
+
+    function refreshCurrentTab() {
+        if (!root.tabs.length) return
+        let tab = root.tabs[root.selectedTab]
+        if (!tab) return
+        if (tab.isExtension) {
+            let comp = ExtensionManager.loadExtensionQmlComponent(tab.fullPath)
+            if (comp && comp.status === Component.Ready) {
+                tabStack.sourceComponent = comp
+            } else if (comp) {
+                comp.statusChanged.connect(() => {
+                    if (comp.status === Component.Ready) {
+                        tabStack.sourceComponent = comp
+                    }
+                })
+            }
+        } else {
+            tabStack.source = tab.widget
+        }
+    }
+
     property var tabs: [
         {
             "type": "calendar",
@@ -36,6 +66,15 @@ Rectangle {
             "icon": "schedule",
             "widget": "pomodoro/PomodoroWidget.qml"
         },
+        ...root.extensionTabs.map(p => ({
+            "type": "ext_" + p.identifier,
+            "name": p.title,
+            "icon": p.icon,
+            "widget": "file://" + p.fullPath + "?_t=" + Date.now(),
+            "fullPath": p.fullPath,
+            "isExtension": true,
+            "extensionId": p.extensionId
+        }))
     ]
 
     Behavior on implicitHeight {
@@ -198,6 +237,22 @@ Rectangle {
                 id: tabStack
                 anchors.fill: parent
                 anchors.bottomMargin: -anchors.topMargin
+
+                onLoaded: {
+                    let tab = root.tabs[root.selectedTab]
+                    if (tab && tab.extensionId && item) {
+                        if ("extensionId" in item) {
+                            item.extensionId = tab.extensionId
+                        } else {
+                            Object.defineProperty(item, "extensionId", {
+                                value: tab.extensionId,
+                                writable: true,
+                                configurable: true,
+                                enumerable: true
+                            })
+                        }
+                    }
+                }
 
                 Component.onCompleted: {
                     tabStack.source = root.tabs[root.selectedTab].widget;

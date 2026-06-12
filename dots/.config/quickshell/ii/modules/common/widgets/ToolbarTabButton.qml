@@ -10,6 +10,7 @@ RippleButton {
     id: root
     required property string materialSymbol
     required property bool current
+    property bool showLabel: true
     horizontalPadding: 10
 
     implicitHeight: 40
@@ -34,6 +35,7 @@ RippleButton {
         StyledText {
             id: label
             anchors.verticalCenter: parent.verticalCenter
+            visible: root.showLabel
             text: root.text
         }
     }

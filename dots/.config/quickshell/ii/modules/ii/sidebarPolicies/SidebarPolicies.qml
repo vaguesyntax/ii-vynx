@@ -12,6 +12,7 @@ Scope { // Scope
     id: root
     property bool detach: false
     property bool pin: false
+    property bool extend: false
     property Component contentComponent: SidebarPoliciesContent {}
     property Item sidebarContent
 
@@ -93,12 +94,11 @@ Scope { // Scope
             id: panelWindow
             visible: GlobalStates.sidebarLeftOpen
             
-            property bool extend: false
             readonly property real sidebarWidth: {
                 const p = Config.options.policies;
                 const allFeatures = p.ai !== 0 && p.weeb == 1 && p.wallpapers !== 0 && p.translator !== 0;
 
-                if (panelWindow.extend) return Appearance.sizes.sidebarWidthExtended;
+                if (root.extend) return Appearance.sizes.sidebarWidthExtended;
                 return allFeatures ? Appearance.sizes.sidebarWidthExpanded : Appearance.sizes.sidebarWidth;
             }
             
@@ -230,7 +230,7 @@ Scope { // Scope
                     }
                     if (event.modifiers === Qt.ControlModifier) {
                         if (event.key === Qt.Key_O) {
-                            panelWindow.extend = !panelWindow.extend;
+                            root.extend = !root.extend;
                         } else if (event.key === Qt.Key_D) {
                             root.toggleDetach();
                         } else if (event.key === Qt.Key_P) {

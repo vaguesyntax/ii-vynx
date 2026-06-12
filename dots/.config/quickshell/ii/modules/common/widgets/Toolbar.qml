@@ -28,6 +28,10 @@ Item {
         }
     }
 
+    Behavior on implicitWidth {
+        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+    }
+
     Rectangle {
         id: background
         anchors.fill: parent

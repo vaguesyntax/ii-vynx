@@ -18,17 +18,17 @@ Flow {
         {
             "displayName": "Option 1",
             "icon": "check",
-            "shape": "Arch", // Optional (for material shape)
-            "symbol": "google-gemini-symbolic", // Optional (for custom icons)
-            "color": "red", // Optional (for custom shape color)
+            "shape": "Arch",
+            "symbol": "google-gemini-symbolic",
+            "color": "red",
             "value": 1
         },
         {
             "displayName": "Option 2",
             "icon": "close",
-            "shape": "Circle", // Optional (for material shape)
-            "symbol": "mistral-symbolic", // Optional (for custom icons)
-            "color": "blue", // Optional (for custom shape color)
+            "shape": "Circle",
+            "symbol": "mistral-symbolic",
+            "color": "blue",
             "value": 2
         },
     ]
@@ -58,10 +58,10 @@ Flow {
             buttonShape: modelData.shape || ""
             buttonSymbol: modelData.symbol || ""
             buttonColor: modelData.color || ""
-            buttonText: modelData.displayName
+            buttonText: modelData.displayName ?? modelData
             enabled: modelData.enabled !== undefined ? modelData.enabled : true
             opacity: enabled ? 1.0 : 0.5
-            toggled: root.currentValue == modelData.value
+            toggled: root.currentValue == (modelData.value ?? modelData)
             releaseAction: modelData.releaseAction || ""
 
             colBackground: root.colBackground
@@ -69,7 +69,7 @@ Flow {
             colBackgroundActive: root.colBackgroundActive
 
             onClicked: {
-                root.selected(modelData.value);
+                root.selected(modelData.value ?? modelData);
             }
         }
     }

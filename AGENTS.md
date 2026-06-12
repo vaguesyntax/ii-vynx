@@ -4,7 +4,6 @@ Hyprland dotfiles based on illogical-impulse, built with Quickshell (QtQuick/QML
 
 ## Commands
 
-- **Restart shell (dev):** `pkill qs; qs -c ii`
 - **Run settings app:** `qs -c ii settings.qml` (separate QApplication)
 - **Setup/update:** `./setup-ii-vynx.sh` or `vynx update` (CLI)
 - **Legacy setup router:** `./setup <subcommand>` (install, uninstall, exp-update, etc.)
@@ -89,6 +88,12 @@ Access via `Config.options.bar.vertical`, `Config.options.appearance.sharpMode`,
 - **Components:** Use `component` keyword for in-file reusable components
 - **Early return:** Prefer `if (!condition) return; doStuff()` over deep nesting
 - **Conditional loading:** Use `Loader`/`LazyLoader` for anything guarded by config options
+
+## Extension System
+
+The details of creating a new extension is in the file `EXTENSIONS.md` located at `.github/EXTENSIONS.md`.
+
+The details of the implementation of the extension system is in the file `EXTENSIONARCHITECTURE.md` located at `.github/EXTENSIONSARCHITECTURE`.
 
 ## Git Setup
 

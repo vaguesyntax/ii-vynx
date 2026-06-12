@@ -71,6 +71,13 @@ Singleton {
     property string screenshareStatePath: FileUtils.trimFileProtocol(`${Directories.state}/user/generated/screenshare/apps.txt`)
     property string geniusLyricsScriptPath: FileUtils.trimFileProtocol(`${Directories.scriptPath}/lyrics/genius-lyrics.js`)
     property string localSendDownloadPath: FileUtils.trimFileProtocol(`${Directories.home}/Downloads/localsend`)
+
+    // Extension system paths
+    property string extensionsPath: FileUtils.trimFileProtocol(`${Directories.shellConfig}/extensions`)
+    property string extensionsCachePath: `${Directories.extensionsPath}/cache`
+    property string extensionsInstalledPath: `${Directories.extensionsPath}/installed`
+    property string pluginsJsonPath: `${Directories.extensionsPath}/plugins.json`
+
     // Cleanup on init
     Component.onCompleted: {
         Quickshell.execDetached(["mkdir", "-p", `${shellConfig}`])
@@ -81,6 +88,8 @@ Singleton {
         Quickshell.execDetached(["bash", "-c", `rm -rf '${cliphistDecode}'; mkdir -p '${cliphistDecode}'`])
         Quickshell.execDetached(["mkdir", "-p", `${aiChats}`])
         Quickshell.execDetached(["mkdir", "-p", `${userActions}`])
+        Quickshell.execDetached(["mkdir", "-p", `${Directories.extensionsCachePath}`])
+        Quickshell.execDetached(["mkdir", "-p", `${Directories.extensionsInstalledPath}`])
         Quickshell.execDetached(["rm", "-rf", `${tempImages}`])
     }
 }

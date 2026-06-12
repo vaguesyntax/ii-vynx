@@ -259,33 +259,9 @@ ContentPage {
                 }
             }
         }
-        
+
         ConfigRow {
             Layout.fillHeight: false
-
-            ContentSubsection {
-                title: Translation.tr("Wallpaper browser")
-                Layout.fillWidth: true
-
-                ConfigSelectionArray {  
-                    currentValue: Config.options.policies.wallpapers  
-                    onSelected: newValue => {  
-                        Config.options.policies.wallpapers = newValue;  
-                    }  
-                    options: [  
-                        {  
-                            displayName: Translation.tr("No"),  
-                            icon: "close",  
-                            value: 0  
-                        },  
-                        {  
-                            displayName: Translation.tr("Yes"),  
-                            icon: "check",  
-                            value: 1  
-                        }  
-                    ]  
-                }
-            }
 
             ContentSubsection {
                 title: Translation.tr("Translator")
