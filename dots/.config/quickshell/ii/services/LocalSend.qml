@@ -136,8 +136,8 @@ Singleton {
             "notify-send",
             Translation.tr("LocalSend: Incoming Transfer"),
             Translation.tr("From: %1\nCheck the clock widget popup on the bar for more information").arg(transfer.sender),
-            "-A", "accept=Kabul Et",
-            "-A", "deny=Reddet",
+            "-A", `accept=${Translation.tr("Accept")}`,
+            "-A", `deny=${Translation.tr("Deny")}`,
             "-a", "LocalSend",
         ]
         notificationProc.running = true
