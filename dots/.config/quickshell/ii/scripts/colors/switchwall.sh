@@ -165,7 +165,45 @@ categorize_wallpaper() {
         return
     fi
 
-    "$ai_script" "$target_payload" >"$STATE_DIR/user/generated/wallpaper/category.txt" 2>"$STATE_DIR/user/generated/wallpaper/ai_error.log" &
+    local wallpaper_name=$(basename "$imgpath")
+    local cache_file="$CACHE_DIR/ai-categories/$wallpaper_name.txt"
+  
+    if [ -f "$cache_file" ]; then
+    #Cache hit :) sleep for 300ms to allow the script to finish before changing clock theme
+        (
+            sleep 0.3 
+            cat "$cache_file" >"$STATE_DIR/user/generated/wallpaper/category.txt"
+        ) &
+    else
+        # Cache Miss :(
+        mkdir -p "$CACHE_DIR/ai-categories"
+        (
+            local tmp_output="/tmp/quickshell/ai/cat_verify_${wallpaper_name}.txt"
+            mkdir -p "$(dirname "$tmp_output")"
+
+            "$ai_script" "$target_payload" >"$tmp_output" 2>"$STATE_DIR/user/generated/wallpaper/ai_error.log"
+
+            # checking the output because sometimes we get garbage for some reason
+            local clean_res=$(cat "$tmp_output" | tr -d '"' | xargs | tr '[:upper:]' '[:lower:]')
+            local valid_categories=("abstract" "anime" "city" "minimalist" "landscape" "plants" "person" "space")
+            local api_success=0
+
+            for cat in "${valid_categories[@]}"; do
+                if [[ "$clean_res" == "$cat" ]]; then
+                    api_success=1
+                    break
+                fi
+            done
+
+            if [[ $api_success -eq 1 ]]; then
+                mv "$tmp_output" "$cache_file"
+                cat "$cache_file" >"$STATE_DIR/user/generated/wallpaper/category.txt"
+            else
+                rm -f "$tmp_output"
+                echo "API Failure: Invalid output structure received ($clean_res)" >>"$STATE_DIR/user/generated/wallpaper/ai_error.log"
+            fi
+        ) &
+    fi
 }
 
 switch() {
