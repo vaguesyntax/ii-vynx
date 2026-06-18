@@ -17,14 +17,29 @@ ContentPage {
 
     property bool allowHeavyLoad: false
     property ListModel favouritesCarouselModel: ListModel {}
+    property int currentIndex: -1
 
     function refreshFavouritesCarousel() {
         favouritesCarouselModel.clear()
-        const favs = Persistent.states.wallpaper.favourites
+        
+        let favs = [...Persistent.states.wallpaper.favourites]
+        const currentWallpaper = Config.options.background.wallpaperPath
+        const currentIndex = favs.indexOf(currentWallpaper)
+        
+        if (currentIndex !== -1) {
+            const elementsBefore = favs.slice(0, currentIndex)
+            const elementsFromCurrent = favs.slice(currentIndex)
+            favs = elementsFromCurrent.concat(elementsBefore)
+        } else {
+            favs.unshift(currentWallpaper)
+        }
+        
         for (let i = 0; i < favs.length; i++) {
             const path = favs[i]
             const fileName = path.split('/').pop()
-            favouritesCarouselModel.append({ filePath: path, fileName: fileName })
+            
+            const name = (path === currentWallpaper && currentIndex === -1) ? "current-wallpaper" : fileName
+            favouritesCarouselModel.append({ filePath: path, fileName: name })
         }
     }
 
@@ -80,6 +95,7 @@ ContentPage {
                     color: smallLightDarkPreferenceButton.colText
                 }
                 StyledText {
+                    visible: !carouselWrapper.expanded
                     Layout.alignment: Qt.AlignHCenter
                     text: dark ? Translation.tr("Dark") : Translation.tr("Light")
                     font.pixelSize: Appearance.font.pixelSize.smaller
@@ -99,66 +115,67 @@ ContentPage {
             Layout.fillWidth: true
 
             Item {
+                id: carouselWrapper
                 implicitWidth: 360
                 implicitHeight: 220
                 
-                StyledImage {
-                    id: wallpaperPreview
-                    anchors.fill: parent
-                    fillMode: Image.PreserveAspectCrop
-                    source: Config.options.background.wallpaperPath
-                    cache: false
-                    layer.enabled: true
-                    layer.effect: OpacityMask {
-                        maskSource: Rectangle {
-                            width: 360
-                            height: 200
-                            radius: Appearance.rounding.normal
-                        }
-                    }
-                    RippleButton {
-                        anchors.fill: parent
-                        colBackground: "transparent"
-                        colBackgroundHover: ColorUtils.transparentize(Appearance.colors.colOnPrimary, 0.85)
-                        colRipple: ColorUtils.transparentize(Appearance.colors.colOnPrimary, 0.5)
-                        onClicked: {
-                            Quickshell.execDetached(`${Directories.wallpaperSwitchScriptPath}`);
-                        }
-                    }
+                readonly property bool expanded: implicitWidth > 400
+
+                PropertyAnimation {
+                    id: expandAnimation
+                    target: carouselWrapper
+                    property: "implicitWidth"
+                    to: 450
+                    duration: 450
+                    easing.type: Easing.OutCubic
+                }
+                PropertyAnimation {
+                    id: shrinkAnimation
+                    target: carouselWrapper
+                    property: "implicitWidth"
+                    to: 360
+                    duration: 450
+                    easing.type: Easing.OutCubic
+                }
+
+                Carousel {
+                    id: favouritesCarousel
+                    implicitWidth: parent.implicitWidth
+                    implicitHeight: parent.implicitHeight
+                    showBadges: true
                     
-                }
+                    leftPadding: 0
+                    rightPadding: 0
+                    topPadding: 0
+                    bottomPadding: 0
 
-                MaterialSymbol {
-                    anchors.centerIn: parent
-                    text: "hourglass_top"
-                    color: Appearance.colors.colPrimary
-                    iconSize: 40
-                    z: -1
-                }
-
-                Rectangle {
-                    anchors {
-                        left: parent.left
-                        bottom: parent.bottom
-                        margins: 10
+                    model: page.favouritesCarouselModel
+                    carouselType: "multibrowse"
+                    onItemClicked: (index, modelData) => {
+                        shrinkAnimation.running = true
+                        favouritesCarousel.currentIndex = 0
+                        favouritesCarousel.snapToIndex(0)
+                        Wallpapers.select(modelData.filePath)
                     }
 
-                    implicitWidth: Math.min(text.implicitWidth + 20, parent.width - 20)
-                    implicitHeight: text.implicitHeight + 5
-                    color: Appearance.colors.colPrimary
-                    radius: Appearance.rounding.full
+                    onPressedAny: () => {
+                        expandAnimation.running = true
+                    }
 
-                    StyledText {
-                        id: text
-                        anchors.centerIn: parent
-                        property string fileName: Config.options.background.wallpaperPath.split("/")[Config.options.background.wallpaperPath.split("/").length - 1]
-                        text: fileName.length > 30 ? fileName.slice(27) + "..." : fileName
-                        color: Appearance.colors.colOnPrimary
-                        font.pixelSize: Appearance.font.pixelSize.smaller
+                    delegate: Item {
+                        id: carouselItem
+                        required property var modelData
+                        required property int index
+
+                        ThumbnailImage {
+                            anchors.fill: parent
+                            sourcePath: carouselItem.modelData.filePath
+                            fillMode: Image.PreserveAspectCrop
+                            generateThumbnail: true
+                        }
                     }
                 }
             }
-
 
             ColumnLayout {
                 Layout.fillHeight: true
@@ -209,6 +226,7 @@ ContentPage {
                                 ]
                                 
                                 delegate: ColorPreviewGrid {
+                                    columns: carouselWrapper.expanded ? 2 : 3
                                     customTheme: modelData.customTheme
                                     builtInTheme: modelData.builtInTheme
                                 }
@@ -231,8 +249,6 @@ ContentPage {
             }
         }
     }
-
-    
 
     ContentSection {
         icon: "screenshot_monitor"

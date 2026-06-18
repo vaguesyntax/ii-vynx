@@ -4,6 +4,11 @@ import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
 
+/*
+ * As close to as possible recreation of Material 3 Expressive Carousel. 
+ * See https://m3.material.io/components/carousel/overview
+*/
+
 Item {
     id: root
 
@@ -19,11 +24,14 @@ Item {
     property real leftPadding: 16
     property real rightPadding: 16
     property bool snapEnabled: true
+    property bool showBadges: false
 
     property int currentIndex: 0
-    property list<real> sizeRatios: [6, 3, 1]
+    property list<real> sizeRatios: [6, 3, 1] // Must be a list with a size of 3
     readonly property real itemHeight: height - topPadding - bottomPadding
+    readonly property bool expanded: width > 400
 
+    signal pressedAny()
     signal itemClicked(int index, var modelData)
 
     clip: true
@@ -32,9 +40,9 @@ Item {
     readonly property real _itemAreaWidth: Math.max(0, width - leftPadding - rightPadding - 2 * itemSpacing)
     readonly property real _unitWidth: _itemAreaWidth / _totalRatio
 
-    readonly property real _largeW: Math.max(40, _unitWidth * sizeRatios[0])
-    readonly property real _mediumW: Math.max(30, _unitWidth * sizeRatios[1])
-    readonly property real _smallW: Math.max(20, _unitWidth * sizeRatios[2])
+    property real _largeW: sizeRatios[0] > 0 ? Math.max(40, _unitWidth * sizeRatios[0]) : 0
+    property real _mediumW: sizeRatios[1] > 0 ? Math.max(30, _unitWidth * sizeRatios[1]) : 0
+    property real _smallW: sizeRatios[2] > 0 ? Math.max(20, _unitWidth * sizeRatios[2]) : 0
     readonly property real _stepSize: _largeW + itemSpacing
 
     readonly property var _slotX: [
@@ -127,11 +135,38 @@ Item {
                     property color pressedColor: ColorUtils.transparentize(Appearance.colors.colOnSurface, 0.8)
 
                     Behavior on color {
-                        ColorAnimation {
-                            duration: Appearance.animation.elementMoveFast.duration
-                            easing.type: Appearance.animation.elementMoveFast.type
-                            easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
+                        animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+                    }
+                }
+
+                Rectangle {
+                    anchors {
+                        left: parent.left
+                        bottom: parent.bottom
+                        margins: 10
+                    }
+
+                    visible: root.showBadges
+                    implicitWidth: Math.min(fileLabel.implicitWidth + 20, parent.width - 20)
+                    implicitHeight: fileLabel.implicitHeight + 5
+                    color: Appearance.colors.colPrimary
+                    radius: Appearance.rounding.full
+
+                    opacity: itemContainer.width >= root._largeW ? 1 : 0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: 350
+                            easing.type: Easing.BezierSpline
                         }
+                    }
+
+                    StyledText {
+                        id: fileLabel
+                        anchors.centerIn: parent
+                        property string fileName: modelData.filePath.split("/")[modelData.filePath.split("/").length - 1]
+                        text: fileName.length > 30 ? fileName.slice(27) + "..." : fileName
+                        color: Appearance.colors.colOnPrimary
+                        font.pixelSize: Appearance.font.pixelSize.smaller
                     }
                 }
 
@@ -140,6 +175,9 @@ Item {
                     cursorShape: Qt.PointingHandCursor
                     onClicked: root.itemClicked(itemContainer.index, itemContainer.modelData)
                     hoverEnabled: true
+                    onPressed: {
+                        root.pressedAny()
+                    }
                     onContainsMouseChanged: {
                         stateOverlay.color = containsMouse ? stateOverlay.hoverColor : "transparent"
                     }
@@ -172,10 +210,17 @@ Item {
         property: "contentX"
         duration: 400
         easing.type: Easing.BezierSpline
-        easing.bezierCurve: [0.05, 0.7, 0.1, 1, 1, 1]
         onFinished: {
             updateCurrentIndex()
         }
+    }
+
+    PropertyAnimation {
+        id: expandAnimation
+        target: root
+        property: "height"
+        duration: 300
+        easing.type: Easing.BezierSpline
     }
 
     function updateCurrentIndex() {
