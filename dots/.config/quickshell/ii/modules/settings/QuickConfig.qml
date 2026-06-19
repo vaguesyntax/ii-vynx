@@ -110,6 +110,7 @@ ContentPage {
     ContentSection {
         icon: "format_paint"
         title: Translation.tr("Wallpaper & Colors")
+        tooltip: Translation.tr("Favourite your wallpapers from wallpaper selector for them to be visible in the carousel")
         Layout.fillWidth: true
 
         RowLayout {
@@ -182,15 +183,43 @@ ContentPage {
                         }
                     }
                 }
-
-                StyledText {
-                    anchors.centerIn: parent
-                    visible: page.favouritesCarouselModel.count === 0
-                    text: Translation.tr("No favourites yet\nAdd some from wallpaper selector")
-                    font.pixelSize: Appearance.font.pixelSize.body
-                    color: Appearance.colors.colOnLayer3
-                    horizontalAlignment: Text.AlignHCenter
+                
+                Timer {
+                    // The text below is visible even if the favouritesCarousel is not empty, so we add a little delay before making it visible
+                    interval: 200
+                    running: true
+                    onTriggered: {
+                        emptyFavouritesColumn.canBeVisible = true
+                    }
                 }
+
+                ColumnLayout {
+                    id: emptyFavouritesColumn
+                    property bool canBeVisible: false
+                    opacity: page.favouritesCarouselModel.count === 0 && canBeVisible ? 1 : 0
+                    Behavior on opacity {
+                        animation: Appearance.animation.elementMoveFast.numberAnimation.createObject(this)
+                    }
+                    anchors {
+                        horizontalCenter: parent.horizontalCenter
+                        verticalCenter: parent.verticalCenter
+                        verticalCenterOffset: -10
+                    }
+                    MaterialSymbol {
+                        iconSize: 30
+                        text: "star"
+                        fill: 1
+                        color: Appearance.colors.colOnLayer3
+                        Layout.alignment: Qt.AlignHCenter
+                    }
+                    StyledText {
+                        text: Translation.tr("No favourites yet\nAdd some from wallpaper selector")
+                        font.pixelSize: Appearance.font.pixelSize.body
+                        color: Appearance.colors.colOnLayer3
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+                
             }
 
             ColumnLayout {
