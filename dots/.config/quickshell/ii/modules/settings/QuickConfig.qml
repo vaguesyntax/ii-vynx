@@ -153,7 +153,6 @@ ContentPage {
                     bottomPadding: 0
 
                     model: page.favouritesCarouselModel
-                    carouselType: "multibrowse"
                     visible: page.favouritesCarouselModel.count > 0
                     onItemClicked: (index, modelData) => {
                         shrinkAnimation.running = true

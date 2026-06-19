@@ -14,11 +14,7 @@ Item {
     id: root
 
     property var model: []
-    property var imageSources: []
     property Component delegate: null
-    property string carouselType: "multibrowse"
-    property string alignment: "start"
-    property real itemWidth: 200
     property real itemSpacing: 8
     property real topPadding: 8
     property real bottomPadding: 8
