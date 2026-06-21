@@ -62,8 +62,21 @@ Scope { // Scope
             implicitWidth: cheatsheetBackground.width + Appearance.sizes.elevationMargin * 2
             implicitHeight: cheatsheetBackground.height + Appearance.sizes.elevationMargin * 2
             WlrLayershell.namespace: "quickshell:cheatsheet"
-            // Setting this value makes it take its sweet time to open
-            // WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+            // Map with None (fast open), then upgrade to OnDemand once the surface is
+            // visible. Setting OnDemand at map time makes the surface take its sweet time
+            // to open on some compositors; deferring it avoids that while still letting
+            // text inputs inside tabs (e.g. extension search/edit fields) receive keyboard.
+            property bool _focusReady: false
+            WlrLayershell.keyboardFocus: _focusReady ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+            onVisibleChanged: {
+                if (visible) focusUpgradeTimer.restart();
+                else _focusReady = false;
+            }
+            Timer {
+                id: focusUpgradeTimer
+                interval: 100
+                onTriggered: cheatsheetRoot._focusReady = true
+            }
             color: "transparent"
 
             mask: Region {
