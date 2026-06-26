@@ -17,6 +17,9 @@ Item {
 
     readonly property string clockStyle: Config.options.background.widgets.clock.style
 
+    property bool isCovered: false
+    property bool hasFullscreen: false
+
     property real implicitSize: 230
 
     property color colShadow: Appearance.colors.colShadow
@@ -78,12 +81,17 @@ Item {
 
     property string backgroundStyle: Config.options.background.widgets.clock.cookie.backgroundStyle
     StyledDropShadow {
+        id: shadowItem
         target: backgroundStyle === "sine" ? sineCookieLoader : backgroundStyle === "shape" ? materialShapeCookieLoader : roundedPolygonCookieLoader
+        layer.enabled: true
 
-        RotationAnimation on rotation {
+        RotationAnimation {
+            id: rotateAnim
+            target: shadowItem
+            property: "rotation"
             running: Config.options.background.widgets.clock.cookie.constantlyRotate
+            paused: rotateAnim.running && (Config.options.background.widgets.clock.cookie.turnOffRotationOnTiledApps && root.isCovered)
             duration: 30000
-            easing.type: Easing.Linear
             loops: Animation.Infinite
             from: 360
             to: 0
@@ -193,6 +201,7 @@ Item {
             clockSecond: root.clockSecond
             style: Config.options.background.widgets.clock.cookie.secondHandStyle
             color: root.colSecondHand
+            isCovered: root.isCovered
         }
     }
 

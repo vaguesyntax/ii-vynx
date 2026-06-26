@@ -15,10 +15,12 @@ Item {
     property string style: "hide"
     property color color: Appearance.colors.colSecondary
     
+    property bool isCovered: false
+
     rotation: (360 / 60 * clockSecond) + 90
 
     Behavior on rotation {
-        enabled: Config.options.background.widgets.clock.cookie.constantlyRotate // Animating every second is expensive...
+        enabled: Config.options.background.widgets.clock.cookie.constantlyRotate && !(Config.options.background.widgets.clock.cookie.turnOffRotationOnTiledApps && root.isCovered)
         animation: RotationAnimation {
             direction: RotationAnimation.Clockwise
             duration: 1000 // 1 second
