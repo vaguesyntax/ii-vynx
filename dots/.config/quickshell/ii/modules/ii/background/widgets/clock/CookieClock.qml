@@ -83,7 +83,6 @@ Item {
     StyledDropShadow {
         id: shadowItem
         target: backgroundStyle === "sine" ? sineCookieLoader : backgroundStyle === "shape" ? materialShapeCookieLoader : roundedPolygonCookieLoader
-        layer.enabled: true
 
         RotationAnimation {
             id: rotateAnim
