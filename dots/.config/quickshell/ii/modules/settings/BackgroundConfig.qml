@@ -563,6 +563,22 @@ ContentPage {
                 }
             }
 
+            ConfigSwitch {
+                enabled: Config.options.background.widgets.clock.cookie.constantlyRotate
+                buttonIcon: "pause_circle"
+                text: Translation.tr("No rotation on tiled apps")
+                checked: Config.options.background.widgets.clock.cookie.turnOffRotationOnTiledApps
+                onEnabledChanged: {
+                    checked = Config.options.background.widgets.clock.cookie.turnOffRotationOnTiledApps;
+                }
+                onCheckedChanged: {
+                    Config.options.background.widgets.clock.cookie.turnOffRotationOnTiledApps = checked;
+                }
+                StyledToolTip {
+                    text: Translation.tr("Pauses clock rotation when there is a tiled window on the workspace to save GPU resources.")
+                }
+            }
+
             ConfigRow {
 
                 ConfigSwitch {
