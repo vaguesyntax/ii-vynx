@@ -6,6 +6,7 @@ __pycache__/
 *.py[cod]
 
 /dots/.config/quickshell/ii/.qmlls.ini
+/dots/.config/quickshell/ii/scripts/lyrics/node_modules/
 
 # exp-update
 /.update-lock

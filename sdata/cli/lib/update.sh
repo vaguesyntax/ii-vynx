@@ -37,6 +37,11 @@ SETUP_FLAGS=""
 if [ -d "$BASE_DIR" ]; then
     cd "$BASE_DIR"
     if [[ "$DO_PULL" == "true" ]]; then
+        # Snapshot local Quickshell changes before git pull changes the repository source.
+        if [ -f "$BASE_DIR/setup-ii-vynx.sh" ]; then
+            bash "$BASE_DIR/setup-ii-vynx.sh" --capture-only --no-pull --no-confirm || exit 1
+        fi
+
         if [[ "$VERBOSE" == "true" ]]; then
             git pull
         else

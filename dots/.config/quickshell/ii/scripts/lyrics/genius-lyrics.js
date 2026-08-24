@@ -4,7 +4,8 @@ const { getLyrics, getSong } = pkg;  // fetchLyrics/fetchSong değil, pkg içind
 
 // kendi async wrapper fonksiyonlarımız
 export async function fetchLyrics(apiKey, title, artist) {
-    const options = { apiKey, title, artist, optimizeQuery: true };
+    // Keeping the artist in the query is important; the package's optimizer can rank unrelated songs first.
+    const options = { apiKey, title, artist, optimizeQuery: false };
     try {
         return await getLyrics(options);
     } catch (err) {
@@ -14,7 +15,8 @@ export async function fetchLyrics(apiKey, title, artist) {
 }
 
 export async function fetchSong(apiKey, title, artist) {
-    const options = { apiKey, title, artist, optimizeQuery: true };
+    // Keeping the artist in the query is important; the package's optimizer can rank unrelated songs first.
+    const options = { apiKey, title, artist, optimizeQuery: false };
     try {
         const song = await getSong(options);
         if (!song) return null;
@@ -32,7 +34,8 @@ export async function fetchSong(apiKey, title, artist) {
 }
 
 // CLI çalıştırma kısmı
-const [,, apiKey, songTitle, artistName] = process.argv;
+// The shell calls this as: <api-key> <artist> <title>.
+const [,, apiKey, artistName, songTitle] = process.argv;
 
 if (apiKey && songTitle && artistName) {
     (async () => {

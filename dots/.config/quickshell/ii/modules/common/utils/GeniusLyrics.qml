@@ -16,6 +16,11 @@ Item {
     readonly property var geniusApiKey: KeyringStorage.keyringData?.apiKeys?.genius
 
     function fetchLyrics(artist, title) {
+        if (!root.geniusApiKey) {
+            console.warn("[Genius Lyrics] No API key configured; use /genius YOUR_API_KEY")
+            return
+        }
+
         console.log("[Genius Lyrics] Fetching lyrics for", artist, "-", title)
         fetchLyricsProcess.command = ["node", Directories.geniusLyricsScriptPath, root.geniusApiKey, artist, title]
         fetchLyricsProcess.running = true

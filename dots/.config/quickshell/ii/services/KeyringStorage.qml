@@ -31,6 +31,8 @@ Singleton {
     )
     property string keyringLabel: Translation.tr("%1 Safe Storage").arg("illogical-impulse")
 
+    Component.onCompleted: root.fetchKeyringData()
+
     function setNestedField(path, value) {
         if (!root.keyringData) root.keyringData = {};
         let keys = path;

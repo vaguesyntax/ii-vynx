@@ -23,6 +23,7 @@ Item {
 
     property bool useFixedSize: Config.options.bar.mediaPlayer.useFixedSize
     readonly property bool lyricsEnabled: Config.options.bar.mediaPlayer.lyrics.enable
+    readonly property bool hasLyrics: LyricsService.hasSyncedLines || LyricsService.geniusHasLyrics
     readonly property bool useGradientMask: Config.options.bar.mediaPlayer.lyrics.useGradientMask
     readonly property string lyricsStyle: Config.options.bar.mediaPlayer.lyrics.style
     readonly property bool artworkEnabled: Config.options.bar.mediaPlayer.artwork.enable
@@ -33,7 +34,7 @@ Item {
 
     property int textMetricsSpacing: artworkEnabled ? 70 : 50 // text metrics returns width without spacing
     property int textMetricsAdvance: Math.min(textMetrics.advanceWidth + textMetricsSpacing, Config.options.bar.mediaPlayer.maxSize)
-    implicitWidth: LyricsService.hasSyncedLines && root.lyricsEnabled ? lyricsCustomSize : useFixedSize ? customSize : textMetricsAdvance
+    implicitWidth: root.hasLyrics && root.lyricsEnabled ? lyricsCustomSize : useFixedSize ? customSize : textMetricsAdvance
     implicitHeight: Appearance.sizes.barHeight
 
     Behavior on implicitWidth {
@@ -150,7 +151,7 @@ Item {
     }
 
     StyledText {
-        visible: (!LyricsService.hasSyncedLines || !lyricsEnabled)
+        visible: (!root.hasLyrics || !lyricsEnabled)
         anchors {
             horizontalCenter: parent.horizontalCenter
             horizontalCenterOffset: artworkEnabled ? 0 : mediaCircProgSlot.width / 2
@@ -181,7 +182,7 @@ Item {
             anchors.centerIn: parent
 
             Loader {
-                active: lyricsStyle == "static"
+                active: lyricsStyle == "static" || (!LyricsService.hasSyncedLines && LyricsService.geniusHasLyrics)
                 anchors.fill: parent
                 anchors.centerIn: parent
                 sourceComponent: LyricsStatic {
@@ -192,7 +193,7 @@ Item {
             }
 
             Loader {
-                active: lyricsStyle == "scroller"
+                active: lyricsStyle == "scroller" && LyricsService.hasSyncedLines
                 anchors.fill: parent
                 sourceComponent: LyricScroller {
                     id: lyricScroller
@@ -200,7 +201,7 @@ Item {
                     anchors.fill: parent
                     visible: lyricsStyle == "scroller" && LyricsService.hasSyncedLines
                     
-                    defaultLyricsSize: Appearance.font.pixelSize.smallest
+                    defaultLyricsSize: Appearance.font.pixelSize.smallie - 2
                     useGradientMask: root.useGradientMask
                     halfVisibleLines: 1
                     downScale: 0.98

@@ -1,0 +1,6 @@
+{
+  "type": "module",
+  "dependencies": {
+    "genius-lyrics-api": "^3.2.1"
+  }
+}
