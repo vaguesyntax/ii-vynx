@@ -8,6 +8,26 @@ CYAN='\033[1;36m'
 NC='\033[0m' # white
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONFIG_DIR="$HOME/.config"
+CHECK_DIR="$CONFIG_DIR/illogical-impulse"
+TARGET_DIR="$CONFIG_DIR/quickshell/ii"
+SOURCE_DIR="$SCRIPT_DIR/dots/.config/quickshell/ii"
+QUICKSHELL_OVERRIDES_DIR="$CONFIG_DIR/quickshell/ii-overrides"
+QUICKSHELL_BASELINE_DIR="$HOME/.local/state/vynx/quickshell-base"
+PROTECTED_QUICKSHELL_PATHS=(
+    "modules/common/widgets"
+    "modules/ii/background"
+    "modules/ii/bar"
+    "modules/ii/sidebarDashboard"
+    "modules/ii/sidebarPolicies"
+    "modules/ii/desktopMenu"
+    "modules/ii/dropover"
+)
+PROTECTED_QUICKSHELL_FILES=(
+    "GlobalStates.qml"
+    "panelFamilies/IllogicalImpulseFamily.qml"
+    "modules/common/Config.qml"
+)
 
 INVOKED_AS="$(basename "$0")"
 if [[ "$INVOKED_AS" == "vynx" ]]; then
@@ -54,6 +74,8 @@ FORCE_INSTALL=false
 BACKUP=true
 FULL_INSTALL=false
 NO_CONFIRM=false
+CAPTURE_ONLY=false
+RESTORE_ONLY=false
 
 for arg in "$@"; do
     case $arg in
@@ -76,6 +98,12 @@ for arg in "$@"; do
             NO_CONFIRM=true
             FORCE_INSTALL=true
             ;;
+        --capture-only)
+            CAPTURE_ONLY=true
+            ;;
+        --restore-only)
+            RESTORE_ONLY=true
+            ;;
         *)
             echo -e "${RED}Unknown flag: $arg${NC}"
             echo "Usage: $0 [OPTIONS]"
@@ -95,6 +123,128 @@ done
 log_verbose() {
     if [ "$VERBOSE" = true ]; then
         echo -e "${BLUE}[VERBOSE] $1${NC}"
+    fi
+}
+
+quickshell_capture_overrides() {
+    [ -d "$TARGET_DIR" ] || return 0
+
+    mkdir -p "$QUICKSHELL_OVERRIDES_DIR"
+    local captured=0
+
+    for protected_path in "${PROTECTED_QUICKSHELL_PATHS[@]}"; do
+        local current_root="$TARGET_DIR/$protected_path"
+        [ -d "$current_root" ] || continue
+
+        while IFS= read -r -d '' current_file; do
+            local relative_path="${current_file#"$TARGET_DIR/"}"
+            local baseline_file="$QUICKSHELL_BASELINE_DIR/$relative_path"
+            local source_file="$SOURCE_DIR/$relative_path"
+            local override_file="$QUICKSHELL_OVERRIDES_DIR/$relative_path"
+
+            if [ -f "$baseline_file" ]; then
+                if cmp -s "$current_file" "$baseline_file"; then
+                    continue
+                fi
+            elif [ -f "$source_file" ] && cmp -s "$current_file" "$source_file"; then
+                continue
+            fi
+
+            if [ -f "$override_file" ] && cmp -s "$current_file" "$override_file"; then
+                continue
+            fi
+
+            mkdir -p "$(dirname "$override_file")"
+            cp -a "$current_file" "$override_file"
+            captured=$((captured + 1))
+        done < <(find "$current_root" -type f -print0)
+    done
+
+    for protected_file in "${PROTECTED_QUICKSHELL_FILES[@]}"; do
+        local current_file="$TARGET_DIR/$protected_file"
+        local baseline_file="$QUICKSHELL_BASELINE_DIR/$protected_file"
+        local source_file="$SOURCE_DIR/$protected_file"
+        local override_file="$QUICKSHELL_OVERRIDES_DIR/$protected_file"
+        [ -f "$current_file" ] || continue
+
+        if [ -f "$override_file" ] && cmp -s "$current_file" "$override_file"; then
+            continue
+        fi
+
+        mkdir -p "$(dirname "$override_file")"
+        cp -a "$current_file" "$override_file"
+        captured=$((captured + 1))
+    done
+
+    if [ "$captured" -gt 0 ]; then
+        echo -e "${GREEN}✓ Preserved $captured local Quickshell customization(s)${NC}"
+        echo -e "${BLUE}  Overrides: $QUICKSHELL_OVERRIDES_DIR${NC}"
+    fi
+}
+
+quickshell_restore_overrides() {
+    [ -d "$QUICKSHELL_OVERRIDES_DIR" ] || return 0
+
+    local restored=0
+    while IFS= read -r -d '' override_file; do
+        local relative_path="${override_file#"$QUICKSHELL_OVERRIDES_DIR/"}"
+        local target_file="$TARGET_DIR/$relative_path"
+        mkdir -p "$(dirname "$target_file")"
+        cp -a "$override_file" "$target_file"
+        restored=$((restored + 1))
+    done < <(find "$QUICKSHELL_OVERRIDES_DIR" -type f -print0)
+
+    if [ "$restored" -gt 0 ]; then
+        echo -e "${GREEN}✓ Restored $restored protected Quickshell customization(s)${NC}"
+    fi
+}
+
+quickshell_update_baseline() {
+    [ -d "$SOURCE_DIR" ] || return 0
+
+    mkdir -p "$QUICKSHELL_BASELINE_DIR"
+    for protected_path in "${PROTECTED_QUICKSHELL_PATHS[@]}"; do
+        local source_root="$SOURCE_DIR/$protected_path"
+        local baseline_root="$QUICKSHELL_BASELINE_DIR/$protected_path"
+        rm -rf "$baseline_root"
+        [ -d "$source_root" ] || continue
+        mkdir -p "$baseline_root"
+        cp -a "$source_root/." "$baseline_root/"
+    done
+
+    for protected_file in "${PROTECTED_QUICKSHELL_FILES[@]}"; do
+        local source_file="$SOURCE_DIR/$protected_file"
+        local baseline_file="$QUICKSHELL_BASELINE_DIR/$protected_file"
+        [ -f "$source_file" ] || continue
+        mkdir -p "$(dirname "$baseline_file")"
+        cp -a "$source_file" "$baseline_file"
+    done
+}
+
+if [ "$CAPTURE_ONLY" = true ]; then
+    quickshell_capture_overrides
+    quickshell_update_baseline
+    exit 0
+fi
+
+if [ "$RESTORE_ONLY" = true ]; then
+    quickshell_restore_overrides
+    quickshell_update_baseline
+    exit 0
+fi
+
+install_lyrics_dependencies() {
+    local LYRICS_DIR="$TARGET_DIR/scripts/lyrics"
+
+    if [ ! -f "$LYRICS_DIR/package.json" ]; then
+        return 0
+    fi
+
+    if command -v npm &> /dev/null; then
+        echo -e "${BLUE}• Installing Genius lyrics dependency...${NC}"
+        npm install --prefix "$LYRICS_DIR" --omit=dev --no-audit --no-fund
+    else
+        echo -e "${YELLOW}⚠ npm not found; Genius lyrics dependency was not installed.${NC}"
     fi
 }
 
@@ -231,6 +381,8 @@ log_verbose "FORCE_INSTALL=$FORCE_INSTALL"
 log_verbose "BACKUP=$BACKUP"
 log_verbose "FULL_INSTALL=$FULL_INSTALL"
 log_verbose "NO_CONFIRM=$NO_CONFIRM"
+log_verbose "CAPTURE_ONLY=$CAPTURE_ONLY"
+log_verbose "RESTORE_ONLY=$RESTORE_ONLY"
 
 if [ "$NO_CONFIRM" = true ]; then
     echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -272,16 +424,14 @@ if [ "$NO_CONFIRM" = false ]; then
     echo ""
 fi
 
-CONFIG_DIR="$HOME/.config"
-CHECK_DIR="$CONFIG_DIR/illogical-impulse"
-TARGET_DIR="$CONFIG_DIR/quickshell/ii"
-SOURCE_DIR="$SCRIPT_DIR/dots/.config/quickshell/ii"
-
 log_verbose "CONFIG_DIR=$CONFIG_DIR"
 log_verbose "CHECK_DIR=$CHECK_DIR"
 log_verbose "TARGET_DIR=$TARGET_DIR"
 log_verbose "SCRIPT_DIR=$SCRIPT_DIR"
 log_verbose "SOURCE_DIR=$SOURCE_DIR"
+
+# Capture local changes before pulling, so upstream changes are never mistaken for user changes.
+quickshell_capture_overrides
 
 if [ "$DO_PULL" = true ]; then
     echo -e "${NC}• Checking for updates...${NC}"
@@ -372,7 +522,10 @@ log_verbose "Copying from $SOURCE_DIR to $TARGET_DIR"
 cp -r "$SOURCE_DIR/." "$TARGET_DIR/"
 
 if [ $? -eq 0 ]; then
+    quickshell_restore_overrides
+    quickshell_update_baseline
     echo -e "${GREEN}✓ Successfully copied: $TARGET_DIR${NC}"
+    install_lyrics_dependencies
     sleep 1.0
     setup_hyprland_overrides
 else

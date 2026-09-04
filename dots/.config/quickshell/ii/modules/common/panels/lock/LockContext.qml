@@ -61,6 +61,7 @@ Scope {
 
     function tryUnlock(alsoInhibitIdle = false) {
         root.alsoInhibitIdle = alsoInhibitIdle;
+        stopFingerPam();
         root.unlockInProgress = true;
         pam.start();
     }
@@ -97,6 +98,10 @@ Scope {
     
     PamContext {
         id: pam
+
+        // Use a dedicated password-only PAM profile instead of the login profile.
+        configDirectory: "pam"
+        config: "password.conf"
 
         // pam_unix will ask for a response for the password prompt
         onPamMessage: {

@@ -55,7 +55,8 @@ Scope {
 
     Process {
         id: cavaProc
-        running: mediaControlsLoader.active
+        // Keep cava alive so opening/closing the popup does not repeatedly attach/detach an audio capture stream.
+        running: true
         onRunningChanged: {
             if (!cavaProc.running) {
                 root.visualizerPoints = [];
