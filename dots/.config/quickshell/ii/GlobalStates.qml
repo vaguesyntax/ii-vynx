@@ -39,6 +39,7 @@ Singleton {
 
     property bool dashboardPanelOpen: false // formerly sidebarRightOpen
     property bool policiesPanelOpen: false  // formerly sidebarLeftOpen
+    property bool desktopWidgetKeyboardFocus: false
 
     readonly property bool effectiveLeftOpen: {
         switch (Config.options.sidebar.position) {
