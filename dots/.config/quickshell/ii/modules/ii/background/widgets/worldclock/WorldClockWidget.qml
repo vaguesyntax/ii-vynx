@@ -30,6 +30,7 @@ AbstractBackgroundWidget {
     property bool showingSettings: false
 
     onShowingSettingsChanged: GlobalStates.desktopWidgetKeyboardFocus = showingSettings
+    Component.onDestruction: GlobalStates.desktopWidgetKeyboardFocus = false
 
     function toggleFlip() { flipAnim.start() }
 

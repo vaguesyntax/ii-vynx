@@ -19,9 +19,8 @@ AbstractBackgroundWidget {
     property int cardWidth: 276
     property int blurMargin: 18
     property int avatarSize: 64
-    property string hostname: SystemInfo.hostname
     property string username: SystemInfo.username
-    property string userDisplay: username.length > 10 ? username : (username + "@" + hostname)
+    property string userDisplay: username
     property var currentQuip: weatherQuip()
 
 

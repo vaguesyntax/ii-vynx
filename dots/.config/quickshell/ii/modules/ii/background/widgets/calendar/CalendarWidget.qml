@@ -37,7 +37,16 @@ AbstractBackgroundWidget {
     }
 
     property int monthShift: 0
-    readonly property var today: new Date()
+    property var today: new Date()
+
+    Timer {
+        id: currentDateRefreshTimer
+        interval: 60000
+        running: true
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.today = new Date()
+    }
 
     property var viewingDate: {
         let d = new Date()

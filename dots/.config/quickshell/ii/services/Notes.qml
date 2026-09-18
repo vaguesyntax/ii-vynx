@@ -12,7 +12,7 @@ import QtQuick
  */
 Singleton {
     id: root
-    property string filePath: Directories.notesPath
+    property string filePath: Directories.desktopNotesPath
     property var list: []
 
     function addNote(content, attachments) {

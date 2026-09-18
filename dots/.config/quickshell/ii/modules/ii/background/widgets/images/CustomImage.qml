@@ -140,7 +140,7 @@ AbstractBackgroundWidget {
                 }
                 onDropped: (drop) => {
                     if (drop.hasUrls && drop.urls.length > 0) {
-                        var cleanPath = drop.urls[0].toString().replace(/^file:\/\//, "")
+                        var cleanPath = decodeURIComponent(drop.urls[0].toString().replace(/^file:\/\//, ""))
                         var ext = cleanPath.split(".").pop().toLowerCase()
                         var accepted = ["png","jpg","jpeg","webp","avif","bmp","gif","tiff","tif"]
                         if (accepted.indexOf(ext) !== -1) {

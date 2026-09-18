@@ -20,7 +20,11 @@ AbstractBackgroundWidget {
     property string mode: "list" // "list" | "edit"
     property var pendingNoteId: null
     property string editingText: ""
-    onModeChanged: GlobalStates.desktopWidgetKeyboardFocus = (mode === "edit")
+    onModeChanged: {
+        GlobalStates.desktopWidgetKeyboardFocus = (mode === "edit");
+        if (mode === "edit") Qt.callLater(() => editTextArea.forceActiveFocus());
+    }
+    Component.onDestruction: GlobalStates.desktopWidgetKeyboardFocus = false
 
     function toggleFlip() { flipAnim.start() }
 
