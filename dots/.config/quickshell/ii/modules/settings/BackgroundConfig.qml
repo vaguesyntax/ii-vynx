@@ -285,6 +285,82 @@ ContentPage {
     }
 
     ContentSection {
+        icon: "widgets"
+        title: Translation.tr("Desktop widgets")
+
+        ConfigSwitch {
+            buttonIcon: "lock"
+            text: Translation.tr("Lock widget positions")
+            checked: Config.options.background.widgetsLocked
+            onCheckedChanged: Config.options.background.widgetsLocked = checked
+        }
+
+        ConfigRow {
+            uniform: true
+            ConfigSwitch {
+                buttonIcon: "calendar_month"
+                text: Translation.tr("Calendar")
+                checked: Config.options.background.widgets.calendar.enable
+                onCheckedChanged: Config.options.background.widgets.calendar.enable = checked
+            }
+            ConfigSwitch {
+                buttonIcon: "language"
+                text: Translation.tr("World clock")
+                checked: Config.options.background.widgets.worldClock.enable
+                onCheckedChanged: Config.options.background.widgets.worldClock.enable = checked
+            }
+        }
+
+        ConfigRow {
+            uniform: true
+            ConfigSwitch {
+                buttonIcon: "note"
+                text: Translation.tr("Notes")
+                checked: Config.options.background.widgets.notes.enable
+                onCheckedChanged: Config.options.background.widgets.notes.enable = checked
+            }
+            ConfigSwitch {
+                buttonIcon: "account_circle"
+                text: Translation.tr("User card")
+                checked: Config.options.background.widgets.userCard.enable
+                onCheckedChanged: Config.options.background.widgets.userCard.enable = checked
+            }
+        }
+
+        ConfigRow {
+            uniform: true
+            ConfigSwitch {
+                buttonIcon: "image"
+                text: Translation.tr("Image converter")
+                checked: Config.options.background.widgets.imageConverter.enable
+                onCheckedChanged: Config.options.background.widgets.imageConverter.enable = checked
+            }
+            ConfigSwitch {
+                buttonIcon: "add_photo_alternate"
+                text: Translation.tr("Custom image")
+                checked: Config.options.background.widgets.customImage.enable
+                onCheckedChanged: Config.options.background.widgets.customImage.enable = checked
+            }
+        }
+
+        ConfigRow {
+            uniform: true
+            ConfigSwitch {
+                buttonIcon: "monitoring"
+                text: Translation.tr("Resources")
+                checked: Config.options.background.widgets.resources.enable
+                onCheckedChanged: Config.options.background.widgets.resources.enable = checked
+            }
+            ConfigSwitch {
+                buttonIcon: "equalizer"
+                text: Translation.tr("Visualizer")
+                checked: Config.options.background.widgets.visualizer.enable
+                onCheckedChanged: Config.options.background.widgets.visualizer.enable = checked
+            }
+        }
+    }
+
+    ContentSection {
         id: settingsClock
         icon: "clock_loader_40"
         title: Translation.tr("Widget: Clock")
