@@ -1,5 +1,6 @@
 import QtQuick
 
+// Ported and adapted from https://github.com/pctrade/end4-pC.
 Item {
     id: effect
     property Item frontImg

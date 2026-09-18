@@ -108,7 +108,7 @@ Item {
         anchors.fill: parent
         // Visible if backImg OR (if frontImg and no hideFront requested during transition)
         visible: root.imgAIsBack || (!root.transitionActive || !effectLoader.item || effectLoader.item.hideFront === false)
-        layer.enabled: !visible && root.transitionActive 
+        layer.enabled: root.transitionActive
         z:       root.imgAIsBack ? 0 : 1
 
         fillMode:     root.fillMode
@@ -132,7 +132,7 @@ Item {
         id: imgB
         anchors.fill: parent
         visible: !root.imgAIsBack || (!root.transitionActive || !effectLoader.item || effectLoader.item.hideFront === false)
-        layer.enabled: !visible && root.transitionActive
+        layer.enabled: root.transitionActive
         z:       !root.imgAIsBack ? 0 : 1
 
         fillMode:     root.fillMode
