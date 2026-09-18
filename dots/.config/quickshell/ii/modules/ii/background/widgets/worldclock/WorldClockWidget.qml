@@ -28,9 +28,19 @@ AbstractBackgroundWidget {
     property string localDate: Qt.locale().toString(new Date(), "dddd, MMMM dd yyyy")
     property var worldCities: WorldClock.entries
     property bool showingSettings: false
+    property bool keyboardFocusHeld: false
 
-    onShowingSettingsChanged: GlobalStates.desktopWidgetKeyboardFocus = showingSettings
-    Component.onDestruction: GlobalStates.desktopWidgetKeyboardFocus = false
+    function setKeyboardFocusRequested(requested) {
+        if (requested === root.keyboardFocusHeld) return;
+        root.keyboardFocusHeld = requested;
+        if (requested)
+            GlobalStates.acquireDesktopWidgetKeyboardFocus();
+        else
+            GlobalStates.releaseDesktopWidgetKeyboardFocus();
+    }
+
+    onShowingSettingsChanged: root.setKeyboardFocusRequested(showingSettings)
+    Component.onDestruction: root.setKeyboardFocusRequested(false)
 
     function toggleFlip() { flipAnim.start() }
 

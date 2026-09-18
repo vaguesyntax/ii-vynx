@@ -20,11 +20,22 @@ AbstractBackgroundWidget {
     property string mode: "list" // "list" | "edit"
     property var pendingNoteId: null
     property string editingText: ""
+    property bool keyboardFocusHeld: false
+
+    function setKeyboardFocusRequested(requested) {
+        if (requested === root.keyboardFocusHeld) return;
+        root.keyboardFocusHeld = requested;
+        if (requested)
+            GlobalStates.acquireDesktopWidgetKeyboardFocus();
+        else
+            GlobalStates.releaseDesktopWidgetKeyboardFocus();
+    }
+
     onModeChanged: {
-        GlobalStates.desktopWidgetKeyboardFocus = (mode === "edit");
+        root.setKeyboardFocusRequested(mode === "edit");
         if (mode === "edit") Qt.callLater(() => editTextArea.forceActiveFocus());
     }
-    Component.onDestruction: GlobalStates.desktopWidgetKeyboardFocus = false
+    Component.onDestruction: root.setKeyboardFocusRequested(false)
 
     function toggleFlip() { flipAnim.start() }
 

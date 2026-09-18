@@ -49,7 +49,7 @@ AbstractBackgroundWidget {
     }
 
     property var viewingDate: {
-        let d = new Date()
+        let d = new Date(root.today)
         d.setDate(1)
         d.setMonth(d.getMonth() + monthShift)
         return d
