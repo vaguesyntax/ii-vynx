@@ -152,7 +152,7 @@ Item {
                                 }
 
                                 StyledText {
-                                    text: (Config.options.profile.displayName === "" ? SystemInfo.username : Config.options.profile.displayName) + "@" + SystemInfo.hostname
+                                    text: Config.options.profile.displayName === "" ? SystemInfo.username : Config.options.profile.displayName
                                     font.pixelSize: Appearance.font.pixelSize.small
                                     font.weight: Font.DemiBold
                                     color: Appearance.colors.colOnLayer1
