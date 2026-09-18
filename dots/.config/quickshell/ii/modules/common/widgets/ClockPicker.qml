@@ -9,6 +9,7 @@ Item {
     id: root
     implicitWidth: 200
     implicitHeight: 200
+    property bool editable: false
     property int value: 25
     property bool running: false
     signal dragFinished(int value)
@@ -111,7 +112,7 @@ Item {
 
     MouseArea {
         anchors.fill: parent
-        enabled: !root.running
+        enabled: root.editable
         preventStealing: true
         cursorShape: Qt.PointingHandCursor
         function valueForPoint(x, y) {
