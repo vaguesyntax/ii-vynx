@@ -1,6 +1,7 @@
 # Contributing
 
 - Please, please, please, make multiple PRs if you have many features/fixes, and don't shove your personal changes along with the PR, including changed defaults
+- And please also add a video guide showcasing every feature.
 - We can accept features that we do not personally want, but in that case we will ask you to make it configurable/optionally loaded.
 - If you want to start working on something _big_ to contribute, it might be a good idea to ask first to not waste your effort (but if you've already done it for yourself, it doesn't hurt to submit).
 
