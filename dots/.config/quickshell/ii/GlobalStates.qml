@@ -39,6 +39,16 @@ Singleton {
 
     property bool dashboardPanelOpen: false // formerly sidebarRightOpen
     property bool policiesPanelOpen: false  // formerly sidebarLeftOpen
+    property int desktopWidgetKeyboardFocusRequests: 0
+    readonly property bool desktopWidgetKeyboardFocus: desktopWidgetKeyboardFocusRequests > 0
+
+    function acquireDesktopWidgetKeyboardFocus() {
+        desktopWidgetKeyboardFocusRequests++;
+    }
+
+    function releaseDesktopWidgetKeyboardFocus() {
+        desktopWidgetKeyboardFocusRequests = Math.max(0, desktopWidgetKeyboardFocusRequests - 1);
+    }
 
     readonly property bool effectiveLeftOpen: {
         switch (Config.options.sidebar.position) {

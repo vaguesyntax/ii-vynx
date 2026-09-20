@@ -7,6 +7,7 @@ Item {
 
     signal clicked(event: var)
     property alias iconText: fabWidget.iconText
+    property alias baseSize: fabWidget.baseSize
     default property alias fabData: fabWidget.data
     property bool enableShadow: true
 
