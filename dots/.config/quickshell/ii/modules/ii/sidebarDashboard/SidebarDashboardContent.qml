@@ -5,6 +5,7 @@ import qs.modules.common.widgets
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Qt5Compat.GraphicalEffects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Bluetooth
@@ -64,12 +65,149 @@ Item {
             anchors.margins: sidebarPadding
             spacing: sidebarPadding
 
-            SystemButtonRow {
+            Loader {
                 Layout.fillHeight: false
                 Layout.fillWidth: true
-                // Layout.margins: 10
                 Layout.topMargin: 5
                 Layout.bottomMargin: 0
+                sourceComponent: Config.options.sidebar.profileBannerEnabled ? profileBanner : systemButtons
+
+                Component {
+                    id: profileBanner
+
+                    Item {
+                        implicitHeight: 180
+                        implicitWidth: parent?.width ?? 0
+
+                        Rectangle {
+                            id: bannerCard
+                            anchors.fill: parent
+                            radius: Appearance.rounding.normal
+                            color: Appearance.colors.colLayer1
+
+                            StyledImage {
+                                id: bannerImage
+                                anchors {
+                                    top: parent.top
+                                    left: parent.left
+                                    right: parent.right
+                                    margins: 2
+                                }
+                                height: 120
+                                fillMode: Image.PreserveAspectCrop
+                                source: Config.options.sidebar.profileBannerImage !== "" ? Config.options.sidebar.profileBannerImage : Config.options.background.wallpaperPath
+                                cache: false
+                                sourceSize.width: width * 2
+                                sourceSize.height: height * 2
+                                layer.enabled: true
+                                layer.effect: OpacityMask {
+                                    maskSource: Rectangle {
+                                        width: bannerImage.width
+                                        height: bannerImage.height
+                                        radius: bannerCard.radius
+                                    }
+                                }
+                            }
+
+                            Column {
+                                anchors {
+                                    left: parent.left
+                                    bottom: parent.bottom
+                                    leftMargin: 13
+                                    bottomMargin: 8
+                                }
+                                spacing: 1
+
+                                Rectangle {
+                                    id: avatarFrame
+                                    width: 48
+                                    height: 48
+                                    radius: width / 2
+                                    color: Appearance.colors.colPrimaryContainer
+
+                                    Image {
+                                        id: avatarImage
+                                        anchors.fill: parent
+                                        source: Config.options.profile.avatarPicture !== "" ? "file://" + Config.options.profile.avatarPicture : "file://" + Directories.userAvatarPathRicersAndWeirdSystems
+                                        sourceSize.width: width * 2
+                                        sourceSize.height: height * 2
+                                        fillMode: Image.PreserveAspectCrop
+                                        layer.enabled: true
+                                        layer.effect: OpacityMask {
+                                            maskSource: Rectangle {
+                                                width: avatarFrame.width
+                                                height: avatarFrame.height
+                                                radius: avatarFrame.radius
+                                            }
+                                        }
+                                    }
+
+                                    MaterialSymbol {
+                                        anchors.centerIn: parent
+                                        text: "account_circle"
+                                        iconSize: 32
+                                        color: Appearance.colors.colOnPrimaryContainer
+                                        visible: avatarImage.status === Image.Error
+                                    }
+                                }
+
+                                StyledText {
+                                    text: Config.options.profile.displayName === "" ? SystemInfo.username : Config.options.profile.displayName
+                                    font.pixelSize: Appearance.font.pixelSize.small
+                                    font.weight: Font.DemiBold
+                                    color: Appearance.colors.colOnLayer1
+                                }
+
+                                StyledText {
+                                    text: Config.options.profile.descriptionText === "::distro::" ? SystemInfo.distroName : Config.options.profile.descriptionText
+                                    font.pixelSize: Appearance.font.pixelSize.smaller
+                                    color: Appearance.colors.colOnLayer1
+                                    opacity: 0.6
+                                }
+                            }
+
+                            ButtonGroup {
+                                anchors {
+                                    right: parent.right
+                                    bottom: parent.bottom
+                                    margins: 4
+                                }
+                                color: "transparent"
+                                padding: 4
+
+                                QuickToggleButton {
+                                    toggled: root.editMode
+                                    visible: Config.options.sidebar.quickToggles.style === "android"
+                                    buttonIcon: "edit"
+                                    onClicked: root.editMode = !root.editMode
+                                }
+                                QuickToggleButton {
+                                    buttonIcon: "restart_alt"
+                                    onClicked: {
+                                        Quickshell.execDetached(["hyprctl", "reload"])
+                                        Quickshell.reload(true)
+                                    }
+                                }
+                                QuickToggleButton {
+                                    buttonIcon: "settings"
+                                    onClicked: {
+                                        GlobalStates.sidebarRightOpen = false
+                                        Quickshell.execDetached(["qs", "-p", root.settingsQmlPath])
+                                    }
+                                }
+                                QuickToggleButton {
+                                    buttonIcon: "power_settings_new"
+                                    onClicked: GlobalStates.sessionOpen = true
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Component {
+                    id: systemButtons
+                    SystemButtonRow {}
+                }
             }
 
             Loader {
