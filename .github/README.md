@@ -24,6 +24,9 @@
     <h2>warning</h2>
 </div>
 
+> [!WARNING]
+> These dots are not maintained for 4 months and will not be maintained for another 7-8 months.
+
 This setup is a personal fork of the awesome **illogical-impulse** dots (find the original [here](https://github.com/end-4/dots-hyprland)). 
 
 It’s my daily driver, meaning I keep it up to date but **I also break things for fun. Expect bugs and stability issues.** Use it at your own risk!
