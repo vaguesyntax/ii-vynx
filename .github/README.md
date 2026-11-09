@@ -25,11 +25,9 @@
 </div>
 
 > [!WARNING]
-> These dots are not maintained for 4 months and will not be maintained for another 7-8 months.
+> These dots have not been maintained for past 4 months and will not be maintained for another 7 months. It's still functional (i hope). However, I recommend that you use the original end-4 dots. PRs are welcome for fixes and features.
 
 This setup is a personal fork of the awesome **illogical-impulse** dots (find the original [here](https://github.com/end-4/dots-hyprland)). 
-
-It’s my daily driver, meaning I keep it up to date but **I also break things for fun. Expect bugs and stability issues.** Use it at your own risk!
 
 * **Want to chat or report quick bugs?** Join the `#ii-vynx` channel in End-4's Discord.
 * **Found a real, system-melting issue?** Please open a proper ticket on [GitHub Issues](https://github.com/vaguesyntax/ii-vynx/issues) instead of spamming the chat.
