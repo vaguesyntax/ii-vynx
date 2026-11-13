@@ -317,6 +317,15 @@ ContentPage {
     ContentSection {  
         icon: "nest_clock_farsight_analog"  
         title: Translation.tr("Time")  
+
+        ConfigSwitch {
+            buttonIcon: "timer"
+            text: Translation.tr("Use clock picker for Pomodoro")
+            checked: Config.options.time.pomodoro.clockPicker
+            onCheckedChanged: {
+                Config.options.time.pomodoro.clockPicker = checked;
+            }
+        }
   
         ConfigSwitch {  
             buttonIcon: "pace"  

@@ -827,6 +827,7 @@ Singleton {
 
                 property JsonObject pomodoro: JsonObject {
                     property int breakTime: 300
+                    property bool clockPicker: false
                     property int cyclesBeforeLongBreak: 4
                     property int focus: 1500
                     property int longBreak: 900

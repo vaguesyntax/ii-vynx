@@ -7,6 +7,7 @@ import QtQuick.Layouts
 
 Item {
     id: root
+    property bool clockPickerDragging: false
     property var tabButtonList: [
         {"name": Translation.tr("Pomodoro"), "icon": "search_activity"},
         {"name": Translation.tr("Stopwatch"), "icon": "timer"}
@@ -66,9 +67,13 @@ Item {
             spacing: 10
             clip: true
             currentIndex: tabBar.currentIndex
+            interactive: !root.clockPickerDragging
 
             // Tabs
-            PomodoroTimer {}
+            PomodoroTimer {
+                onClockPickerDragStarted: root.clockPickerDragging = true
+                onClockPickerDragEnded: root.clockPickerDragging = false
+            }
             Stopwatch {}
         }
     }

@@ -9,6 +9,12 @@ import Quickshell
 
 Item {
     id: root
+    signal clockPickerDragStarted()
+    signal clockPickerDragEnded()
+
+    readonly property bool canEditDuration: !TimerService.pomodoroRunning
+        && !TimerService.pomodoroBreak
+        && TimerService.pomodoroSecondsLeft === TimerService.focusTime
 
     implicitHeight: contentColumn.implicitHeight
     implicitWidth: contentColumn.implicitWidth
@@ -18,35 +24,64 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        // The Pomodoro timer circle
-        CircularProgress {
+        Item {
             Layout.alignment: Qt.AlignHCenter
-            lineWidth: 8
-            value: {
-                return TimerService.pomodoroSecondsLeft / TimerService.pomodoroLapDuration;
+            implicitWidth: 200
+            implicitHeight: 200
+
+            Loader {
+                anchors.fill: parent
+                sourceComponent: Config.options.time.pomodoro.clockPicker ? clockPickerComponent : circularProgressComponent
             }
-            implicitSize: 200
-            enableAnimation: true
 
-            ColumnLayout {
-                anchors.centerIn: parent
-                spacing: 0
+            Component {
+                id: clockPickerComponent
 
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: {
-                        let minutes = Math.floor(TimerService.pomodoroSecondsLeft / 60).toString().padStart(2, '0');
-                        let seconds = Math.floor(TimerService.pomodoroSecondsLeft % 60).toString().padStart(2, '0');
-                        return `${minutes}:${seconds}`;
+                ClockPicker {
+                    value: Math.round(TimerService.focusTime / 60)
+                    editable: root.canEditDuration
+                    running: !root.canEditDuration
+                    onDragStarted: root.clockPickerDragStarted()
+                    onDragEnded: root.clockPickerDragEnded()
+                    onDragFinished: value => {
+                        if (!root.canEditDuration) return;
+                        Config.options.time.pomodoro.focus = value * 60;
+                        TimerService.pomodoroSecondsLeft = value * 60;
                     }
-                    font.pixelSize: 40
-                    color: Appearance.m3colors.m3onSurface
                 }
-                StyledText {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: TimerService.pomodoroLongBreak ? Translation.tr("Long break") : TimerService.pomodoroBreak ? Translation.tr("Break") : Translation.tr("Focus")
-                    font.pixelSize: Appearance.font.pixelSize.normal
-                    color: Appearance.colors.colSubtext
+            }
+
+            Component {
+                id: circularProgressComponent
+
+                CircularProgress {
+                    lineWidth: 8
+                    value: TimerService.pomodoroSecondsLeft / TimerService.pomodoroLapDuration
+                    implicitSize: 200
+                    enableAnimation: true
+
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        spacing: 0
+
+                        StyledText {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: {
+                                const minutes = Math.floor(TimerService.pomodoroSecondsLeft / 60).toString().padStart(2, "0");
+                                const seconds = Math.floor(TimerService.pomodoroSecondsLeft % 60).toString().padStart(2, "0");
+                                return `${minutes}:${seconds}`;
+                            }
+                            font.pixelSize: 40
+                            color: Appearance.m3colors.m3onSurface
+                        }
+
+                        StyledText {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: TimerService.pomodoroLongBreak ? Translation.tr("Long break") : TimerService.pomodoroBreak ? Translation.tr("Break") : Translation.tr("Focus")
+                            font.pixelSize: Appearance.font.pixelSize.normal
+                            color: Appearance.colors.colSubtext
+                        }
+                    }
                 }
             }
 
