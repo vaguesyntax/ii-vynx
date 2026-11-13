@@ -88,6 +88,12 @@ Singleton {
                 property int translator: 0 // 0: No | 1: Yes
             }
 
+            property JsonObject profile: JsonObject {
+                property string avatarPicture: ""
+                property string displayName: ""
+                property string descriptionText: "::distro::"
+            }
+
             property JsonObject extensions: JsonObject {
                 property bool enable: true
             }
@@ -731,6 +737,8 @@ Singleton {
 
             property JsonObject sidebar: JsonObject {
                 property string position: "default"
+                property bool profileBannerEnabled: false
+                property string profileBannerImage: ""
                 property bool keepRightSidebarLoaded: true
                 property JsonObject translator: JsonObject {
                     property bool enable: false

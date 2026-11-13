@@ -634,6 +634,13 @@ ContentPage {
         title: Translation.tr("Sidebars")
 
         ConfigSwitch {
+            buttonIcon: "account_box"
+            text: Translation.tr("Show profile banner")
+            checked: Config.options.sidebar.profileBannerEnabled
+            onCheckedChanged: Config.options.sidebar.profileBannerEnabled = checked
+        }
+
+        ConfigSwitch {
             buttonIcon: "memory"
             text: Translation.tr('Keep right sidebar loaded')
             checked: Config.options.sidebar.keepRightSidebarLoaded
