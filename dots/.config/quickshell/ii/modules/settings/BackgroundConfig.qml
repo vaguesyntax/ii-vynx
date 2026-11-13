@@ -86,6 +86,41 @@ ContentPage {
                         value: "crossfade"
                     },
                     {
+                        displayName: Translation.tr("Fade (shader)"),
+                        icon: "gradient",
+                        value: "fade"
+                    },
+                    {
+                        displayName: Translation.tr("Doom melt"),
+                        icon: "waterfall_chart",
+                        value: "doom"
+                    },
+                    {
+                        displayName: Translation.tr("Magic"),
+                        icon: "auto_awesome",
+                        value: "magic"
+                    },
+                    {
+                        displayName: Translation.tr("Peel"),
+                        icon: "layers",
+                        value: "peel"
+                    },
+                    {
+                        displayName: Translation.tr("Pixelate"),
+                        icon: "grid_on",
+                        value: "pixelate"
+                    },
+                    {
+                        displayName: Translation.tr("Stripes"),
+                        icon: "texture",
+                        value: "stripes"
+                    },
+                    {
+                        displayName: Translation.tr("Random ported effect"),
+                        icon: "shuffle",
+                        value: "random"
+                    },
+                    {
                         displayName: Translation.tr("Linear Wipe"),
                         icon: "swap_horiz",
                         value: "wipe"
